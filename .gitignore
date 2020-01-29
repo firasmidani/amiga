@@ -1,0 +1,17 @@
+# gitignore/Global/macOS.gitignore
+#
+# General
+.DS_Store
+
+# gitignore/Python.gitignore
+*.py[cod]
+
+# gitignore/community/Python/JupyterNotebooks.gitignore
+#
+*ipynb
+.ipynb_checkpoints
+*./ipynb_checkpoints/*
+#
+# remove previous ipynb checkpoints
+#  git rm -r .ipynb_checkpoints/
+
