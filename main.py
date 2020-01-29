@@ -8,7 +8,6 @@ __author__ = "Firas Said Midani"
 __verion__ = "0.1.0"
 __email__ = "midani@bcm.edu"
 
-import libs
 from libs import io
 
 #----------------------#
