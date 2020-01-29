@@ -15,3 +15,5 @@
 # remove previous ipynb checkpoints
 #  git rm -r .ipynb_checkpoints/
 
+# gitignore Vim-created swp files
+*.swp
