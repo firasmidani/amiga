@@ -650,6 +650,18 @@ def checkFileEncoding(filepath):
 
     return filepath
 
+def checkFileEncoding2(filepath):
+    '''
+    test
+    '''
+
+    for i in ['UTF-8','UTF-16','UTF-32','ASCII']: # not sure if ASCII is necessary since ASCII is a subset of UTF-8
+        try:
+            open(filepath,'r',encoding=i).readline()
+            return i
+        except UnicodeDecodeError:
+            pass
+ 
 
 def readPlateReaderData(filepath,interval,copydirectory):
     '''
