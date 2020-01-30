@@ -312,7 +312,9 @@ def mapDirectories(parent):
     children = ['data','derived','mapping','summary','parameters','figures']
 
     for child in children:
-        directory[child] = '{}/{}'.format(directory['parent'],child)
+
+        sep = ['' if parent[-1]=='/' else '/'][0]
+        directory[child] = '{}{}{}'.format(parent,sep,child)
 
     return directory
 
