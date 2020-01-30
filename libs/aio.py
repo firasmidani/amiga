@@ -589,8 +589,9 @@ def readPlateReaderData(filepath,interval,copydirectory):
         df.index = parseWellLayout(order_axis=0).index.values
 
     # explicilty assign column names 
-    df.index.name = 'Well' # well disappears
     df.T.index.name = 'Time'
+
+    print(df.head)
 
     # remove columns (time points) with only NA values (sometimes happends in plate reader files)
     df = df.iloc[:,np.where(~df.isna().all(0))[0]]
@@ -598,6 +599,8 @@ def readPlateReaderData(filepath,interval,copydirectory):
 
     # set to following format: time point (row) by well (column)
     df = df.T.reset_index(drop=False) # values are OD (float) except first column is time (float)
+
+    print(df.head)
 
     # save derived data copy in proper location
     df.to_csv(newfilepath,sep='\t',header=True)  # does it save header index name (i.e. Time)
@@ -665,14 +668,16 @@ def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose
 
     # user may have passed a specific file or a directory to the input argument
     if filename:
-        filepaths = '{}/{}'.format(folderpath,filename)
+        filepaths = ['{}/{}'.format(folderpath,filename)]
     else:
         filepaths = findPlateReaderFiles(folderpath)
+    # either way, filepaths must be an iterable list or array
 
     # read one data file at a time
     df_dict = {}
     for filepath in sorted(filepaths):
-
+        
+        # communicate with user
         print('Reading {}'.format(filepath))
 
         # get extension-free file name and path for derived copy
@@ -690,7 +695,6 @@ def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose
 
     print()  # print empty newline
 
-    print(len(df_dict))
     return df_dict
 
 
