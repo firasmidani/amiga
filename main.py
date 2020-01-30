@@ -45,7 +45,7 @@ df_meta,df_meta_plates = aio.checkMetaText(files['meta'],verbose=args['verbose']
 print(aio.tidyMessage('AMiGA is parsing and cleaning data files'))
 
 # parse data files
-data = aio.readPlateReaderFolder(filename,directory,save=True,verbose=args['verbose'])
+data = aio.readPlateReaderFolder(filename,directory,save=args['sdd'],verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))

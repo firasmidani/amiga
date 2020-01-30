@@ -90,7 +90,6 @@ def parseCommand():
 
     # parse arguments 
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser()
     parser.add_argument('-i','--input',required=True)
     parser.add_argument('-f','--flag',required=False)
     parser.add_argument('-s','--subset',required=False)
@@ -98,6 +97,7 @@ def parseCommand():
     parser.add_argument('-t','--interval',required=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
+    parser.add_argument('--save-derived-data',action='store_true',default=False)
 
     # pass arguments to local variables 
     args = parser.parse_args()
@@ -107,7 +107,8 @@ def parseCommand():
     args_dict['hypothesis'] = args.hypothesis
     args_dict['interval'] = args.interval
     args_dict['verbose'] = args.verbose
-    args_dict['only_plot_plate'] = args.only_plot_plate
+    args_dict['opp'] = args.only_plot_plate
+    args_dict['sdd'] = args.save_derived_data
 
     # summarize command-line artguments and print
     if args_dict['verbose']:
