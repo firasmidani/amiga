@@ -556,7 +556,7 @@ def checkFileEncoding(filepath):
     sys.exit(msg) 
  
 
-def readPlateReaderData(filepath,interval,copydirectory):
+def readPlateReaderData(filepath,interval,copydirectory,save=False):
     '''
     Reads a single file and adjusts it to AMiGA-desired format. The desired format is 
         time point (row) by well (col, where first column is actual time point, so row
@@ -568,12 +568,11 @@ def readPlateReaderData(filepath,interval,copydirectory):
         copydirectory (str): location  
     '''
 
+    # initialize useful derivatives of filepath
     filename,filebase,newfilepath = breakDownFilePath(filepath,copydirectory)
 
     # make sure file is ASCII- or BOM-encoded
-    #filepath = checkFileEncoding(filepath)
     encoding = checkFileEncoding(filepath)
-
 
     # identify number of rows to skip and presence/location of index column (i.e. row names)
     skiprows,index_col = findFirstRow(filepath,encoding=encoding)
@@ -591,8 +590,6 @@ def readPlateReaderData(filepath,interval,copydirectory):
     # explicilty assign column names 
     df.T.index.name = 'Time'
 
-    print(df.head)
-
     # remove columns (time points) with only NA values (sometimes happends in plate reader files)
     df = df.iloc[:,np.where(~df.isna().all(0))[0]]
     df = df.astype(float)
@@ -600,10 +597,9 @@ def readPlateReaderData(filepath,interval,copydirectory):
     # set to following format: time point (row) by well (column)
     df = df.T.reset_index(drop=False) # values are OD (float) except first column is time (float)
 
-    print(df.head)
-
     # save derived data copy in proper location
-    df.to_csv(newfilepath,sep='\t',header=True)  # does it save header index name (i.e. Time)
+    if save:
+        df.to_csv(newfilepath,sep='\t',header=True)  # does it save header index name (i.e. Time)
 
     return df
 
@@ -651,7 +647,7 @@ def parseWellLayout():
     return df
 
 
-def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose=False):
+def readPlateReaderFolder(filename,directory,interval_dict={},save=False,verbose=False):
     '''
     Finds, reads, and formats all files in a directory to be AMiGA-compatible.
 
@@ -690,10 +686,10 @@ def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose
             plate_interval = interval_default
 
         # read and adjust file to format: time by wells where first column is time and rest are ODs
-        df = readPlateReaderData(filepath,plate_interval,copydirectory)
+        df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)
         df_dict[filebase] = df
 
-    print()  # print empty newline
+    print()  # print empty newline, for visual asethetics only
 
     return df_dict
 
