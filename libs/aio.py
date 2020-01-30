@@ -452,25 +452,6 @@ def isFileOrFolder(filepath):
         return parent,None
 
 
-#def parseData(filename,args,directory,parms,interval=default_interval):
-#    '''
-#    '''
-#
-#    data = {}
-#    if filename:
-#        list_data = [filename]
-#        filepath = args['fpath']
-#        filebase = ''.join(filename.split('.')[:-1]) # name without extenstion (i.e. Plate_ID)
-#        interval = [params['interval'][0] if (filebase in interval_dict.keys()) else default_interval][0]
-#        data[filebase] = plates.readPlateReaderData(
-#            filepath,interval=interval,save=True,save_dirname=directory['derived'],
-#            interval=default_interval,interval_dict=interval_dict)
-#    else:
-#        list_data = sorted(os.listdir(directory['data']))
-#        data = readPlateReaderFolder(
-#            folderpath=directory['data'],save=True,save_dirname=directory['derived'],
-#            interval=default_interval,interval_dict 
-
 def findPlateReaderFiles(directory):
     '''
     Recrusivelys searches a directory for all files with specific extensions.
@@ -669,7 +650,14 @@ def parseWellLayout():
 
 def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose=False):
     '''
-    Finds, reads, and formats all files in a directory to be AMiGA-compatible. 
+    Finds, reads, and formats all files in a directory to be AMiGA-compatible.
+
+    Args:
+        filename (str or None): str indicates user is intersted in a single data file, None otherwise
+        directory (dictionary): keys are folder names, values are their paths
+        save (boolean): 
+        interval_dict (dictionary)
+        verbose (boolean)
     '''
 
     folderpath = directory['data']
@@ -700,6 +688,9 @@ def readPlateReaderFolder(filename,directory,save=False,interval_dict={},verbose
         df = readPlateReaderData(filepath,plate_interval,copydirectory)
         df_dict[filebase] = df
 
+    print()  # print empty newline
+
+    print(len(df_dict))
     return df_dict
 
 
