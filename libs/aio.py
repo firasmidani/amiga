@@ -573,7 +573,7 @@ def BOM_to_CSV(filepath,newfilepath,encoding):
     return newfilepath
 
 
-def findFirstRow(filepath):
+def findFirstRow(filepath,encoding):
     '''
     Searches for line beginning with the Well ID "A1", determines the number of
         rows that need to be skipped for reading this line, and indicates if
@@ -587,7 +587,7 @@ def findFirstRow(filepath):
         index_column (0 or None): location of row namess, if found as first character (0) or not found (None) 
     '''
 
-    fid = open(filepath,'r')
+    fid = open(filepath,'r',encoding=encoding)
 
     count = 0
     for line in fid.readlines():
@@ -620,45 +620,46 @@ def listTimePoints(interval,numTimePoints):
     return time_series
 
 
+#def checkFileEncoding(filepath):
+#    '''
+#    Makes sure that a text file is either ASCII-encoded or BOM-marked. BOM files
+#        will be converted to CSV files.
+#
+#    Args:
+#        filepath (str)
+#
+#    Returns:
+#        filepath (str): may point to a modified copy of input file
+#    '''
+#    
+#    # sneak a peak to determine file encoding
+#    content = open(filepath,'r').readlines()
+#    sneakPeak = content[0]
+#
+#    # check if text snippet is ASCII-encoded or BOM-marked
+#    msg = ''
+#    if isASCII(sneakPeak):
+#        msg += '{} is encoded with ASCII'.format(filepath)
+#    elif checkBOM(sneakPeak):  # will be empty list if not BOM-marked text
+#        encoding = checkBOM(content[0])[0]
+#        filepath = BOM_to_CSV(filepath,newfilepath,encoding[0:6])
+#        msg += '{} is encoded with {}'.format(filename,encoding)
+#    else:
+#        msg += 'DATA ERROR: Encoding for {} is unknown.'.format(filename)
+#        return None
+#
+#    return filepath
+
 def checkFileEncoding(filepath):
-    '''
-    Makes sure that a text file is either ASCII-encoded or BOM-marked. BOM files
-        will be converted to CSV files.
-
-    Args:
-        filepath (str)
-
-    Returns:
-        filepath (str): may point to a modified copy of input file
-    '''
-    
-    # sneak a peak to determine file encoding
-    content = open(filepath,'r').readlines()
-    sneakPeak = content[0]
-
-    # check if text snippet is ASCII-encoded or BOM-marked
-    msg = ''
-    if isASCII(sneakPeak):
-        msg += '{} is encoded with ASCII'.format(filepath)
-    elif checkBOM(sneakPeak):  # will be empty list if not BOM-marked text
-        encoding = checkBOM(content[0])[0]
-        filepath = BOM_to_CSV(filepath,newfilepath,encoding[0:6])
-        msg += '{} is encoded with {}'.format(filename,encoding)
-    else:
-        msg += 'DATA ERROR: Encoding for {} is unknown.'.format(filename)
-        return None
-
-    return filepath
-
-def checkFileEncoding2(filepath):
     '''
     test
     '''
 
-    for i in ['UTF-8','UTF-16','UTF-32','ASCII']: # not sure if ASCII is necessary since ASCII is a subset of UTF-8
+    # not sure if ASICC is necesary since ASCII is a subset of UTF-8
+    for encoding in ['UTF-8','UTF-16','UTF-32','ASCII']:
         try:
-            open(filepath,'r',encoding=i).readline()
-            return i
+            open(filepath,'r',encoding=encoding).readline()
+            return encoding
         except UnicodeDecodeError:
             pass
  
@@ -678,10 +679,12 @@ def readPlateReaderData(filepath,interval,copydirectory):
     filename,filebase,newfilepath = breakDownFilePath(filepath,copydirectory)
 
     # make sure file is ASCII- or BOM-encoded
-    filepath = checkFileEncoding(filepath)
+    #filepath = checkFileEncoding(filepath)
+    encoding = checkFileEncoding(filepath)
+
 
     # identify number of rows to skip and presence/location of index column (i.e. row names)
-    skiprows,index_col = findFirstRow(filepath)
+    skiprows,index_col = findFirstRow(filepath,encoding=encoding)
 
     # read tab-delimited data file
     df = pd.read_csv(filepath,sep='\t',header=None,index_col=index_col,skiprows=skiprows)
@@ -692,6 +695,10 @@ def readPlateReaderData(filepath,interval,copydirectory):
     # if index column is absent, create one 
     if index_col == None:
         df.index = parseWellLayout(order_axis=0).index.values
+
+    # explicilty assign column names 
+    df.index.name = 'Well' # well disappears
+    df.T.index.name = 'Time'
 
     # remove columns (time points) with only NA values (sometimes happends in plate reader files)
     df = df.iloc[:,np.where(~df.isna().all(0))[0]]
