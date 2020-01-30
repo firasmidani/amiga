@@ -10,9 +10,6 @@ __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
 
-# isASCII
-# checkBOM
-# BOM_to_CSV
 # breakdownFilePath
 # findPlateReaderFiles
 # readPlateReaderFolder
@@ -502,77 +499,6 @@ def findPlateReaderFiles(directory):
     return list_files
 
 
-def isASCII(data):
-    '''
-    Checks if text is ASCII-encoded.
-
-    Args:
-        data (str)
-
-    Return:
-        boolean
-
-    Reference: https://unicodebook.readthedocs.io/guess_encoding.html
-    '''
-
-    try:
-        data.encode('ASCII')
-    except UnicodeDecodeError:
-        return False
-    else:
-        return True
-
-
-def checkBOM(data):
-    '''
-    Identify the BOM marker if string begins with a BOM. Encoding can be extracted from the BOM.
-
-    Args:
-        data (str)
-
-    Returns:
-        encoding (str)
-
-    Reference: https://unicodebook.readthedocs.io/guess_encoding.html
-    '''
-
-    BOMS = (
-        (BOM_UTF8,"UTF-8"),
-        (BOM_UTF32_BE,"UTF-32-BE"),
-        (BOM_UTF32_LE,"UTF-32-LE"),
-        (BOM_UTF16_BE,"UTF-16-BE"),
-        (BOM_UTF16_LE,"UTF-16-LE")
-    )
-
-    # if data does not started with BOM marker, encoding will be an empty list
-    encoding = [encoding for bom,encoding in BOMS if data.startswith(bom)]
-
-    return encoding
-
-
-def BOM_to_CSV(filepath,newfilepath,encoding):
-    '''
-    Covert text files marked with BOM to a CSV format.
-
-    Args:
-        filepath (str): path to data file
-        newfilepath (str): path to formatted data file
-        encoding (str): BOM marker, see checkBOM()
-
-    Returns:
-        newfilepath (str)
-    '''
-
-    readCSV = csv.reader(codecs_open(filepath,'rU',encoding))
-
-    fid = open(newfilepath,'w')
-    for line in readCSV:
-        fid.write('{}\n'.format(line[0].strip('\t')))
-    fid.close()
-
-    return newfilepath
-
-
 def findFirstRow(filepath,encoding):
     '''
     Searches for line beginning with the Well ID "A1", determines the number of
@@ -619,40 +545,17 @@ def listTimePoints(interval,numTimePoints):
 
     return time_series
 
-
-#def checkFileEncoding(filepath):
-#    '''
-#    Makes sure that a text file is either ASCII-encoded or BOM-marked. BOM files
-#        will be converted to CSV files.
-#
-#    Args:
-#        filepath (str)
-#
-#    Returns:
-#        filepath (str): may point to a modified copy of input file
-#    '''
-#    
-#    # sneak a peak to determine file encoding
-#    content = open(filepath,'r').readlines()
-#    sneakPeak = content[0]
-#
-#    # check if text snippet is ASCII-encoded or BOM-marked
-#    msg = ''
-#    if isASCII(sneakPeak):
-#        msg += '{} is encoded with ASCII'.format(filepath)
-#    elif checkBOM(sneakPeak):  # will be empty list if not BOM-marked text
-#        encoding = checkBOM(content[0])[0]
-#        filepath = BOM_to_CSV(filepath,newfilepath,encoding[0:6])
-#        msg += '{} is encoded with {}'.format(filename,encoding)
-#    else:
-#        msg += 'DATA ERROR: Encoding for {} is unknown.'.format(filename)
-#        return None
-#
-#    return filepath
-
 def checkFileEncoding(filepath):
     '''
-    test
+    Identifies the correct file encoding needed for python open() to read a text file. 
+        It does this brutely using error-detection. If none of the pre-accepted encondings
+        are detected, function will return None.  
+
+    Args:
+        filepath (str)
+
+    Returns:
+        encodign (str): see limited options below. 
     '''
 
     # not sure if ASICC is necesary since ASCII is a subset of UTF-8
@@ -662,6 +565,8 @@ def checkFileEncoding(filepath):
             return encoding
         except UnicodeDecodeError:
             pass
+
+        return None
  
 
 def readPlateReaderData(filepath,interval,copydirectory):
