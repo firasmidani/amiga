@@ -549,7 +549,7 @@ def checkFileEncoding(filepath):
     '''
     Identifies the correct file encoding needed for python open() to read a text file. 
         It does this brutely using error-detection. If none of the pre-accepted encondings
-        are detected, function will return None.  
+        are detected, AMiGA will prematurely terminate with a descriptive message to user. 
 
     Args:
         filepath (str)
@@ -566,7 +566,11 @@ def checkFileEncoding(filepath):
         except UnicodeDecodeError:
             pass
 
-        return None
+    # exit 
+    msg = 'FATAL DATA ERROR: AMiGA cannot read{}. '.format(filepath)
+    msg += 'AMiGA can only read data text files encoded with either '
+    msg += 'UTF-8, UTF-16, UTF-32, or ASCII.\n'
+    sys.exit(msg) 
  
 
 def readPlateReaderData(filepath,interval,copydirectory):
