@@ -5,17 +5,18 @@ DESCRIPTION main driver script for Analysis of Microbial Growth Assays (AMiGA)
 '''
 
 __author__ = "Firas Said Midani"
-__veraion__ = "0.1.0"
+__version__ = "0.1.0"
 __email__ = "midani@bcm.edu"
 
 from libs import aio
+from libs.config import config
 
 #----------------------#
 # Parsing user command #
 #----------------------#
 
 # parse terminal command for arguments
-args = aio.parseCommand();
+args = aio.parseCommand(config);
 
 # did the user provide a path that points to a file or directory?
 parent,filename = aio.isFileOrFolder(args['fpath']) 

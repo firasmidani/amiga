@@ -73,7 +73,7 @@ def breakDownFilePath(filepath,copydirectory):
     return filename, filebase, newfilepath
     
 
-def parseCommand():
+def parseCommand(config):
     '''
     Interprets the arguments passed by the user to AMiGA. If the verobse argument 
         is set to True, argumentParser will also print a message summarizing the 
@@ -98,17 +98,19 @@ def parseCommand():
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
+    parser.add_argument('--only-print-defaults',action='store_true',default=False)
 
     # pass arguments to local variables 
     args = parser.parse_args()
     args_dict['fpath'] = args.input  # File path provided by user
     args_dict['flag'] = args.flag
     args_dict['subset'] = args.subset
-    args_dict['hypothesis'] = args.hypothesis
+    args_dict['hypo'] = args.hypothesis
     args_dict['interval'] = args.interval
     args_dict['verbose'] = args.verbose
     args_dict['opp'] = args.only_plot_plate
     args_dict['sdd'] = args.save_derived_data
+    args_dict['opd'] = args.only_print_defaults
 
     # summarize command-line artguments and print
     if args_dict['verbose']:
@@ -118,6 +120,12 @@ def parseCommand():
         msg += tidyDictPrint(args_dict)
         print(msg)
 
+    # print default settings for select variables if prompted by user
+    if args_dict['opd']:
+        msg = '\nDefault settings for select variables. You can adjust these values in libs/config.py. \n\n'
+        msg += tidyDictPrint(config)
+        sys.exit(msg)
+        
     return args_dict
 
 
@@ -332,7 +340,7 @@ def mapFiles(directory):
     files['meta'] = '{}/{}.txt'.format(directory['mapping'],'meta')
 
     # format paths for files in the 'parameter' sub-directory
-    children = ['flag','hypothesis','subset','interval']
+    children = ['flag','hypo','subset','interval']
 
     for child in children:
         files[child] = '{}/{}.txt'.format(directory['parameters'],child)
@@ -420,7 +428,7 @@ def interpretParameters(files,args,verbose=False):
         ('interval',',',True),
         ('subset',',',False),
         ('flag', ',',False),
-        ('hypothesis','\+|,',False)
+        ('hypo','\+|,',False)
     ]
     
     # initialize all parameters based on their settings
@@ -694,6 +702,13 @@ def readPlateReaderFolder(filename,directory,interval_dict={},save=False,verbose
 
     return df_dict
 
+
+def assembleMappingData(list_data,mapping_path,meta_path):
+    '''
+    '''
+
+    for filename in list_data:
+        _,filebase,
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
