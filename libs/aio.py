@@ -37,12 +37,6 @@ import numpy as np
 import pandas as pd
 import tabulate
 
-from codecs import open as codecs_open
-from codecs import BOM_UTF8,BOM_UTF16_BE,BOM_UTF16_LE,BOM_UTF32_BE,BOM_UTF32_LE
-
-# define variables
-interval_default = 600
-
 
 def breakDownFilePath(filepath,copydirectory):
     '''
@@ -656,7 +650,7 @@ def parseWellLayout():
     return df
 
 
-def readPlateReaderFolder(filename,directory,interval_dict={},save=False,verbose=False):
+def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,verbose=False):
     '''
     Finds, reads, and formats all files in a directory to be AMiGA-compatible.
 
@@ -692,7 +686,7 @@ def readPlateReaderFolder(filename,directory,interval_dict={},save=False,verbose
         if filebase in interval_dict.keys():
             plate_interval = interval_dict[filebase][0]
         else:
-            plate_interval = interval_default
+            plate_interval = config['interval']
 
         # read and adjust file to format: time by wells where first column is time and rest are ODs
         df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)
@@ -703,12 +697,64 @@ def readPlateReaderFolder(filename,directory,interval_dict={},save=False,verbose
     return df_dict
 
 
-def assembleMappingData(list_data,mapping_path,meta_path):
+def assembleMappingData(data,mapping_path,meta_path):
     '''
     '''
 
-    for filename in list_data:
-        _,filebase,
+    # list all data files to be analyed
+    list_filebases = data.keys()
+
+    # read meta.txt and list all plate described by it
+    meta_df, meta_df_plates = checkMetaText(meta_path)   
+
+    # assemble mapping for one data file at a time
+    for filebase in list_filebases:
+
+        # compose path to data's corresponding mapping file 
+        sep = ['' if mapping_path[-1]=='/' else '/'][0]
+        file_mapping_path = '{}{}{}'.format(mapping_path,sep,filebase)
+
+        # what are the row names from the original data file 
+        well_ids = data[filebase].columns[1:]  # this may no be A1 ... H12, but most ofen will be
+
+        # if relevant info is in meta.txt, extract it now for esier passage
+        if filebase in meta_df_plates.index:
+            meta_info = meta_df.loc[filebase,:]
+        else:
+            meta_info = None
+
+        mapping[filebase] = pipeline.smartMapping(filebase,mapping_path,meta_info)
+
+
+def smartMapping(filebase,mapping_path,meta_info):
+    '''
+    '''
+
+    meta_df,meta_df_plates = checkMetaText(meta_path)
+
+    # if mapping file exists and meta.txt for data file exists too, mapping file takes precedence
+
+
+    # user provided a mapping file that corresponds to this data file (filebase)
+    if os.path.exists(mapping_path):
+
+        # read as csv
+        df_mapping = pd.read_csv(mapping_path,sep='\t',header=0,index_col=0)
+
+        # make sure a column in the mapping file points all rows to the data file name (filebase)
+        if 'Plate_ID' not in df_mapping.index:
+            df_mapping.loc[:,'Plate_ID'] = [filebase]*df_mapping.shape[0]
+
+        msg = '{}: Reading {}'.format(filebase,mapping_path)
+
+    # user describe data file in meta.txt
+    elif meta_pass is not None:
+
+        metadata = meta_pass
+
+
+    #elif filebase in df_meta_
+        
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
@@ -800,8 +846,8 @@ def validateDirectories(directory,verbose=False):
     #     value (4-tuples) where:    
     #     1. generic name of directory for communcating with user (str)
     #     2. verbosity: whether to communicate with user or not (boolean)
-    #     3. initialization: whetehr to initialize directory or not (boolean)
-    #     4. force system exit: whetehr to exist system if error detected
+    #     3. initialization: whether to initialize directory or not (boolean)
+    #     4. force system exit: whether to exist system if error detected
 
     params = {
         'parent':('Input directory',False,True),

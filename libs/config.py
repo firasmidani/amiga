@@ -13,5 +13,5 @@ config = {}
 # default time interval between OD measurments is set to 600 seconds
 config['interval'] = 600
 
-# default wavelength for OD measurements is et to 620 nm, used for plot labeling only
-config['nm'] = 620
+# default wavelength for OD measurements is et to 620 nm; str because it is used only for plot labeling
+config['nm'] = str(620)
