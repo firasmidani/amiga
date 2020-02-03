@@ -259,12 +259,13 @@ def checkMetaText(filepath,verbose=False):
     Parses meta.txt file into a pandas.DataFrame.
 
     Args:
-        filepath (str): path to meta.txt
+        filepath (str): path to meta.txt, must be tab-delimited with first column as "Plate_ID" (i.e. file name)
         verbose (boolean)
 
     Returns:
         df_meta (pandas.DataFrame)
         df_meta_plates (list)
+
     '''
 
     exists = os.path.exists(filepath)
@@ -697,6 +698,61 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
     return df_dict
 
 
+def extractFromMeta(filebase,meta_df):
+    '''
+    Checks if a data file has been described in meta.txt dataframe.
+
+    Args:
+        filebase (str): Plate_ID (i.e. file name)
+        meta_df (pandas.DataFrame): first
+
+    Returns:
+        meta_info (pd.Series or None)
+    '''
+
+    if filebase in meta_df.Plate_ID.values:
+        meta_info =i meta_df.Plate_ID==filebase]
+    else:
+        meta_info = None
+
+    return meta_info 
+
+def assemblePath(directory,filename,extension=''):
+    '''
+    Stitches a full path to a file.
+
+    Args:
+        directory (str): path to directory
+        filename (str): file name with extension
+        extension (str): by default '', allows stitching filenames that alreay have extension
+
+    Returns:
+        filepath (str)
+    '''
+
+    # check if directory ends with slash, used to avoid double slashes ('//')
+    sep = ['' if directory[-1]=='/' else '/'][0]
+    file_path = '{}{}{}{}'.format(directory,sep,filebase,extension)
+
+    return file_path
+
+
+def checkPlateIdColumn(df,filebase):
+    '''
+    Validates that Plate ID is a column in dataframe.
+
+    Args:
+        df (pandas.DatamFrame)
+
+    Returns:
+        df (pandas.DataFrame) 
+    '''
+
+    if 'Plate_ID' not in df.keys():
+        df.loc[:,'Plate_ID'] = [filebase]*df.shape[0]
+
+    return df
+        
 def assembleMappingData(data,mapping_path,meta_path):
     '''
     '''
@@ -704,24 +760,35 @@ def assembleMappingData(data,mapping_path,meta_path):
     # list all data files to be analyed
     list_filebases = data.keys()
 
-    # read meta.txt and list all plate described by it
+    # list all potential mapping file paths
+    list_mapping_files = [assmeblePath(mapping_path,ii,'.txt') for ii in list_filebases]
+
+    # read meta.txt and list all plates described by it
     meta_df, meta_df_plates = checkMetaText(meta_path)   
 
     # assemble mapping for one data file at a time
-    for filebase in list_filebases:
+    for filebase,mapping_file_path in (list_filebases,list_mapping_files):
 
-        # compose path to data's corresponding mapping file 
-        sep = ['' if mapping_path[-1]=='/' else '/'][0]
-        file_mapping_path = '{}{}{}'.format(mapping_path,sep,filebase)
+        # user provided a mapping file that corresponds to this data file (filebase)
+        if os.path.exists(mapping_file_path):
+
+            df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=None)   
+            df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
+            msg = '{}: Reading {}'.format(filebase,mapping_file_path)
+
+        elif filebase in meta_df_plates:
+
+            meta_info = extract 
+
+extractFromMeta(filebase,df_meta_,meta_df):
+
 
         # what are the row names from the original data file 
         well_ids = data[filebase].columns[1:]  # this may no be A1 ... H12, but most ofen will be
 
-        # if relevant info is in meta.txt, extract it now for esier passage
-        if filebase in meta_df_plates.index:
-            meta_info = meta_df.loc[filebase,:]
-        else:
-            meta_info = None
+        # check if filebase is describe in meta-data 
+        meta_info = extractFromMeta(filebase,meta_df_plates,meta_df):
+
 
         mapping[filebase] = pipeline.smartMapping(filebase,mapping_path,meta_info)
 
@@ -732,20 +799,7 @@ def smartMapping(filebase,mapping_path,meta_info):
 
     meta_df,meta_df_plates = checkMetaText(meta_path)
 
-    # if mapping file exists and meta.txt for data file exists too, mapping file takes precedence
 
-
-    # user provided a mapping file that corresponds to this data file (filebase)
-    if os.path.exists(mapping_path):
-
-        # read as csv
-        df_mapping = pd.read_csv(mapping_path,sep='\t',header=0,index_col=0)
-
-        # make sure a column in the mapping file points all rows to the data file name (filebase)
-        if 'Plate_ID' not in df_mapping.index:
-            df_mapping.loc[:,'Plate_ID'] = [filebase]*df_mapping.shape[0]
-
-        msg = '{}: Reading {}'.format(filebase,mapping_path)
 
     # user describe data file in meta.txt
     elif meta_pass is not None:
