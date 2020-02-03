@@ -52,5 +52,4 @@ data = aio.readPlateReaderFolder(filename,directory,config,save=args['sdd'],verb
 print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 
 # parse mapping files
-print(files)
-aio.assembleMappingData(data,directory['mapping'],files['meta'])
+aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])

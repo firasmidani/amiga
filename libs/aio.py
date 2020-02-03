@@ -40,6 +40,26 @@ import string
 
 from libs import biolog_pm_layout as bpl
 
+def smartPrint(msg,verbose):
+    '''
+    Only print if verbose argument is True. 
+
+        Previously, I would concatenate messages inside a function and print once 
+        function is completed, if verbose argument is satisfied. But the side 
+        effect is that messages are printed in blocks and printing would not execute.
+
+        In incremental printing (which this streamlines), if a function fails at a 
+        specific point, this can be inferred based on where incremental printing would
+        have been interrupted right after the point of failure.
+
+    Args:
+        msg (str)
+        verbose (boolean)
+    '''
+
+    if verbose:
+        print(msg)
+
 def breakDownFilePath(filepath,copydirectory):
     '''
     Breaks down a file path into several components.
@@ -282,7 +302,6 @@ def checkMetaText(filepath,verbose=False):
     # which plates were characterized in meta.txt?
     try:
         df_meta_plates = df_meta.Plate_ID.values
-        print(df_meta.Plate_ID)
     except:
         df_meta_plates = []
 
@@ -681,7 +700,7 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
     for filepath in sorted(filepaths):
         
         # communicate with user
-        print('Reading {}'.format(filepath))
+        smartPrint('Reading {}'.format(filepath),verbose)
 
         # get extension-free file name and path for derived copy
         _, filebase, newfilepath = breakDownFilePath(filepath,copydirectory=copydirectory)
@@ -696,7 +715,7 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
         df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)
         df_dict[filebase] = df
 
-    print()  # print empty newline, for visual asethetics only
+    smartPrint('\n',verbose)  # print empty newline, for visual asethetics only
 
     return df_dict
 
@@ -920,7 +939,7 @@ def parsePlateName(plate_id,simple=False):
         return isolate,pmn,rep
 
 
-def assembleMappingData(data,mapping_path,meta_path):
+def assembleMappings(data,mapping_path,meta_path,verbose):
     '''
     Creates a master mapping file (or dictionary ?) for all data files in the input argument.
         For each data file, in this particular order, it will first (1) check if an individual
@@ -949,7 +968,6 @@ def assembleMappingData(data,mapping_path,meta_path):
     # read meta.txt and list all plates described by it
     meta_df, meta_df_plates = checkMetaText(meta_path)   
 
-    msg = ''
     # assemble mapping for one data file at a time
     for filebase,mapping_file_path in zip(list_filebases,list_mapping_files):
 
@@ -961,38 +979,42 @@ def assembleMappingData(data,mapping_path,meta_path):
 
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=None)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
-            msg += '{:.<24}Reading {}.\n'.format(filebase,mapping_file_path)
+            smartPrint('{:.<24}Reading {}.\n'.format(filebase,mapping_file_path),verbose)
 
         # see if file is described in meta.txt 
         elif filebase in meta_df_plates:
 
             meta_info = meta_df[meta_df.Plate_ID==filebase]
-            msg += '{:.<24}Found meta-data in meta.txt '.format(filebase)
+            msg = '{:.<24}Found meta-data in meta.txt '.format(filebase)
 
             biolog = isBiologFromMeta(meta_info)
 
             if biolog:
                 df_mapping = expandBiologMetaData(meta_info)
-                msg += '& seems to be a BIOLOG PM plate.\n'
+                msg += '& seems to be a BIOLOG PM plate.'
+                smartPrint(msg,verbose)
             else:
                 df_mapping = initKeyFromMeta(meta_info,well_ids)
-                msg += '& does not seem to be a BIOLOG PM plate.\n'
+                msg += '& does not seem to be a BIOLOG PM plate.'
+                smartPrint(msg,verbose)
 
         elif isBiologFromName(filebase):
 
             df_mapping = initBiologPlateKey(meta_info)
-            msg += '{:.<24}Did not find mapping file or meta-data '.format(filebase)
-            msg += 'BUT seems to be a BIOLOG PM plate.\n'
+            msg = '{:.<24}Did not find mapping file or meta-data '.format(filebase)
+            msg += 'BUT seems to be a BIOLOG PM plate.'
+            smartPrint(msg,verbose)
 
         else:
             df_mapping = initMappingDf(filebase,well_ids) 
-            msg += '{:.<24}Did not find mapping file or meta-data '.format(filebase)
-            msg += '& does not seem to be a BIOLOG PM plate.\n'
+            msg = '{:.<24}Did not find mapping file or meta-data '.format(filebase)
+            msg += '& does not seem to be a BIOLOG PM plate.'
+            smartPrint(msg,verbose)
 
         df_mapping_dict[filebase] = df_mapping
 
     #df_mapping = df_mapping.reset_index(drop=False)
-    print(msg) 
+    smartPrint('',verbose) 
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
