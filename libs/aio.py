@@ -1065,7 +1065,7 @@ def flagWells(df,flags,verbose=False):
     '''
 
     if (len(flags)==0):
-        smartPrint('No flag.txt was found.\n',verbose)
+        smartPrint('No wells  was flagged.\n',verbose)
         return df
 
     for plate, wells in flags.items():
@@ -1077,7 +1077,7 @@ def flagWells(df,flags,verbose=False):
     return df
 
 
-def subsetWells(df,criteria,verbose=False):
+def subsetWells(df_mapping_dict,criteria,verbose=False):
     '''
     Tag wells that meet user-passed criteria.
 
@@ -1091,25 +1091,30 @@ def subsetWells(df,criteria,verbose=False):
     '''
 
     if (len(criteria)==0):
-        smartPrint('No flag.txt was found.\n',verbose)
+        smartPrint('No subsetting was requested.\n',verbose)
 
-    for _,plate_df in df.items():
-        plate_df = plate_df[df.isin(criteria).sum(1)==len(criteria)]
+    for plate_id,mapping_df in df_mapping_dict.items():
+
+        remove_boolean = ~(mapping_df.isin(criteria).sum(1)==len(criteria)).values  # list of booleans
+        remove_idx = mapping_df.index[remove_boolean]
+        mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
 
     smartPrint('The following criteria were used to subset data:\n',verbose)
     smartPrint(tidyDictPrint(criteria),verbose)
 
-    return df
+    return df_mapping_dict
 
 
 def trimMappings(mapping_dict,params_dict,verbose=False):
     '''
     '''
 
-    flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
+    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
 
-    subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
+    mapping_dict = subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
 
+    for plate_id,plate in mapping_dict.items():
+        print(plate_id,plate[plate.Subset==1])
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
@@ -1147,8 +1152,8 @@ def tidyDictPrint(input_dict):
     max_len = float(len(max(args,key=len))) # length of longest argument
     width = int(np.ceil(max_len/10)*10) # round up length to nearest ten
 
-    # if width dos not add any padding to argument, add 5 characters
-    if width == max_len:
+    # if width dos not add more than three padding spaces to argument, add 5 characters
+    if (width - max_len) < 4:
         width += 5
 
     # compose multi-line message
