@@ -788,6 +788,16 @@ def isBiologFromName(filebase):
         (boolean) 
     '''
 
+    if '_' in filebase:
+        split_filebase = filebase.split('_')
+    else:
+        return False
+
+    if not split_filebase[1].startswith('PM'):
+        return False
+
+    return True
+
 
 def initMappingDf(filebase,well_ids):
     '''
@@ -890,6 +900,7 @@ def expandBiologMetaData(sr):
     df_substrates = initSubstrateDf(pmn)  # mapping of wells to substrates
     df_meta = initKeyFromMeta(sr,df_substrates.index)
     df = df_meta.join(df_substrates)
+    df.loc['A1','Control'] = 1 
 
     return df
 
@@ -909,7 +920,7 @@ def initBiologPlateKey(plate_id,simple=False):
 
     list_keys = ['Plate_ID','Isolate','PM','Replicate']
     isolate,pmn,rep = parsePlateName(plate_id,simple = False)
-    df_meta = pd.Dataframe(indx=list_keys,data=[plate_id,pmn,rep]).T
+    df_meta = pd.DataFrame(index=list_keys,data=[plate_id,isolate,pmn,rep]).T
     df = expandBiologMetaData(df_meta)
 
     return df
@@ -929,9 +940,9 @@ def parsePlateName(plate_id,simple=False):
         rep (int)
     '''
 
-    isolate = str(plate_name.split('_')[0])
-    pmn = int(plate_name.split('PM')[1][0])
-    rep = [int(plate_name.split('-')[-1]) if '-' in plate_name else 1][0]
+    isolate = str(plate_id.split('_')[0])
+    pmn = int(plate_id.split('PM')[1][0])
+    rep = [int(plate_id.split('-')[-1]) if '-' in plate_id else 1][0]
 
     if simple:
         return isolate,pmns
@@ -974,20 +985,20 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
         # what are the row names from the original data file 
         well_ids = data[filebase].columns[1:]  # this may no be A1 ... H12, but most ofen will be
 
-        # user provided a mapping file that corresponds to this data file (filebase)
+        # see if user provided a mapping file that corresponds to this data file (filebase)
         if os.path.exists(mapping_file_path):
 
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=None)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
-            smartPrint('{:.<24}Reading {}.\n'.format(filebase,mapping_file_path),verbose)
+            smartPrint('{:.<24}Reading {}.'.format(filebase,mapping_file_path),verbose)
 
-        # see if file is described in meta.txt 
+        # see if user described the file in meta.txt 
         elif filebase in meta_df_plates:
 
             meta_info = meta_df[meta_df.Plate_ID==filebase]
             msg = '{:.<24}Found meta-data in meta.txt '.format(filebase)
 
-            biolog = isBiologFromMeta(meta_info)
+            biolog = isBiologFromMeta(meta_info)  # does meta_df indicate this is a BIOLOG plate
 
             if biolog:
                 df_mapping = expandBiologMetaData(meta_info)
@@ -1000,7 +1011,7 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
 
         elif isBiologFromName(filebase):
 
-            df_mapping = initBiologPlateKey(meta_info)
+            df_mapping = initBiologPlateKey(filebase)
             msg = '{:.<24}Did not find mapping file or meta-data '.format(filebase)
             msg += 'BUT seems to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
@@ -1014,7 +1025,9 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
         df_mapping_dict[filebase] = df_mapping
 
     #df_mapping = df_mapping.reset_index(drop=False)
-    smartPrint('',verbose) 
+    smartPrint('',verbose)
+
+    return df_mapping_dict
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
