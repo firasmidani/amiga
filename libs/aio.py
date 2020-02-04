@@ -306,12 +306,12 @@ def checkMetaText(filepath,verbose=False):
         df_meta_plates = []
 
     # neatly prints meta.txt to terminal
-    if verbose and exists:
+    if exists:
         tab = tabulate.tabulate(df_meta,headers='keys',tablefmt='psql')
         msg = '{:.<16}{}\n{}\n'.format('Meta-Data is',filepath,tab)
-        print(msg)
-    elif verbose:
-        print('No meta.txt file found\n')
+        smartPrint(msg,verbose)
+    else:
+        smartPrint('No meta.txt file found\n',verbose)
 
     return df_meta,df_meta_plates
 
@@ -453,8 +453,7 @@ def interpretParameters(files,args,verbose=False):
     for pp,sep,integerize in params_settings:
         params_dict[pp] = initializeParameter(files[pp],args[pp],sep=sep,integerize=integerize)
 
-    if verbose:
-        print(tidyDictPrint(params_dict))
+    smartPrint(tidyDictPrint(params_dict),verbose)
 
     return params_dict
 
@@ -900,7 +899,6 @@ def expandBiologMetaData(sr):
     df_substrates = initSubstrateDf(pmn)  # mapping of wells to substrates
     df_meta = initKeyFromMeta(sr,df_substrates.index)
     df = df_meta.join(df_substrates)
-    df.loc['A1','Control'] = 1 
 
     return df
 
@@ -988,7 +986,7 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
         # see if user provided a mapping file that corresponds to this data file (filebase)
         if os.path.exists(mapping_file_path):
 
-            df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=None)   
+            df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
             smartPrint('{:.<24}Reading {}.'.format(filebase,mapping_file_path),verbose)
 
@@ -1022,12 +1020,95 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
             msg += '& does not seem to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
 
-        df_mapping_dict[filebase] = df_mapping
+        df_mapping_dict[filebase] = expandMappingParams(df_mapping)
 
     #df_mapping = df_mapping.reset_index(drop=False)
     smartPrint('',verbose)
 
     return df_mapping_dict
+
+def expandMappingParams(df):
+    '''
+    Expand input data frame to include columns relevant for AMiGA processing of user paramters.
+        It will add columns for Group, Control, Flag, and Subset.
+
+    Args:
+        df (pandas.DataFrame)
+
+    Returns:
+        df (pandas.DataFrame): with four additional columns
+    '''
+
+    # plate can be divided into multiple group, each gorup has unique control well(s)
+    df.loc[:,'Group'] = [1]*df.shape[0]  # all wells in a BIOLOG PM plte belong to same group
+    df.loc[:,'Control'] = [0]*df.shape[0]  # all wells (except) A1 are treatments
+    df.loc['A1','Control'] = 1  # A1 is the control well
+
+    # initialize well-specific flag and subset parameters
+    df.loc[:,'Flag'] = [0]*df.shape[0]  # by default, no wells are flagged
+    df.loc[:,'Subset'] = [1]*df.shape[0]  # by default, all wells are included in analysis
+
+    return df
+
+
+def flagWells(df,flags,verbose=False):
+    '''
+    Passes plate-well-specific flags from user into mapping dataframes.
+
+    Args:
+        df (pandas.DataFrame) must have Plate_IDs and Well as columns
+        flags (dictionary) with Plate_IDs (str) as keys and Wells (stR) as vlaues
+        verbose (boolean)
+
+    Returns:
+        df (pandas.DataFrame)
+    '''
+
+    if (len(flags)==0):
+        smartPrint('No flag.txt was found.\n',verbose)
+        return df
+
+    for plate, wells in flags.items():
+        df[plate].loc[wells,'Flag'] = [1]*len(wells)
+
+    smartPrint('The following flags were detected:\n',verbose)
+    smartPrint(tidyDictPrint(flags),verbose)
+
+    return df
+
+
+def subsetWells(df,criteria,verbose=False):
+    '''
+    Tag wells that meet user-passed criteria.
+
+    Args:
+        df (pandas.DataFrame) must have Plate_IDs and Well as columns
+        criteria (dictionary) with mapping variables (str) as keys and accepted instances (str) as values
+        verbose (boolean)
+
+    Returns:
+        df (pandas.DataFrame)
+    '''
+
+    if (len(criteria)==0):
+        smartPrint('No flag.txt was found.\n',verbose)
+
+    for _,plate_df in df.items():
+        plate_df = plate_df[df.isin(criteria).sum(1)==len(criteria)]
+
+    smartPrint('The following criteria were used to subset data:\n',verbose)
+    smartPrint(tidyDictPrint(criteria),verbose)
+
+    return df
+
+
+def trimMappings(mapping_dict,params_dict,verbose=False):
+    '''
+    '''
+
+    flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
+
+    subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
