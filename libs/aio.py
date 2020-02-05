@@ -46,7 +46,8 @@ def smartPrint(msg,verbose):
 
         Previously, I would concatenate messages inside a function and print once 
         function is completed, if verbose argument is satisfied. But the side 
-        effect is that messages are printed in blocks and printing would not execute.
+        effect is that messages are printed in blocks (i.e. not flushing)
+        and printing would not execute.
 
         In incremental printing (which this streamlines), if a function fails at a 
         specific point, this can be inferred based on where incremental printing would
@@ -603,7 +604,7 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     skiprows,index_col = findFirstRow(filepath,encoding=encoding)
 
     # read tab-delimited data file
-    df = pd.read_csv(filepath,sep='\t',header=None,index_col=index_col,skiprows=skiprows)
+    df = pd.read_csv(filepath,sep='\t',header=None,index_col=index_col,skiprows=skiprows,encoding=encoding)
 
     # explicitly define time series based on data size and time interval 
     df.columns = listTimePoints(interval=interval,numTimePoints=df.shape[1])
@@ -1107,14 +1108,77 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
 
 def trimMappings(mapping_dict,params_dict,verbose=False):
     '''
+    Reduces the mapping data based on user-passed flags and subsetting criteria. 
+
+    Args:
+        mapping_dict (dictionary): of mapping files (pandas.DataFrames), keys are file names (str)
+        params_dict (dictionary): dictionary where keys are variables and values instances
+        verbose (boolean)
+
+    Returns:
+        mapping_dict (dictionary): should be equal or smaller in size than input
     '''
 
+    # flag wells that user does not want to analyze
     mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
 
+    # tag wells that meet user-passed criteria for analysis
     mapping_dict = subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
 
-    for plate_id,plate in mapping_dict.items():
-        print(plate_id,plate[plate.Subset==1])
+    return mapping_dict
+
+
+def trimData(data_dict,mapping_dict,verbose=False):
+    '''
+    Reduces the daa based on user-passed flags and subsetting criteria (stored in mapping_dict).
+
+    Args:
+        data_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
+            first column is "Time" and rest of columns are Wells (e.g. A1, A2, ...). There are T rows
+            corresponding to T timepoints.
+        mapping_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
+            column headers must include Plate_ID, Subset, Flag, and row names are Well IDs (e.g. A1).
+        verbose (boolean)
+
+    Returns:
+        data_dict (dictionary): similar to input but values may be smaller in number of columns.
+        mapping_dict (dictinoary): similar to input but values may be smaller in number of rows.
+    '''
+
+    for pid,data in data_dict.items():
+
+        # grab only wells that meet "Subset" criteria and do not meet Flag criteria
+        mapping_df = mapping_dict[pid]
+        mapping_df = mapping_df[mapping_df.Subset==1]
+        mapping_df = mapping_df[mapping_df.Flag==0]
+
+        # list all well IDs (i.e. A1 ... H12)
+        wells = list(mapping_df.index.values)
+
+        # store trimmed mapping and trimmed data
+        mapping_dict[pid] = mapping_df
+        data_dict[pid] = data.loc[:,['Time']+wells]
+
+    return data_dict,mapping_dict
+
+
+def runGrowthFitting(data,mapping,verbose=False):
+    '''
+    '''
+
+    for pid,df in data.items():
+        print(pid,df.shape)
+
+    # trim data according to mapping
+    data,mapping = trimData(data,mapping,verbose)
+    # merge data-sets for easier analysis
+
+    for pid,df in data.items():
+        print(pid,mapping[pid].shape)
+        print(pid,df.shape)
+
+
+
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''

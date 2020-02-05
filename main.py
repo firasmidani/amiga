@@ -60,3 +60,9 @@ print(aio.tidyMessage('AMiGA is trimming mapping files based on user input'))
 # trim mapping data based on user input
 mappings = aio.trimMappings(mappings,params,verbose=args['verbose'])
 
+# communicate with user
+print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
+
+# 
+aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
+
