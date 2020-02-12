@@ -55,14 +55,15 @@ print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])
 
 # communicate with user
-print(aio.tidyMessage('AMiGA is trimming mapping files based on user input'))
+print(aio.tidyMessage('AMiGA is trimming samples based on user input'))
 
 # trim mapping data based on user input
-mappings = aio.trimMappings(mappings,params,verbose=args['verbose'])
+#mappings = aio.trimMappings(mappings,params,verbose=args['verbose'])
+data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
 
 # 
-aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
+#aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
 

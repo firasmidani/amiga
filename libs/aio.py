@@ -38,6 +38,8 @@ import pandas as pd
 import tabulate
 import string
 
+from functools import reduce
+
 from libs import biolog_pm_layout as bpl
 
 def smartPrint(msg,verbose):
@@ -1106,9 +1108,10 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
     return df_mapping_dict
 
 
-def trimMappings(mapping_dict,params_dict,verbose=False):
+def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
-    Reduces the mapping data based on user-passed flags and subsetting criteria. 
+    Annotates the mapping data based on user-passed flags and subsetting criteria. In particular,
+        it will annotate the Flag and Subset columns. 
 
     Args:
         mapping_dict (dictionary): of mapping files (pandas.DataFrames), keys are file names (str)
@@ -1128,54 +1131,163 @@ def trimMappings(mapping_dict,params_dict,verbose=False):
     return mapping_dict
 
 
-def trimData(data_dict,mapping_dict,verbose=False):
+#def trimData(data_dict,mapping_dict,verbose=False):
+#    '''
+#    Reduces the data based on user-passed flags and subsetting criteria (stored in mapping_dict).
+#
+#    Args:
+#        data_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
+#            first column is "Time" and rest of columns are Wells (e.g. A1, A2, ...). There are T rows
+#            corresponding to T timepoints.
+#        mapping_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
+#           column headers must include Plate_ID, Subset, Flag, and row names are Well IDs (e.g. A1).
+#        verbose (boolean)
+#
+#    Returns:
+#        data_dict (dictionary): similar to input but values may be smaller in number of columns.
+#        mapping_dict (dictinoary): similar to input but values may be smaller in number of rows.
+#    '''
+#
+#    # merge all mapping_dict values into one master mapping pandas.dataFrame
+#    #   this is necessary to avoid a unique Sample Identifier (Sample_ID)
+#    master_mapping = pd.concat(mapping_
+#
+#
+#   all_key = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
+#
+#    for pid,data in data_dict.items():
+#
+#        # grab only wells that meet "Subset" criteria and do not meet Flag criteria
+#        mapping_df = mapping_dict[pid]
+#        mapping_df = mapping_df[mapping_df.Subset==1]
+#        mapping_df = mapping_df[mapping_df.Flag==0]
+#
+#        # list all well IDs (i.e. A1 ... H12)
+#        wells = list(mapping_df.index.values)
+#
+#        # store trimmed mapping and trimmed data
+#        mapping_dict[pid] = mapping_df
+#        data_dict[pid] = data_dict[pid].loc[:,['Time']+wells]
+#
+#    return data_dict,mapping_dict
+
+
+#def trimMappings(mapping,
+
+def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     '''
-    Reduces the daa based on user-passed flags and subsetting criteria (stored in mapping_dict).
+    Interprets parameters to reduce mapping and data files to match user-desired criteria.
 
     Args:
-        data_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
-            first column is "Time" and rest of columns are Wells (e.g. A1, A2, ...). There are T rows
-            corresponding to T timepoints.
-        mapping_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
-            column headers must include Plate_ID, Subset, Flag, and row names are Well IDs (e.g. A1).
+        data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
+            where t is the number of time-points and n is number of wells (i.e. samples),
+            the additional 1 is due to the explicit 'Time' column, index is uninformative.
+        mapping (dictionary): keys are plate IDs and values are pandas.DataFrames with size n x (p)
+            where is the number of wells (or samples) in plate, and p are the number of variables or
+            parameters described in dataframe.
+        params (dictionary): must at least include 'subset' and 'flag' keys and their values
         verbose (boolean)
 
     Returns:
-        data_dict (dictionary): similar to input but values may be smaller in number of columns.
-        mapping_dict (dictinoary): similar to input but values may be smaller in number of rows.
+        data (dictionary): values may have smaller size than at time of input
+        mapping (dictionary): values may have smaller size than at time of input 
     '''
 
+    # annotate Subset and Flag columns in mapping files
+    mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
+
+    # make sure that mappings have Well column
+    mapping_dict = {pid:resetNameIndex(df,'Well',False) for pid,df in mapping_dict.items()}
+
+    # merge mapping dataFrames
+    #   sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
+    #   useful because individual mapping files may look dataframe, some may even be empty ! 
+    master_mapping = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
+
+    # trim mapping base don Subset and Flag columns
+    master_mapping = master_mapping[master_mapping.isin({'Subset':[1],'Flag':[0]}).sum(1)==2]
+
+    # reset_index and set as Sample_ID
+    master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)
+
+    # trim Data
     for pid,data in data_dict.items():
+        mapping_df = master_mapping[master_mapping.Plate_ID==pid]
+        wells = list(mapping_df.Well.values)
+        sample_ids = list(mapping_df.index.values)
+        df = data.loc[:,['Time']+wells]
+        df.columns = ['Time'] + sample_ids
+        data_dict[pid] = df
 
-        # grab only wells that meet "Subset" criteria and do not meet Flag criteria
-        mapping_df = mapping_dict[pid]
-        mapping_df = mapping_df[mapping_df.Subset==1]
-        mapping_df = mapping_df[mapping_df.Flag==0]
+    # each data is time (T) x wells (N), will merge all data and keep a single Time column
+    #     reduce(fun,seq) applies a function (fun) recursively to all elements in list (seq)
+    #     here, reduce will merge the first two dataFrames in data_dict.values(), then it
+    #     will take this output and merge it with third dataFrame in list, and so on
+    master_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),data_dict.values())
+    master_data = master_data.sort_values(['Time']).reset_index(drop=True)
 
-        # list all well IDs (i.e. A1 ... H12)
-        wells = list(mapping_df.index.values)
+    master_mapping.to_csv('/Users/firasmidani/Downloads/20200212/master_mapping.txt',
+        sep='\t',header=True,index=True)
+  
+    master_data.to_csv('/Users/firasmidani/Downloads/20200212/master_data.txt',
+        sep='\t',header=True,index=True)
 
-        # store trimmed mapping and trimmed data
-        mapping_dict[pid] = mapping_df
-        data_dict[pid] = data.loc[:,['Time']+wells]
+    return master_data,master_mapping
 
-    return data_dict,mapping_dict
+def resetNameIndex(mapping_df,index_name,drop=False):
+    '''
+    Resets and names index of a pandas.DataFrame.
 
+    Args:
+        mapping_df (pandas.DataFrame): index (row.names) should be Well IDs (e.g. A1,...,H12).
+        index_name (str): name of index column, to be assigned.
+        drop (boolean): keeps index as a column, if desired
+
+    Returns:
+        mapping_df (pandas.DataFrame): with an additional coulum with the header 'Well'.
+    '''
+
+    mapping_df.index.name = index_name
+    mapping_df.reset_index(drop=False,inplace=True)
+
+    return mapping_df
+
+def packageData(data_dict,mapping_dict):
+    '''
+    '''
+
+    # makes sure that mappings have Well column with well_IDs as values
+    mapping_dict = {k:resetWellIndex(v) for k, v in mapping_dict.items()}
+
+    # merge all mapping first?
+    #mapping = pd.concat(mapping_index.values(),ignore_index=True)  # ignore_index will reset_index
+
+    # each data is time (T) x wells (N), will merge all data and keep a single Time column
+    #     reduce(fun,seq) applies a function (fun) recursively to all elements in list (seq)
+    #     here, reduce will merge the first two dataFrames in data_dict.values(), then it
+    #     will take this output and merge it with third dataFrame in list, and so on
+    all_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),data_dict.values())
+    all_data = all_data.sort_values(['Time']).reset_index(drop=True)
+
+    # sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
+    #   useful because individual mapping files may look dataframe, some may even be empty ! 
+    all_key = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
+
+    print(all_data.shape)
+    print(all_data.head())
+    print(all_key.shape)
+    print(all_key)
+    #all_data.columns = ['Time'] + list(all_key.Sample_ID.values)
 
 def runGrowthFitting(data,mapping,verbose=False):
     '''
     '''
 
-    for pid,df in data.items():
-        print(pid,df.shape)
-
     # trim data according to mapping
-    data,mapping = trimData(data,mapping,verbose)
+    #data,mapping = trimData(data,mapping,verbose)
+    
     # merge data-sets for easier analysis
-
-    for pid,df in data.items():
-        print(pid,mapping[pid].shape)
-        print(pid,df.shape)
+    packageData(data,mapping) 
 
 
 
