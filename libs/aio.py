@@ -1131,49 +1131,6 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     return mapping_dict
 
 
-#def trimData(data_dict,mapping_dict,verbose=False):
-#    '''
-#    Reduces the data based on user-passed flags and subsetting criteria (stored in mapping_dict).
-#
-#    Args:
-#        data_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
-#            first column is "Time" and rest of columns are Wells (e.g. A1, A2, ...). There are T rows
-#            corresponding to T timepoints.
-#        mapping_dict (dictionary): keys are file names (str) and values are pandas.DataFrames, where
-#           column headers must include Plate_ID, Subset, Flag, and row names are Well IDs (e.g. A1).
-#        verbose (boolean)
-#
-#    Returns:
-#        data_dict (dictionary): similar to input but values may be smaller in number of columns.
-#        mapping_dict (dictinoary): similar to input but values may be smaller in number of rows.
-#    '''
-#
-#    # merge all mapping_dict values into one master mapping pandas.dataFrame
-#    #   this is necessary to avoid a unique Sample Identifier (Sample_ID)
-#    master_mapping = pd.concat(mapping_
-#
-#
-#   all_key = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
-#
-#    for pid,data in data_dict.items():
-#
-#        # grab only wells that meet "Subset" criteria and do not meet Flag criteria
-#        mapping_df = mapping_dict[pid]
-#        mapping_df = mapping_df[mapping_df.Subset==1]
-#        mapping_df = mapping_df[mapping_df.Flag==0]
-#
-#        # list all well IDs (i.e. A1 ... H12)
-#        wells = list(mapping_df.index.values)
-#
-#        # store trimmed mapping and trimmed data
-#        mapping_dict[pid] = mapping_df
-#        data_dict[pid] = data_dict[pid].loc[:,['Time']+wells]
-#
-#    return data_dict,mapping_dict
-
-
-#def trimMappings(mapping,
-
 def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     '''
     Interprets parameters to reduce mapping and data files to match user-desired criteria.
@@ -1196,15 +1153,16 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     # annotate Subset and Flag columns in mapping files
     mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
 
-    # make sure that mappings have Well column
+    # make sure that mappings have Well columns
+    #   here we assume that mapping_dict values have index of Well IDs, which should be the case
     mapping_dict = {pid:resetNameIndex(df,'Well',False) for pid,df in mapping_dict.items()}
 
     # merge mapping dataFrames
     #   sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
-    #   useful because individual mapping files may look dataframe, some may even be empty ! 
+    #   useful because individual mapping files may lack certain columns, some may even be empty 
     master_mapping = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
 
-    # trim mapping base don Subset and Flag columns
+    # trim mapping based on Subset and Flag columns
     master_mapping = master_mapping[master_mapping.isin({'Subset':[1],'Flag':[0]}).sum(1)==2]
 
     # reset_index and set as Sample_ID
@@ -1252,32 +1210,6 @@ def resetNameIndex(mapping_df,index_name,drop=False):
 
     return mapping_df
 
-def packageData(data_dict,mapping_dict):
-    '''
-    '''
-
-    # makes sure that mappings have Well column with well_IDs as values
-    mapping_dict = {k:resetWellIndex(v) for k, v in mapping_dict.items()}
-
-    # merge all mapping first?
-    #mapping = pd.concat(mapping_index.values(),ignore_index=True)  # ignore_index will reset_index
-
-    # each data is time (T) x wells (N), will merge all data and keep a single Time column
-    #     reduce(fun,seq) applies a function (fun) recursively to all elements in list (seq)
-    #     here, reduce will merge the first two dataFrames in data_dict.values(), then it
-    #     will take this output and merge it with third dataFrame in list, and so on
-    all_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),data_dict.values())
-    all_data = all_data.sort_values(['Time']).reset_index(drop=True)
-
-    # sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
-    #   useful because individual mapping files may look dataframe, some may even be empty ! 
-    all_key = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
-
-    print(all_data.shape)
-    print(all_data.head())
-    print(all_key.shape)
-    print(all_key)
-    #all_data.columns = ['Time'] + list(all_key.Sample_ID.values)
 
 def runGrowthFitting(data,mapping,verbose=False):
     '''
