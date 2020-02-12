@@ -65,5 +65,5 @@ data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
 print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
 
 # 
-#aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
+aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
 

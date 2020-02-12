@@ -5,7 +5,7 @@ DESCRIPTION library for input/output commands for AMiGA
 '''
 
 __author__ = "Firas Said Midani"
-__vesrion__ = "0.1.0"
+__version__ = "0.1.0"
 __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
@@ -41,6 +41,7 @@ import string
 from functools import reduce
 
 from libs import biolog_pm_layout as bpl
+from libs import growth
 
 def smartPrint(msg,verbose):
     '''
@@ -1130,15 +1131,11 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
 
     return mapping_dict
 
-
-def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
+def trimMergeMapping(mapping_dict,params_dict,verbose=False):
     '''
-    Interprets parameters to reduce mapping and data files to match user-desired criteria.
+    Trims and merges mapping dataframes into one master mapping data frame.
 
     Args:
-        data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
-            where t is the number of time-points and n is number of wells (i.e. samples),
-            the additional 1 is due to the explicit 'Time' column, index is uninformative.
         mapping (dictionary): keys are plate IDs and values are pandas.DataFrames with size n x (p)
             where is the number of wells (or samples) in plate, and p are the number of variables or
             parameters described in dataframe.
@@ -1146,8 +1143,7 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
         verbose (boolean)
 
     Returns:
-        data (dictionary): values may have smaller size than at time of input
-        mapping (dictionary): values may have smaller size than at time of input 
+        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)  
     '''
 
     # annotate Subset and Flag columns in mapping files
@@ -1168,13 +1164,38 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     # reset_index and set as Sample_ID
     master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)
 
-    # trim Data
+    return master_mapping
+
+def trimMergeData(data_dict,master_mapping,verbose=False):
+    '''
+    Trims and merges data dataframes into one master dataframe. 
+
+    Args:
+        data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
+            where t is the number of time-points and n is number of wells (i.e. samples),
+            the additional 1 is due to the explicit 'Time' column, index is uninformative.
+        mapping_df (pandas.DataFrame): number of well/samples (n) x number of variables (p)
+        verbose (boolean)
+
+    Returns:
+        master_data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
+            plus-one because Time is not an index but rather a column
+    '''
+
     for pid,data in data_dict.items():
+
+        # grab plate-specific samples
         mapping_df = master_mapping[master_mapping.Plate_ID==pid]
+
+        # grab plate-specific data
         wells = list(mapping_df.Well.values)
-        sample_ids = list(mapping_df.index.values)
         df = data.loc[:,['Time']+wells]
+
+        # update plate-specific data with unique Sample Identifiers 
+        sample_ids = list(mapping_df.index.values)
         df.columns = ['Time'] + sample_ids
+
+        # udpate dictionary
         data_dict[pid] = df
 
     # each data is time (T) x wells (N), will merge all data and keep a single Time column
@@ -1184,6 +1205,31 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     master_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),data_dict.values())
     master_data = master_data.sort_values(['Time']).reset_index(drop=True)
 
+    return master_data
+    
+
+def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
+    '''
+    Interprets parameters to reduce mapping and data files to match user-desired criteria.
+
+    Args:
+        data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
+            where t is the number of time-points and n is number of wells (i.e. samples),
+            the additional 1 is due to the explicit 'Time' column, index is uninformative.
+        mapping (dictionary): keys are plate IDs and values are pandas.DataFrames with size n x (p)
+            where is the number of wells (or samples) in plate, and p are the number of variables or
+            parameters described in dataframe.
+        params (dictionary): must at least include 'subset' and 'flag' keys and their values
+        verbose (boolean)
+
+    Returns:
+        data (dictionary): values may have smaller size than at time of input
+        mapping (dictionary): values may have smaller size than at time of input 
+    '''
+
+    master_mapping = trimMergeMapping(mapping_dict,params_dict,verbose) # named index: Sample_ID
+    master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
+
     master_mapping.to_csv('/Users/firasmidani/Downloads/20200212/master_mapping.txt',
         sep='\t',header=True,index=True)
   
@@ -1192,21 +1238,27 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
 
     return master_data,master_mapping
 
-def resetNameIndex(mapping_df,index_name,drop=False):
+def resetNameIndex(mapping_df,index_name,new_index=False):
     '''
     Resets and names index of a pandas.DataFrame.
 
     Args:
         mapping_df (pandas.DataFrame): index (row.names) should be Well IDs (e.g. A1,...,H12).
         index_name (str): name of index column, to be assigned.
-        drop (boolean): keeps index as a column, if desired
+        new_index (boolean): create new index (row number) and drop current, 
+            otherwise keep index as column
 
     Returns:
         mapping_df (pandas.DataFrame): with an additional coulum with the header 'Well'.
     '''
 
-    mapping_df.index.name = index_name
-    mapping_df.reset_index(drop=False,inplace=True)
+    if not new_index: 
+        mapping_df.index.name = index_name
+        mapping_df.reset_index(drop=False,inplace=True)
+
+    if new_index:
+        mapping_df.reset_index(drop=True,inplace=True)
+        mapping_df.index.name = index_name
 
     return mapping_df
 
@@ -1219,9 +1271,10 @@ def runGrowthFitting(data,mapping,verbose=False):
     #data,mapping = trimData(data,mapping,verbose)
     
     # merge data-sets for easier analysis
-    packageData(data,mapping) 
-
-
+    plate = growth.GrowthPlate(data=data,key=mapping) 
+    print(plate.time.head())
+    print(plate.data.head())
+    print(plate.key.head())
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
