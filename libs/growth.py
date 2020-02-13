@@ -103,8 +103,8 @@ class GrowthPlate(object):
             controls = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
             cases = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
 
-            df_controls = df.loc[:,controls.index.values]
-            df_cases = df.loc[:,cases.index.values]
+            df_controls = df.loc[:,controls]
+            df_cases = df.loc[:,cases]
 
             # for denominator, max by control column (i.e. well), then average all controls
             df_controls_fc = df_controls.max(0) / df_controls.max(0).mean(0)
