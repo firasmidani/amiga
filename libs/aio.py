@@ -1230,12 +1230,6 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     master_mapping = trimMergeMapping(mapping_dict,params_dict,verbose) # named index: Sample_ID
     master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
 
-    master_mapping.to_csv('/Users/firasmidani/Downloads/20200212/master_mapping.txt',
-        sep='\t',header=True,index=True)
-  
-    master_data.to_csv('/Users/firasmidani/Downloads/20200212/master_data.txt',
-        sep='\t',header=True,index=True)
-
     return master_data,master_mapping
 
 def resetNameIndex(mapping_df,index_name,new_index=False):
@@ -1267,14 +1261,8 @@ def runGrowthFitting(data,mapping,verbose=False):
     '''
     '''
 
-    # trim data according to mapping
-    #data,mapping = trimData(data,mapping,verbose)
-    
     # merge data-sets for easier analysis
     plate = growth.GrowthPlate(data=data,key=mapping) 
-    print(plate.time.head())
-    print(plate.data.head())
-    print(plate.key.head())
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
@@ -1330,7 +1318,7 @@ def tidyMessage(msg):
     Returns a message in a text-based banner with header and footer
         composed of dashes and hashtags. Messae will be paddedd with flanking
         spaces. Length of message determines length of banner. Heigh of banner is 4 lines.
-(
+
     Args:
         msg (str)
 
