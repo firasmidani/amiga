@@ -1264,6 +1264,8 @@ def runGrowthFitting(data,mapping,verbose=False):
     # merge data-sets for easier analysis
     plate = growth.GrowthPlate(data=data,key=mapping) 
 
+    plate.computeFoldChange()
+    
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
