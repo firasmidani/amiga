@@ -150,6 +150,17 @@ class GrowthPlate(object):
         self.mods.logged = True
 
 
+    def subtractBaseline(self):
+        '''
+        Subtract the first value in each column from all values of the column.
+
+        WARNING: if performed after natural-log-transformation of data, this is equivalent to 
+             scalign relative to OD at T0 (i.e. log[OD(t)] - log[OD(0)] = log[ OD(t) / OD(0) ] )
+        '''
+
+        self.data = self.data.apply(lambda x: x - self.data.iloc[0,:],axis=1)
+        self.mods.floored = True
+
     def addLocationVarbs(self):
         '''
         '''

@@ -1262,13 +1262,14 @@ def runGrowthFitting(data,mapping,verbose=False):
     '''
 
     # merge data-sets for easier analysis
-    plate = growth.GrowthPlate(data=data,key=mapping) 
+    plate = growth.GrowthPlate(data=data,key=mapping)
+ 
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
     plate.convertTimeUnits(input='seconds',output='hours')
-    print(plate.data.head())
     plate.logData()
-    print(plate.data.head())
+    plate.subtractBaseline()
+
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
