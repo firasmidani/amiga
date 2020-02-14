@@ -1265,7 +1265,7 @@ def runGrowthFitting(data,mapping,verbose=False):
     plate = growth.GrowthPlate(data=data,key=mapping) 
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
-    print(plate.key)
+    plate.convertTimeUnits(input='seconds',output='hours')
     
 
 def printDirectoryContents(directory,sort=True,tab=True):

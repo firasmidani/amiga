@@ -116,6 +116,27 @@ class GrowthPlate(object):
         self.key = mapping
 
 
+    def convertTimeUnits(self,input,output):
+        '''
+        Converts object's time pandas.DataFrame values between different time intervals. 
+            It can convert between seconds, minutes, hours, and days.
+
+        Args:
+            input (str): either 'seconds','minutes','hours','days' (current unit of time)
+            output (str): either 'seconds','minutes','hours','days' (desired unit of time)
+        '''
+
+        seconds = 1.0
+        minutes = 60.0  # seconds
+        hours = 3600.0  # seconds
+        days  = 3600.0 * 24  # second
+
+        time_dict = {'seconds':seconds,'minutes':minutes,'hours':hours,'days':days}
+
+        scaler = time_dict[input] / time_dict[output]
+        self.time = self.time.astype(float) * scaler
+
+
     def addLocationVarbs(self):
         '''
         '''
