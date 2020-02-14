@@ -13,6 +13,7 @@ __email__ = "midani@bcm.edu"
 
 from libs import aux
 
+import numpy as np
 import pandas as pd
 
 
@@ -49,6 +50,9 @@ class GrowthPlate(object):
 
         self.input_time = self.time.copy()
         self.input_data = self.data.copy()
+
+        self.mods = pd.DataFrame(columns=['logged'],index=['status'])
+        self.mods = self.mods.apply(lambda x: False) 
 
         assert type(key) == pd.DataFrame, "key must be a pandas DataFrame"
         assert (self.data.shape[1]) == (self.key.shape[0]), "key must contain mapping data for all samples"
@@ -135,6 +139,15 @@ class GrowthPlate(object):
 
         scaler = time_dict[input] / time_dict[output]
         self.time = self.time.astype(float) * scaler
+
+
+    def logData(self):
+        '''
+        Transform with a natural logarithm all values in object's data (pandas.DataFrame).
+        '''
+
+        self.data = self.data.apply(lambda x: np.log(x))
+        self.mods.logged = True
 
 
     def addLocationVarbs(self):
