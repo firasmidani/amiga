@@ -15,7 +15,7 @@ from libs import aux
 
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 class GrowthPlate(object):
 
@@ -160,6 +160,25 @@ class GrowthPlate(object):
 
         self.data = self.data.apply(lambda x: x - self.data.iloc[0,:],axis=1)
         self.mods.floored = True
+
+
+    def plot(self):
+        '''
+        '''
+
+#        if raw:
+#            df = self.input_data.copy()
+#        else:
+#            df = self.data.copy()
+#
+#        df.columns = np
+
+
+
+
+
+
+
 
     def addLocationVarbs(self):
         '''

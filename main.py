@@ -54,16 +54,21 @@ print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 # parse mapping files and mapping data (dict)
 mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])
 
+# plot plate(s), if only requested
+aio.plotPlatesOnly(data,mappings,args,verbose=args['verbose'])
+
 # communicate with user
 print(aio.tidyMessage('AMiGA is trimming samples based on user input'))
 
 # trim mapping data based on user input
-#mappings = aio.trimMappings(mappings,params,verbose=args['verbose'])
 data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
 
-# 
+# run hypothesis testing, if requested
+aio.testHypothesis(data,mappings,params,verbose=args['verbose'])
+
+# run growth fitting 
 aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
 

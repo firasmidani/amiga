@@ -1131,7 +1131,8 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
 
     return mapping_dict
 
-def trimMergeMapping(mapping_dict,params_dict,verbose=False):
+
+def trimMergeMapping(mapping_dict,params_dict,annotate_only=False,verbose=False):
     '''
     Trims and merges mapping dataframes into one master mapping data frame.
 
@@ -1140,10 +1141,13 @@ def trimMergeMapping(mapping_dict,params_dict,verbose=False):
             where is the number of wells (or samples) in plate, and p are the number of variables or
             parameters described in dataframe.
         params (dictionary): must at least include 'subset' and 'flag' keys and their values
+        merge (boolean): if False, only annotates mapping and does not tirm.
         verbose (boolean)
 
     Returns:
-        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)  
+        mapping as either
+            (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
+            (dictionary): same as input but annotated and Well as a column in each value dataframe 
     '''
 
     # annotate Subset and Flag columns in mapping files
@@ -1152,6 +1156,9 @@ def trimMergeMapping(mapping_dict,params_dict,verbose=False):
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case
     mapping_dict = {pid:resetNameIndex(df,'Well',False) for pid,df in mapping_dict.items()}
+
+    if annotate_only:
+        return mapping_dict
 
     # merge mapping dataFrames
     #   sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
@@ -1165,6 +1172,7 @@ def trimMergeMapping(mapping_dict,params_dict,verbose=False):
     master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)
 
     return master_mapping
+
 
 def trimMergeData(data_dict,master_mapping,verbose=False):
     '''
@@ -1227,10 +1235,14 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
         mapping (dictionary): values may have smaller size than at time of input 
     '''
 
-    master_mapping = trimMergeMapping(mapping_dict,params_dict,verbose) # named index: Sample_ID
-    master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
+    # named index: Sample_ID
+    master_mapping = trimMergeMapping(mapping_dict,params_dict,annotate_only=False,verbose)
 
+    # unnamed index: row number
+    master_data = trimMergeData(data_dict,master_mapping,verbose)
+ 
     return master_data,master_mapping
+
 
 def resetNameIndex(mapping_df,index_name,new_index=False):
     '''
@@ -1257,18 +1269,53 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
     return mapping_df
 
 
+def testHypothesis(data,mappinga,params,verbose=False):
+    '''
+    '''
+
+def plotPlatesOnly(data,mapping,args,verbose=False):
+    '''
+    '''
+
+    if not args['opp']:
+        return None
+
+    for pid,data_df in data.items():
+
+        # grab plate-specific samples
+        mapping_df = mapping[pid]
+        mapping_df = resetNameIndex(mapping_df,'Well',False)
+
+        # grab plate-specific data
+        wells = list(mapping_df.Well.values)
+        data_df = data_df.loc[:,['Time']+wells]
+
+        # update plate-specific data with unique Sample Identifiers 
+        sample_ids = list(mapping_df.index.values)
+        data_df.columns = ['Time'] + sample_ids
+
+        plate = growth.GrowthPlate(data=data_df,key=mapping_df)
+        plate.computeBasicSummary()
+        plate.computeFoldChange(subtract_baseline=True)
+        plate.convertTimeUnits(input='seconds',output='hours')
+        plate.plot()
+
+    msg = ''
+    sys.exit(msg)
+
 def runGrowthFitting(data,mapping,verbose=False):
     '''
     '''
 
     # merge data-sets for easier analysis
     plate = growth.GrowthPlate(data=data,key=mapping)
- 
+
+    # perform basic summaries and manipulations 
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
     plate.convertTimeUnits(input='seconds',output='hours')
-    plate.logData()
-    plate.subtractBaseline()
+    plate.logData()  # natural-log transform
+    plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
