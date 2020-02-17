@@ -1112,7 +1112,8 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
 def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
     Annotates the mapping data based on user-passed flags and subsetting criteria. In particular,
-        it will annotate the Flag and Subset columns. 
+        it will annotate the Flag and Subset columns. It will also turn Well index into a
+        standalone column. 
 
     Args:
         mapping_dict (dictionary): of mapping files (pandas.DataFrames), keys are file names (str)
@@ -1129,10 +1130,14 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     # tag wells that meet user-passed criteria for analysis
     mapping_dict = subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
 
+    # make sure that mappings have Well columns
+    #   here we assume that mapping_dict values have index of Well IDs, which should be the case
+    mapping_dict = {pid:resetNameIndex(df,'Well',False) for pid,df in mapping_dict.items()}
+
     return mapping_dict
 
 
-def trimMergeMapping(mapping_dict,params_dict,annotate_only=False,verbose=False):
+def trimMergeMapping(mapping_dict,verbose=False):
     '''
     Trims and merges mapping dataframes into one master mapping data frame.
 
@@ -1141,24 +1146,11 @@ def trimMergeMapping(mapping_dict,params_dict,annotate_only=False,verbose=False)
             where is the number of wells (or samples) in plate, and p are the number of variables or
             parameters described in dataframe.
         params (dictionary): must at least include 'subset' and 'flag' keys and their values
-        merge (boolean): if False, only annotates mapping and does not tirm.
         verbose (boolean)
 
     Returns:
-        mapping as either
-            (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
-            (dictionary): same as input but annotated and Well as a column in each value dataframe 
+        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)  
     '''
-
-    # annotate Subset and Flag columns in mapping files
-    mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
-
-    # make sure that mappings have Well columns
-    #   here we assume that mapping_dict values have index of Well IDs, which should be the case
-    mapping_dict = {pid:resetNameIndex(df,'Well',False) for pid,df in mapping_dict.items()}
-
-    if annotate_only:
-        return mapping_dict
 
     # merge mapping dataFrames
     #   sort will force shared (inner) keys to the lead and unshared (outer) keys to the caboose
@@ -1235,12 +1227,13 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
         mapping (dictionary): values may have smaller size than at time of input 
     '''
 
-    # named index: Sample_ID
-    master_mapping = trimMergeMapping(mapping_dict,params_dict,annotate_only=False,verbose)
+    # annotate Subset and Flag columns in mapping files
+    mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
 
-    # unnamed index: row number
-    master_data = trimMergeData(data_dict,master_mapping,verbose)
- 
+    # trim and merge into single pandas.DataFrames
+    master_mapping = trimMergeMapping(mapping_dict,verbose) # named index: Sample_ID
+    master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
+
     return master_data,master_mapping
 
 
@@ -1295,9 +1288,9 @@ def plotPlatesOnly(data,mapping,args,verbose=False):
         data_df.columns = ['Time'] + sample_ids
 
         plate = growth.GrowthPlate(data=data_df,key=mapping_df)
-        plate.computeBasicSummary()
-        plate.computeFoldChange(subtract_baseline=True)
         plate.convertTimeUnits(input='seconds',output='hours')
+        plate.computeBassicSummary()
+        plate.computeFoldChange(subtract_baseline=True)
         plate.plot()
 
     msg = ''
