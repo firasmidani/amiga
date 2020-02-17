@@ -11,7 +11,7 @@ __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
 
-from libs import aux
+from libs import aio,aux
 
 import numpy as np
 import pandas as pd
@@ -162,6 +162,23 @@ class GrowthPlate(object):
         self.mods.floored = True
 
 
+    def isSingleMicroTiterPlate(self):
+        '''
+        '''
+
+        if len(self.key.Plate_ID.unique()) != 1:
+            return False	
+
+        if 'Well' not in self.key.columns:
+            return False
+
+        expc_wells = set(aio.parseWellLayout().index.values)  # expected list of wells 
+        list_wells = set(self.key.Well.values)  # actual list of wells
+
+        if len(expc_wells.intersection(list_wells)) == 96:
+            return True
+
+
     def plot(self):
         '''
         '''
@@ -173,23 +190,51 @@ class GrowthPlate(object):
 #
 #        df.columns = np
 
+        # make sure plate is 96-well version, otherwise skip plotting
+        if not self.isSingleMicroTiterPlate():
+            msg = 'USER ERROR: GrowthPlate() object is not a 96-well plate. '
+            msg += 'AMiGA can not plot it.'
+            aio.smartPrint(msg)
+            return None
 
+        self.addLocation()
+        print(self.key.head())
 
+        data = self.data
+        time = self.time
+        key = self.key
 
+        fig,axes = plt.subplots(8,12,figsize=[12,8])
 
+        ymax = np.ceil(data.max(1).max())
+        ymin = np.floor(data.min(1).min())
 
+        xmax = time.values[-1]
+        xmax_up = int(np.ceil(xmax)) # round up to nearest integer
 
+        for well in data.columns:
 
-    def addLocationVarbs(self):
+            r,c = key.loc[well,['Row','Column']] -1
+            ax = axes[r,c]
+
+            
+
+        return None
+
+    def addLocation(self):
         '''
         '''
 
         if all(x in self.key.columns for x in ['Row','Column']):
             return None
 
+        if 'Well' in self.key.columns:
+            self.key = self.key.join(aio.parseWellLayout(),on='Well')
+        else:
+            self.key = self.key.join(aio.parseWellLayout().reset_index())
+
         row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'H':7,'G':8}
 
-        if 'Well' in self.key.columns:
-            self.key = self.key.join(parseWellLayout(),on='Well')
-        else:
-            self.key = self.key.join(parseWellLayout().reset_index())
+        self.key.Row = self.key.Row.replace(row_map)
+        self.key.Column = self.key.Column.replace(int)
+

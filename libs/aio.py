@@ -648,7 +648,7 @@ def parseWellLayout(order_axis=1):
 
     # initialize rows = ['A',...,'H'] and cols = [1,...,12]
     rows = list(string.ascii_uppercase[0:8])
-    cols = list(str(ii) for ii in range(1,13))
+    cols = list(int(ii) for ii in range(1,13))
 
     list_wells = []
     list_cols = []
@@ -1096,6 +1096,7 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
 
     if (len(criteria)==0):
         smartPrint('No subsetting was requested.\n',verbose)
+        return df_mapping_dict
 
     for plate_id,mapping_df in df_mapping_dict.items():
 
@@ -1277,7 +1278,7 @@ def plotPlatesOnly(data,mapping,args,verbose=False):
 
         # grab plate-specific samples
         mapping_df = mapping[pid]
-        mapping_df = resetNameIndex(mapping_df,'Well',False)
+        #mapping_df = resetNameIndex(mapping_df,'Well',False)
 
         # grab plate-specific data
         wells = list(mapping_df.Well.values)
@@ -1289,7 +1290,7 @@ def plotPlatesOnly(data,mapping,args,verbose=False):
 
         plate = growth.GrowthPlate(data=data_df,key=mapping_df)
         plate.convertTimeUnits(input='seconds',output='hours')
-        plate.computeBassicSummary()
+        plate.computeBasicSummary()
         plate.computeFoldChange(subtract_baseline=True)
         plate.plot()
 
