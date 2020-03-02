@@ -16,6 +16,9 @@ from libs import aio,aux
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_style('whitegrid')
 
 class GrowthPlate(object):
 
@@ -162,16 +165,23 @@ class GrowthPlate(object):
         self.mods.floored = True
 
 
-    def isSingleMicroTiterPlate(self):
+    def isSingleMultiWellPlate(self):
         '''
+        Checks if object describes a 96-well plate using several criteria. 
+
+        Returns:
+            (boolean)
         '''
 
+        # must have only one Plate_ID associated with all samples
         if len(self.key.Plate_ID.unique()) != 1:
             return False	
 
+        # Well must be a column, values woudl be well locations (e.g. A1)
         if 'Well' not in self.key.columns:
             return False
 
+        # makes sure that all 96 well locations are described in key and thus data
         expc_wells = set(aio.parseWellLayout().index.values)  # expected list of wells 
         list_wells = set(self.key.Well.values)  # actual list of wells
 
@@ -181,6 +191,15 @@ class GrowthPlate(object):
 
     def plot(self):
         '''
+        Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
+            Plot aesthetics require several parameters that are saved in config.py and pulled using 
+            functions in aux.py.
+
+        Returns:
+            fig,ax: figure and axis handles
+
+        Action:
+            
         '''
 
 #        if raw:
@@ -191,14 +210,13 @@ class GrowthPlate(object):
 #        df.columns = np
 
         # make sure plate is 96-well version, otherwise skip plotting
-        if not self.isSingleMicroTiterPlate():
+        if not self.isSingleMultiWellPlate():
             msg = 'USER ERROR: GrowthPlate() object is not a 96-well plate. '
             msg += 'AMiGA can not plot it.'
             aio.smartPrint(msg)
             return None
 
         self.addLocation()
-        print(self.key.head())
 
         data = self.data
         time = self.time
@@ -206,23 +224,79 @@ class GrowthPlate(object):
 
         fig,axes = plt.subplots(8,12,figsize=[12,8])
 
+        # define window axis limits
         ymax = np.ceil(data.max(1).max())
         ymin = np.floor(data.min(1).min())
 
+        xmin = 0
         xmax = time.values[-1]
         xmax_up = int(np.ceil(xmax)) # round up to nearest integer
 
         for well in data.columns:
 
+            # select proper sub-plot
             r,c = key.loc[well,['Row','Column']] -1
             ax = axes[r,c]
-
             
+            # get colors based on fold-change and configuration parameters
+            color_l,color_f = aux.getPlotColors(key.loc[well,'Fold_Change'])
+
+            # set window axis limits
+            ax.set_xlim([xmin,xmax])
+            ax.set_ylim([ymin,ymax])
+
+            # define x-data and y-data points
+            x = np.ravel(time.values)
+            y = data.loc[:,well].values
+
+            # plot line
+            ax.plot(x,y,color=color_l,lw=1.5)
+            ax.fill_between(x=x,y1=[ax.get_ylim()[0]]*len(y),y2=y,color=color_f)
+
+            # show tick labels for bottom left subplot only, so by default no labels
+            plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
+            plt.setp(ax,yticks=[ymin,ymax],yticklabels=[])
+
+            # add well identifier on top left of each sub-plot
+            well_color = aux.getTextColors('Well_ID')
+            ax.text(0.,1.,key.loc[well,'Well'],color=well_color,
+                ha='left',va='top',transform=ax.transAxes)
+
+            # add Max OD value on top right of each sub-plot
+            ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=aux.getTextColors('OD_Max'),
+                ha='right',va='top',transform=ax.transAxes)
+
+        # show tick labels for bottom left sub-plot only
+        plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
+        plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
+
+        # add x- and y-labels and title
+        ylabel_base = aux.getText('grid_plot_y_label')
+        ylabel_mod = ['ln ' if self.mods.logged else ''][0]
+        ylabel_text = ylabel_mod + ylabel_base
+ 
+        fig.text(0.512,0.07,'Time (hours)',fontsize=15,
+            ha='center',va='bottom')
+        fig.text(0.100,0.50,ylabel_text,fontsize=15,
+            ha='right',va='center',rotation='vertical')
+
+        fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=15,
+            ha='center',va='center')
+
+        # save figure, if requested
+
+        plt.savefig('/Users/firasmidani/Downloads/20200302-101944.pdf')
 
         return None
 
     def addLocation(self):
         '''
+        Expands object key to include following columns: Row and Column, which desribe
+            the location of each sample in a multi-well plate (e.g. 96-well plate). However,
+            locations here are numerical (i.e Rows 1-8 will correspond to A-H, respectively. 
+
+        Action:
+            self.key will have two additional columns, if they were missing prior to execution.
         '''
 
         if all(x in self.key.columns for x in ['Row','Column']):

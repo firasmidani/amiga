@@ -15,3 +15,21 @@ config['interval'] = 600
 
 # default wavelength for OD measurements is et to 620 nm; str because it is used only for plot labeling
 config['nm'] = str(620)
+
+# parameters related to plotting and fold change
+config['fcg'] = 1.50  # fold-change threshold for growth
+config['fcd'] = 0.50  # fold-change threshold for death
+
+config['fcg_line_color'] = (0.0,0.0,1.0,1.0)
+config['fcg_face_color'] = (0.0,0.0,1.0,0.15)
+
+config['fcd_line_color'] = (1.0,0.0,0.0,1.0)
+config['fcd_face_color'] = (1.0,0.0,0.0,0.15)
+
+config['fcn_line_color'] = (0.0,0.0,0.0,1.0)
+config['fcn_face_color'] = (0.0,0.0,0.0,0.15)
+
+config['fcn_well_id_color'] = (0.65,0.165,0.16,0.8)
+config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
+
+config['grid_plot_y_label'] = 'Optical Density (620 nm)'

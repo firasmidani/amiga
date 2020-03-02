@@ -804,6 +804,15 @@ def isBiologFromName(filebase):
 
 def initMappingDf(filebase,well_ids):
     '''
+    Creates a minimalist file mapping (pandas.DataFrame). Index column are Well IDs, and sole
+        value column is 'Plate_ID'. 
+
+    Args:
+        filebase (str): Plate ID
+        well_ids (list of str): list of Well IDs (e.g. A1,A2,...,H11,H12)
+
+    Returns:
+        df_mapping (pandas.DataFrame): n x 1 where n is based on length of well_ids argument.
     '''
 
     data = [filebase]*len(well_ids)
