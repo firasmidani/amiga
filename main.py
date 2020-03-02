@@ -57,8 +57,8 @@ mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=
 # annotate mapping files based on user input (dict)
 mappings = aio.annotateMappings(mappings,params,verbose=args['verbose'])
 
-# plot plate(s), if only requested
-aio.plotPlatesOnly(data,mappings,args,verbose=args['verbose'])
+# plot plate(s), if it is the only request
+aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is trimming samples based on user input'))

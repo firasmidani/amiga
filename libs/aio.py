@@ -1258,7 +1258,7 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
             otherwise keep index as column
 
     Returns:
-        mapping_df (pandas.DataFrame): with an additional coulum with the header 'Well'.
+        mapping_df (pandas.DataFrame): with an additional coulmns with the header 'Well'.
     '''
 
     if not new_index: 
@@ -1276,14 +1276,20 @@ def testHypothesis(data,mappinga,params,verbose=False):
     '''
     '''
 
-def plotPlatesOnly(data,mapping,args,verbose=False):
+def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     '''
     '''
 
-    if not args['opp']:
+    if not args['opp']:  # if not only_plot_plaes
         return None
 
     for pid,data_df in data.items():
+
+        # define paths where summary and plot will be saved
+        sep = ['' if directory['summary'][-1]=='/' else '/'][0]
+        key_file_path = '{}{}{}_summary.txt'.format(directory['summary'],sep,pid)
+        sep = ['' if directory['figures'][-1]=='/' else '/'][0]
+        key_fig_path = '{}{}{}_input.pdf'.format(directory['figures'],sep,pid)
 
         # grab plate-specific samples
         mapping_df = mapping[pid]
@@ -1297,11 +1303,15 @@ def plotPlatesOnly(data,mapping,args,verbose=False):
         sample_ids = list(mapping_df.index.values)
         data_df.columns = ['Time'] + sample_ids
 
+        # create GrowthPlate object, perform basic summary
         plate = growth.GrowthPlate(data=data_df,key=mapping_df)
         plate.convertTimeUnits(input='seconds',output='hours')
         plate.computeBasicSummary()
         plate.computeFoldChange(subtract_baseline=True)
-        plate.plot()
+
+        # plot and save as PDF, also save key as TXT
+        plate.plot(key_fig_path)
+        plate.saveKey(key_file_path)
 
     msg = ''
     sys.exit(msg)

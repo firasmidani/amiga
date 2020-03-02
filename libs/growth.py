@@ -188,18 +188,33 @@ class GrowthPlate(object):
         if len(expc_wells.intersection(list_wells)) == 96:
             return True
 
+    def saveKey(self,save_path):
+        '''
+        Saves the current instance of the object's key (i.e. mapping file). 
 
-    def plot(self):
+        Args:
+            save_path (str): file path to location where key should be stored, includes file name. 
+
+        Actions:
+            Saves a tab-separated file in desired location (argument).
+        '''
+
+        self.key.to_csv(save_path,sep='\t',header=True,index=True)
+
+    def plot(self,save_path=''):
         '''
         Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
             Plot aesthetics require several parameters that are saved in config.py and pulled using 
-            functions in aux.py.
+            functions in aux.py. Plot will be saved as a PDF to location passed via argument.
+
+        Args:
+            save_path (str): file path: if empty, plot will not be saved at all.
 
         Returns:
-            fig,ax: figure and axis handles
+            fig,axes: figure and axis handles.
 
         Action:
-            
+            if user passes save_path argument, plot will be saved as PDF in desired location 
         '''
 
 #        if raw:
@@ -274,20 +289,19 @@ class GrowthPlate(object):
         ylabel_base = aux.getText('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
         ylabel_text = ylabel_mod + ylabel_base
- 
+
+        # add labels and title 
         fig.text(0.512,0.07,'Time (hours)',fontsize=15,
             ha='center',va='bottom')
         fig.text(0.100,0.50,ylabel_text,fontsize=15,
             ha='right',va='center',rotation='vertical')
-
         fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=15,
             ha='center',va='center')
 
-        # save figure, if requested
+        if save_path!='': # if no file path passed, do not save 
+            plt.savefig(save_path)
 
-        plt.savefig('/Users/firasmidani/Downloads/20200302-101944.pdf')
-
-        return None
+        return fig,axes
 
     def addLocation(self):
         '''
