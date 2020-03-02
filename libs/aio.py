@@ -718,7 +718,7 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
         df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)
         df_dict[filebase] = df
 
-    smartPrint('\n',verbose)  # print empty newline, for visual asethetics only
+    smartPrint('',verbose)  # print empty newline, for visual asethetics only
 
     return df_dict
 
@@ -1258,7 +1258,7 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
             otherwise keep index as column
 
     Returns:
-        mapping_df (pandas.DataFrame): with an additional coulmns with the header 'Well'.
+        mapping_df (pandas.DataFrame): with an additional coulmn with the header 'Well'.
     '''
 
     if not new_index: 
@@ -1278,10 +1278,28 @@ def testHypothesis(data,mappinga,params,verbose=False):
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     '''
+    For each data file, perform a basic algebraic summary and plot data.
+ 
+    Args:
+        data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
+            where t is the number of time-points and n is number of wells (i.e. samples),
+            the additional 1 is due to the explicit 'Time' column, index is uninformative.
+        mapping (dictionary): keys are plate IDs and values are pandas.DataFrames with size n x (p)
+            where is the number of wells (or samples) in plate, and p are the number of variables or
+            parameters described in dataframe.
+        directory (dictionary): keys are folder names, values are their paths
+        args (dict): keys are parameter names and values are corresponding command-line arguments
+        verbose (boolean)
+
+    Actions:
+        For each data file, save a text file in the summary folder and a PDF in the figures folder. 
+        Once completed, perform a system exit. 
     '''
 
     if not args['opp']:  # if not only_plot_plaes
         return None
+
+    print(tidyMessage('AMiGA is summarizing and plotting data files'))
 
     for pid,data_df in data.items():
 
@@ -1292,8 +1310,9 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
         key_fig_path = '{}{}{}_input.pdf'.format(directory['figures'],sep,pid)
 
         # grab plate-specific samples
-        mapping_df = mapping[pid]
-        #mapping_df = resetNameIndex(mapping_df,'Well',False)
+        #   index should be well IDs but a column Well should also exist
+        #   in main.py, annotateMappings() is called which ensures the above is the case
+        mapping_df = mapping[pid] 
 
         # grab plate-specific data
         wells = list(mapping_df.Well.values)
@@ -1313,8 +1332,16 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
         plate.plot(key_fig_path)
         plate.saveKey(key_file_path)
 
-    msg = ''
-    sys.exit(msg)
+        smartPrint(pid,verbose=verbose)
+ 
+    smartPrint('\nSee {} for summary text files.'.format(directory['summary']),verbose)
+    smartPrint('See {} for figure PDFs.\n'.format(directory['figures']),verbose)
+
+    msg = 'AMiGA completed your request and '
+    msg += 'wishes you good luck with the analysis!'
+    print(tidyMessage(msg))
+
+    sys.exit()
 
 def runGrowthFitting(data,mapping,verbose=False):
     '''

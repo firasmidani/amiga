@@ -205,7 +205,8 @@ class GrowthPlate(object):
         '''
         Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
             Plot aesthetics require several parameters that are saved in config.py and pulled using 
-            functions in aux.py. Plot will be saved as a PDF to location passed via argument.
+            functions in aux.py. Plot will be saved as a PDF to location passed via argument. Index
+            column for object's key should be Well IDs but object's key should also have a Well column.
 
         Args:
             save_path (str): file path: if empty, plot will not be saved at all.
