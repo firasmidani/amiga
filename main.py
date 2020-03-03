@@ -55,7 +55,7 @@ print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])
 
 # annotate mapping files based on user input (dict)
-mappings = aio.annotateMappings(mappings,params,verbose=args['verbose'])
+#mappings = aio.annotateMappings(mappings,params,verbose=args['verbose'])
 
 # plot plate(s), if it is the only request
 aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])

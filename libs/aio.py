@@ -1276,9 +1276,14 @@ def testHypothesis(data,mappinga,params,verbose=False):
     '''
     '''
 
+    #### REPLICTES SHOULD BE MODELLED TOGETHER !!!!!
+
+    return None
+
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     '''
-    For each data file, perform a basic algebraic summary and plot data.
+    If user only requested plotting, then for  each data file, perform a basic algebraic summary
+        and plot data. Once completed, exit system. Otherwise, return None.
  
     Args:
         data (dictionary): keys are plate IDs and values are pandas.DataFrames with size t x (n+1)
@@ -1288,12 +1293,11 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
             where is the number of wells (or samples) in plate, and p are the number of variables or
             parameters described in dataframe.
         directory (dictionary): keys are folder names, values are their paths
-        args (dict): keys are parameter names and values are corresponding command-line arguments
+        args
         verbose (boolean)
 
-    Actions:
-        For each data file, save a text file in the summary folder and a PDF in the figures folder. 
-        Once completed, perform a system exit. 
+    Returns:
+        None: if only_plot_plate argument is False. 
     '''
 
     if not args['opp']:  # if not only_plot_plaes
@@ -1312,7 +1316,8 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
         # grab plate-specific samples
         #   index should be well IDs but a column Well should also exist
         #   in main.py, annotateMappings() is called which ensures the above is the case
-        mapping_df = mapping[pid] 
+        mapping_df = mapping[pid]
+        mapping_df = resetNameIndex(mapping_df,'Well',False)
 
         # grab plate-specific data
         wells = list(mapping_df.Well.values)
@@ -1356,6 +1361,13 @@ def runGrowthFitting(data,mapping,verbose=False):
     plate.convertTimeUnits(input='seconds',output='hours')
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
+
+    print(plate.key.head(20))
+    print(plate.data.head(20))
+
+
+    # 
+    
 
 
 def printDirectoryContents(directory,sort=True,tab=True):
