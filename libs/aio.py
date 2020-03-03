@@ -1207,6 +1207,7 @@ def trimMergeData(data_dict,master_mapping,verbose=False):
         # update plate-specific data with unique Sample Identifiers 
         sample_ids = list(mapping_df.index.values)
         df.columns = ['Time'] + sample_ids
+        df.T.index.name = 'Sample_ID'
 
         # udpate dictionary
         data_dict[pid] = df
@@ -1286,6 +1287,12 @@ def testHypothesis(data,mapping,params,verbose=False):
 
     print(hypothesis)
     print(data.head())
+
+    #data.T.index.name = 'Sample_ID'
+    data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
+
+    print(data.sample(20))
+    #print(data.keys())
 
 
     return None
