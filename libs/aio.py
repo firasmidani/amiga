@@ -1278,19 +1278,18 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
 
 def testHypothesis(data,mapping,params,verbose=False):
     '''
-    Perform hypothesis testing using Gaussian Process regression.
+    Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor.
 
     Args:
         data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
             plus-one because Time is not an index but rather a column.
  
-        mapping
-        params
+        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
+        params (dictionary): must at least include 'subset' and 'flag' keys and their values
         verbose (boolean)
 
-
-    Returns:
-        
+    Actions:
+        prints a message that describes the computed Bayes Factor based on user-passed hypothesis and data. 
     '''
 
     # melt data frame so that each row is a single time measurement
@@ -1309,6 +1308,7 @@ def testHypothesis(data,mapping,params,verbose=False):
     smartPrint('',verbose)
 
     return None
+
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     '''
