@@ -41,7 +41,7 @@ import string
 from functools import reduce
 
 from libs import biolog_pm_layout as bpl
-from libs import growth
+from libs import agp,growth
 
 def smartPrint(msg,verbose):
     '''
@@ -1278,22 +1278,35 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
 
 def testHypothesis(data,mapping,params,verbose=False):
     '''
+    Perform hypothesis testing using Gaussian Process regression.
 
+    Args:
+        data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
+            plus-one because Time is not an index but rather a column.
+ 
+        mapping
+        params
+        verbose (boolean)
+
+
+    Returns:
+        
     '''
 
-    #### REPLICTES SHOULD BE MODELLED TOGETHER !!!!!
-
-    hypothesis = params['hypo']
-
-    print(hypothesis)
-    print(data.head())
-
-    #data.T.index.name = 'Sample_ID'
+    # melt data frame so that each row is a single time measurement
+    #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
+    #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis. 
     data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
+    data = data.merge(mapping,on='Sample_ID')
 
-    print(data.sample(20))
-    #print(data.keys())
+    # compute likliehoods and Bayes Factor
+    hypothesis = params['hypo']
+    LL0 = agp.computeLikelihood(data,hypothesis['H0'])
+    LL1 = agp.computeLikelihood(data,hypothesis['H1'])
+    BF = LL1-LL0
 
+    smartPrint('Bayes Factor: {}'.format(BF),verbose)
+    smartPrint('',verbose)
 
     return None
 
