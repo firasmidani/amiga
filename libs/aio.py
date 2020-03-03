@@ -1109,8 +1109,11 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
 
     for plate_id,mapping_df in df_mapping_dict.items():
 
-        remove_boolean = ~(mapping_df.isin(criteria).sum(1)==len(criteria)).values  # list of booleans
-        remove_idx = mapping_df.index[remove_boolean]
+        # subsetting on number-based criteria does not match hits due to type mismatch (str vs int/float)
+        mapping_df_str = mapping_df.astype(str)
+
+        remove_boolean = ~(mapping_df_str.isin(criteria).sum(1)==len(criteria)).values  # list of booleans
+        remove_idx = mapping_df_str.index[remove_boolean]
         mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
 
     smartPrint('The following criteria were used to subset data:\n',verbose)
@@ -1272,11 +1275,18 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
     return mapping_df
 
 
-def testHypothesis(data,mappinga,params,verbose=False):
+def testHypothesis(data,mapping,params,verbose=False):
     '''
+
     '''
 
     #### REPLICTES SHOULD BE MODELLED TOGETHER !!!!!
+
+    hypothesis = params['hypo']
+
+    print(hypothesis)
+    print(data.head())
+
 
     return None
 
