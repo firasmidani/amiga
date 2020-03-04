@@ -22,7 +22,7 @@ sns.set_style('whitegrid')
 
 class GrowthPlate(object):
 
-    def __init__(self,data=None,key=None,time=None):
+    def __init__(self,data=None,key=None,time=None,input_time=None,input_data=None,mods=None):
         '''
         Data structure for handling growth data of microtiter plate assays. This however 
             can be generalized to any depenent observations with a single independent observation
@@ -330,19 +330,33 @@ class GrowthPlate(object):
 
     def extractGrowthData(self,args_dict={},unmodified=False):
         '''
+        Creates a GrowthData() object that is equal or smaller based on user-passed criteria.
+
+        Args:
+            args_dict (dictionary): keys are experimental variables and values are instances of these variables
+            unmodified (boolean): whether to extract data and only pass the input unmodified
+                data and time attributes from parent. 
+
+        Returns:
+            obj (GrowthPlate object): see definition of parent class for more details.
         '''
 
         # make sure criteria for selecting data based on experimental variables is not empty
-        if not_bool(args_dict):
+        if not bool(args_dict):
             msg = "USER ERROR: To extract selected growth data, "
-            msg += "you must pass criteria for selection to GrwothPlate().extractGrowthData()".
+            msg += "you must pass criteria for selection to GrwothPlate().extractGrowthData()."
             print(msg)
             return None
 
         # make sure that criteria for selecting data is formatted as a dictionary of lists or np.arrays
-        for dict_key,dict_value in args_dict.iteritems():
-            if (len(dict_value)==1) and not (isinstance(dict_value,(list,np.nodarray))):
-                args_dict[dict_key] = [value]
+        for dict_key,dict_value in args_dict.items():
+            if isinstance(dict_value,(list,np.ndarray)):
+                continue
+            elif isinstance(dict_value,(int,float,str)):
+                args_dict[dict_key] = [dict_value]
+
+        print(args_dict)
+        print(self.key)
 
         sub_key = self.key[self.key.isin(args_dict).sum(1)==len(args_dict)]
         sub_mods = self.mods
@@ -350,49 +364,28 @@ class GrowthPlate(object):
         sub_input_data = self.input_data.loc[:,sub_key.index]
         sub_input_time = self.input_time
 
-        sub_data = self.data.loc[:,sub_key_idx]
-        sub_time = self.time
+        if unmodified:
+            sub_data = sub_input_data
+            sub_time = sub_input_time
+        else:
+            sub_data = self.data.loc[:,sub_key.index]
+            sub_time = self.time
 
-        # package GrowthData object
-        obj = GrowthData(sub_time,sub_data,sub_key,sub_mods,sub_input_data,sub_input_time)
+        # package as a GrowthPlate object
+        obj = GrowthPlate(sub_data,sub_key,sub_time,sub_input_time,sub_input_data,sub_mods)
 
         return obj
 
-class GrowthData(object):
 
-    def __init__(sef,time=None,data=None,key=None,mods=None,input_data=None,input_time=None):
+    def copy(self):
         '''
-        Data structure for handling gorwth data for a single sample (e.g. a specific well in specific plate).
+        Creates a copy of class instance.
 
-        Attributes:
-
-            time (pd.DataFrame): n by 1 (for n time-points): stores time values (float)
-            data (pd.DataFrame): n by 1 (for n time-pointss): stores observations (e.g. optical density) (float)
-            key (pd.DataFrame): 1 by k (for k experimental variables or descriptors)
-            mods (pd.DataFrame): 1 by 1: stores the status of transformations applied to object's data
+        Returns:
+            obj (GrowthPlate object): see definition of parent class for more details.
         '''
 
-        self.time = time.copy()
-        self.data = data.copy()
-
-        self.input_time = [input_time.copy() if input_time is not None else None][0]
-        self.input_data = [input_data.copy() if input_data is not None else None][0]
-
-        self.key = key.copy()
-
-        if mods is None:
-            self.mods = pd.DataFrame(columns=['logged'],index=['status'])
-            self.mods = self.mods.apply(lambda x: False)
-        else:
-            self.mods = mods
-
-        assert type(time) == pd.DataFrame, "time must be a pandas DataFrame"
-        assert type(data) == pd.DataFrame, "data must be a pandas DataFrame"
-        assert type(key) == pd.DataFrame, "key must be a pandas DataFrame"
-
-        assert data.shape[1] == 1, "data must be correspond to a a single sample"
-        assert key.shape[0] == 1, "key must describe only a single sample
-
+        return deepcopy(self)
 
 
 #class GrowthMetrics(object):

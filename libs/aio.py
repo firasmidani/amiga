@@ -1412,18 +1412,26 @@ def runGrowthFitting(data,mapping,verbose=False):
 
     df = plate.time.join(plate.data)
 
-    for sample_id in plate.data.keys():
-        df_sample = df.loc[:,['Time',sample_id]]
-        df_sample = df_sample[~df_sample.isna().any(1)] # remove rows with missing values
-        x = pd.DataFrame(df_sample.loc[:,'Time'])
-        y = pd.DataFrame(df_sample.loc[:,sample_id])
-        m = agp.GP(x,y)
-        print(sample_id)
-        print(plate.key.loc[sample_id,:])
-        print(m)
-     
-    
+    for substrate in ['Negative Control','alpha-D-Glucose']:
+        sample_data = plate.extractGrowthData({'Substrate':substrate,'PM':1})
+        print(sample_data.time.head())
+        print(sample_data.data.head())
+        print(sample_data.key.head())
+        print(sample_data.mods)
+        print(sample_data.input_time)
+        print(sample_data.input_data)
 
+
+#    for ii,sample_id in enumerate(plate.data.keys()):
+#        df_sample = df.loc[:,['Time',sample_id]]
+#        df_sample = df_sample[~df_sample.isna().any(1)] # remove rows with missing values
+#        x = pd.DataFrame(df_sample.loc[:,'Time'])
+#        y = pd.DataFrame(df_sample.loc[:,sample_id])
+#        m = agp.GP(x,y)
+#        print(sample_id)
+#        print(plate.key.loc[sample_id,:])
+#        print(m)
+ 
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
