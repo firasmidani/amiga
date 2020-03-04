@@ -1278,7 +1278,8 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
 
 def testHypothesis(data,mapping,params,verbose=False):
     '''
-    Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor.
+    Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
+        if user passes a hypothesis.
 
     Args:
         data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
@@ -1292,22 +1293,36 @@ def testHypothesis(data,mapping,params,verbose=False):
         prints a message that describes the computed Bayes Factor based on user-passed hypothesis and data. 
     '''
 
+    if len(params['hypo'])==0:  # only continue if user passed a hypothesis
+        return None
+
     # melt data frame so that each row is a single time measurement
     #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
     #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis. 
     data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
     data = data.merge(mapping,on='Sample_ID')
 
+    data.to_csv('/Users/firasmidani/Downloads/20200303_data.txt',sep='\t',header=True,index=True)
+ 
     # compute likliehoods and Bayes Factor
     hypothesis = params['hypo']
     LL0 = agp.computeLikelihood(data,hypothesis['H0'])
     LL1 = agp.computeLikelihood(data,hypothesis['H1'])
     BF = LL1-LL0
 
-    smartPrint('Bayes Factor: {}'.format(BF),verbose)
+    #fig,ax = plt.subplots(figsize=[10,10])
+   
+
+    #plt.savefig('/Users/firasmidani/Downloads/20200303_134858.pdf')
+
+    smartPrint('Bayes Factor: {0:.3f}'.format(BF),verbose)
     smartPrint('',verbose)
 
-    return None
+    msg = 'AMiGA completed your request and '
+    msg += 'wishes you good luck with the analysis!'
+    print(tidyMessage(msg))
+
+    sys.exit()
 
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
@@ -1395,8 +1410,18 @@ def runGrowthFitting(data,mapping,verbose=False):
     print(plate.key.head(20))
     print(plate.data.head(20))
 
+    df = plate.time.join(plate.data)
 
-    # 
+    for sample_id in plate.data.keys():
+        df_sample = df.loc[:,['Time',sample_id]]
+        df_sample = df_sample[~df_sample.isna().any(1)] # remove rows with missing values
+        x = pd.DataFrame(df_sample.loc[:,'Time'])
+        y = pd.DataFrame(df_sample.loc[:,sample_id])
+        m = agp.GP(x,y)
+        print(sample_id)
+        print(plate.key.loc[sample_id,:])
+        print(m)
+     
     
 
 

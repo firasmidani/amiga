@@ -73,5 +73,5 @@ print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
 aio.testHypothesis(data,mappings,params,verbose=args['verbose'])
 
 # run growth fitting 
-#aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
+aio.runGrowthFitting(data,mappings,verbose=args['verbose'])
 

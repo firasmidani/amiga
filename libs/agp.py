@@ -31,7 +31,7 @@ def GP(x,y):
     '''
 
     # define number of dimensions
-    input_dim = x.values.shape[1]
+    input_dim = x.shape[1]
 
     # define radial basis function kernel
     kern = GPy.kern.RBF(input_dim,ARD=True)
@@ -72,10 +72,12 @@ def computeLikelihood(df,variables):
 
     # define design matrix
     y = pd.DataFrame(df.OD)
-    x = df.drop('OD',axis=1)
+    x = pd.DataFrame(df.drop('OD',axis=1))
 
     # build and optimize model, then return maximized log-likelihood
     opt_model = GP(x,y);  
     LL = opt_model.log_likelihood()[0]
 
     return LL
+
+

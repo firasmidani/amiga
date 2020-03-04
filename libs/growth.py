@@ -327,3 +327,78 @@ class GrowthPlate(object):
         self.key.Row = self.key.Row.replace(row_map)
         self.key.Column = self.key.Column.replace(int)
 
+
+    def extractGrowthData(self,args_dict={},unmodified=False):
+        '''
+        '''
+
+        # make sure criteria for selecting data based on experimental variables is not empty
+        if not_bool(args_dict):
+            msg = "USER ERROR: To extract selected growth data, "
+            msg += "you must pass criteria for selection to GrwothPlate().extractGrowthData()".
+            print(msg)
+            return None
+
+        # make sure that criteria for selecting data is formatted as a dictionary of lists or np.arrays
+        for dict_key,dict_value in args_dict.iteritems():
+            if (len(dict_value)==1) and not (isinstance(dict_value,(list,np.nodarray))):
+                args_dict[dict_key] = [value]
+
+        sub_key = self.key[self.key.isin(args_dict).sum(1)==len(args_dict)]
+        sub_mods = self.mods
+
+        sub_input_data = self.input_data.loc[:,sub_key.index]
+        sub_input_time = self.input_time
+
+        sub_data = self.data.loc[:,sub_key_idx]
+        sub_time = self.time
+
+        # package GrowthData object
+        obj = GrowthData(sub_time,sub_data,sub_key,sub_mods,sub_input_data,sub_input_time)
+
+        return obj
+
+class GrowthData(object):
+
+    def __init__(sef,time=None,data=None,key=None,mods=None,input_data=None,input_time=None):
+        '''
+        Data structure for handling gorwth data for a single sample (e.g. a specific well in specific plate).
+
+        Attributes:
+
+            time (pd.DataFrame): n by 1 (for n time-points): stores time values (float)
+            data (pd.DataFrame): n by 1 (for n time-pointss): stores observations (e.g. optical density) (float)
+            key (pd.DataFrame): 1 by k (for k experimental variables or descriptors)
+            mods (pd.DataFrame): 1 by 1: stores the status of transformations applied to object's data
+        '''
+
+        self.time = time.copy()
+        self.data = data.copy()
+
+        self.input_time = [input_time.copy() if input_time is not None else None][0]
+        self.input_data = [input_data.copy() if input_data is not None else None][0]
+
+        self.key = key.copy()
+
+        if mods is None:
+            self.mods = pd.DataFrame(columns=['logged'],index=['status'])
+            self.mods = self.mods.apply(lambda x: False)
+        else:
+            self.mods = mods
+
+        assert type(time) == pd.DataFrame, "time must be a pandas DataFrame"
+        assert type(data) == pd.DataFrame, "data must be a pandas DataFrame"
+        assert type(key) == pd.DataFrame, "key must be a pandas DataFrame"
+
+        assert data.shape[1] == 1, "data must be correspond to a a single sample"
+        assert key.shape[0] == 1, "key must describe only a single sample
+
+
+
+#class GrowthMetrics(object):
+#
+#    def __init__(self)
+#        '''
+#        '''
+#
+#        self.tim = 
