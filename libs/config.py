@@ -29,7 +29,9 @@ config['fcd_face_color'] = (1.0,0.0,0.0,0.15)
 config['fcn_line_color'] = (0.0,0.0,0.0,1.0)
 config['fcn_face_color'] = (0.0,0.0,0.0,0.15)
 
+# parameters related to annotating grid plots with OD Max and Well ID values
 config['fcn_well_id_color'] = (0.65,0.165,0.16,0.8)
 config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 
+# parameter for labeling y-axis of grid plots
 config['grid_plot_y_label'] = 'Optical Density (620 nm)'

@@ -11,7 +11,7 @@ __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
 
-from libs import aio,aux
+from libs import agp,aio,aux
 
 import numpy as np
 import pandas as pd
@@ -197,7 +197,7 @@ class GrowthPlate(object):
 
         Actions:
             Saves a tab-separated file in desired location (argument).
-        '''
+        x'''
 
         self.key.to_csv(save_path,sep='\t',header=True,index=True)
 
@@ -355,9 +355,6 @@ class GrowthPlate(object):
             elif isinstance(dict_value,(int,float,str)):
                 args_dict[dict_key] = [dict_value]
 
-        print(args_dict)
-        print(self.key)
-
         sub_key = self.key[self.key.isin(args_dict).sum(1)==len(args_dict)]
         sub_mods = self.mods
 
@@ -388,10 +385,27 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-#class GrowthMetrics(object):
-#
-#    def __init__(self)
-#        '''
-#        '''
-#
-#        self.tim = 
+    def GP(self,save_path=''):
+        '''
+        '''
+
+        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag'])
+
+        for sample_id in self.key.index:
+
+            # extract sample
+            args_dict = self.key.loc[sample_id,['Well','Plate_ID']].to_dict()
+            sample_growth = self.extractGrowthData(args_dict)
+
+            # create GP object and analyze
+            gp = agp.GP(sample_growth.time,sample_growth.data)
+            gpp = gp.describe()
+            df_params.loc[sample_id,list(gpp.keys())] = list(gpp.values())
+
+            # plot
+            if save_path!='':
+                ax = gp.plot()
+                plt.subplots_adjust(left=0.20,top=0.95,bottom=0.10)
+                plt.savefig('{}/{}.pdf'.format(save_path,sample_id))
+
+        self.key = self.key.join(df_params)

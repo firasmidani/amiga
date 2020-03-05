@@ -37,6 +37,7 @@ import numpy as np
 import pandas as pd
 import tabulate
 import string
+import datetime
 
 from functools import reduce
 
@@ -116,6 +117,7 @@ def parseCommand(config):
     parser.add_argument('-p','--hypothesis',required=False)
     parser.add_argument('-t','--interval',required=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
+    parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
@@ -128,6 +130,7 @@ def parseCommand(config):
     args_dict['hypo'] = args.hypothesis
     args_dict['interval'] = args.interval
     args_dict['verbose'] = args.verbose
+    args_dict['merge'] = args.merge_summary
     args_dict['opp'] = args.only_plot_plate
     args_dict['sdd'] = args.save_derived_data
     args_dict['opd'] = args.only_print_defaults
@@ -1284,7 +1287,6 @@ def testHypothesis(data,mapping,params,verbose=False):
     Args:
         data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
             plus-one because Time is not an index but rather a column.
- 
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
         params (dictionary): must at least include 'subset' and 'flag' keys and their values
         verbose (boolean)
@@ -1393,8 +1395,20 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
 
     sys.exit()
 
-def runGrowthFitting(data,mapping,verbose=False):
+def runGrowthFitting(data,mapping,directory,args,verbose=False):
     '''
+    Uses Gaussian Processes to fit growth curves and infer paramters of growth kinetics.  
+
+    Args:
+        data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
+            plus-one because Time is not an index but rather a column.
+        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
+        directory (dictionary): keys are folder names, values are their paths
+        params (dictionary): keys are arguments and value are user/default choices
+        verbose (boolean)
+
+    Action:
+        saves summary text file(s) in summary folder in the parent directory.
     '''
 
     # merge data-sets for easier analysis
@@ -1406,32 +1420,24 @@ def runGrowthFitting(data,mapping,verbose=False):
     plate.convertTimeUnits(input='seconds',output='hours')
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
+    plate.GP()
+    df = plate.key
 
-    print(plate.key.head(20))
-    print(plate.data.head(20))
-
-    df = plate.time.join(plate.data)
-
-    for substrate in ['Negative Control','alpha-D-Glucose']:
-        sample_data = plate.extractGrowthData({'Substrate':substrate,'PM':1})
-        print(sample_data.time.head())
-        print(sample_data.data.head())
-        print(sample_data.key.head())
-        print(sample_data.mods)
-        print(sample_data.input_time)
-        print(sample_data.input_data)
-
-
-#    for ii,sample_id in enumerate(plate.data.keys()):
-#        df_sample = df.loc[:,['Time',sample_id]]
-#        df_sample = df_sample[~df_sample.isna().any(1)] # remove rows with missing values
-#        x = pd.DataFrame(df_sample.loc[:,'Time'])
-#        y = pd.DataFrame(df_sample.loc[:,sample_id])
-#        m = agp.GP(x,y)
-#        print(sample_id)
-#        print(plate.key.loc[sample_id,:])
-#        print(m)
- 
+    # if merge-summary selected by user, then save a single text file for summary
+    if args['merge']:
+        time_stamp = datetime.datetime.now()
+        time_stamp = time_stamp.strftime("%Y-%m-%d_%H-%M-%S") 
+        sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
+        df_path = '{}{}summary_{}.txt'.format(directory['summary'],sep,time_stamp)
+        df.to_csv(df_path,sep='\t',header=True,index=True)
+    else:
+        # for each plate, get samples and save individual text file for plate-specific summaries
+        for pid in df.Plate_ID.unique():
+            df_sub = df[df.Plate_ID==pid]
+            sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
+            df_path = '{}{}{}.txt'.format(directory['summary'],sep,pid)
+            df_sub.to_csv(df_path,sep='\t',header=True,index=True)
+            print('saved to {}'.format(df_path)) 
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
