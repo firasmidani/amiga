@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from scipy.stats import norm
+from scipy.signal import find_peaks,peak_prominences
 
 sns.set_style('whitegrid')
 
@@ -209,6 +210,28 @@ class GP(object):
         return self.lag
 
 
+    def diauxie(self,ratio_max=0.2):
+        '''
+        Detects if diauxie occurs and determines the time at which growth phases are centered
+            and their ratio of their corresponding growths relative to the maximum primary growth phase.
+
+        Args:
+            ratio_max (float): only peaks with ratio of counter height relative to maximum peak are called
+        '''
+
+        y_fit = np.ravel(self.derivative[0])
+        time = self.x.values
+
+        peaks,heights = callPeaks(y_fit,ratio_max); print(peaks,heights)
+        heights_ratio = heights / np.max(heights)
+        times = list(np.ravel(time[peaks]))
+        
+        diauxie = [(tt,hr) for tt,hr in zip(times,heights_ratio)]
+
+        self.peaks = diauxie
+
+        return self.peaks
+
     def describe(self):
 
         params = {}
@@ -223,10 +246,33 @@ class GP(object):
         params['dr'] = self.dr()[0]
         params['td'] = self.td()
         params['lag'] = self.lag()
+        params['peaks'] = self.diauxie(0.2)
 
         self.params = params
 
         return self.params
+
+
+    def data(self,sample_id=None):
+
+
+        time = self.x
+        time.columns = ['Time']
+
+        od_data = self.y
+        od_data.columns = ['OD']
+
+        od_pred = pd.DataFrame(self.predict[0],columns=['Fit'])
+        od_derivative = pd.DataFrame(np.ravel(self.derivative[0]),columns=['Derivative'])
+
+        if sample_id is not None:
+            sid = pd.DataFrame([sample_id]*time.shape[0],columns=['Sample_ID'])
+            df = sid.join(time).join(od_data).join(od_pred).join(od_derivative)
+        else:
+            df = time.join(od_data).join(od_pred).join(od_derivaive)
+
+        return df
+
 
     def plot(self,ax_user=None):
 
@@ -303,6 +349,31 @@ def computeLikelihood(df,variables):
     return LL
 
 
+def callPeaks(x_data,ratio_max=0.2):
+    '''
+    Detects peaks in 1-dimensional data and calls them based on their height relative to primary peak
 
+    Args:
+        x_data (list or numpy.ndarray) of float values
+        ratio_max (float): minimum allowed ratio of secondary peak heights to maximum primary peak height
+    '''
 
+    called_peaks = []
+    called_heights = []
 
+    # find all peaks
+    peaks,_ = find_peaks(x_data)
+
+    # find height of each peak where baseline is neigboring trough
+    peak_heights = peak_prominences(x_data,peaks)[0]
+
+    # find maximum peak, indicates primary growth phase
+    max_height = np.max(peak_heights)
+
+    # call rest of seconday peaks based on their ratio to maximum peak
+    for pp,hh in zip(peaks,peak_heights):
+        if hh > ratio_max*max_height:
+            called_peaks.append(pp)
+            called_heights.append(hh)
+
+    return called_peaks,called_heights

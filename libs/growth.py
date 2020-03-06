@@ -201,7 +201,7 @@ class GrowthPlate(object):
 
         self.key.to_csv(save_path,sep='\t',header=True,index=True)
 
-    def plot(self,save_path=''):
+    def plot(self,save_path='',plot_fit=False):
         '''
         Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
             Plot aesthetics require several parameters that are saved in config.py and pulled using 
@@ -210,6 +210,7 @@ class GrowthPlate(object):
 
         Args:
             save_path (str): file path: if empty, plot will not be saved at all.
+            plot_fit (boolean): whether to plot GP fits on top of raw OD. 
 
         Returns:
             fig,axes: figure and axis handles.
@@ -229,7 +230,7 @@ class GrowthPlate(object):
         if not self.isSingleMultiWellPlate():
             msg = 'USER ERROR: GrowthPlate() object is not a 96-well plate. '
             msg += 'AMiGA can not plot it.'
-            aio.smartPrint(msg)
+            print(msg)
             return None
 
         self.addLocation()
@@ -268,6 +269,11 @@ class GrowthPlate(object):
             # plot line
             ax.plot(x,y,color=color_l,lw=1.5)
             ax.fill_between(x=x,y1=[ax.get_ylim()[0]]*len(y),y2=y,color=color_f)
+
+            # add fit lines, if desired
+            if plot_fit:
+                y_fit = self.pred.loc[:,well].values
+                ax.plot(x,y_fit,color='green',alpha=0.65,ls='--',lw=1.5)
 
             # show tick labels for bottom left subplot only, so by default no labels
             plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
@@ -385,11 +391,13 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-    def GP(self,save_path=''):
+    def model(self,plot=False):
         '''
         '''
 
-        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag'])
+        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag','peaks'])
+
+        data_ls = []
 
         for sample_id in self.key.index:
 
@@ -401,11 +409,17 @@ class GrowthPlate(object):
             gp = agp.GP(sample_growth.time,sample_growth.data)
             gpp = gp.describe()
             df_params.loc[sample_id,list(gpp.keys())] = list(gpp.values())
-
-            # plot
-            if save_path!='':
-                ax = gp.plot()
-                plt.subplots_adjust(left=0.20,top=0.95,bottom=0.10)
-                plt.savefig('{}/{}.pdf'.format(save_path,sample_id))
+            
+            if plot:
+                data_ls.append(gp.data(sample_id))
 
         self.key = self.key.join(df_params)
+
+        data_df = pd.concat(data_ls).reset_index(drop=True)
+        pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')
+        derivative_df = data_df.pivot(columns='Sample_ID',index='Time',values='Derivative')
+        self.pred = pred_df
+        self.derivative = derivative_df
+
+        return None
+

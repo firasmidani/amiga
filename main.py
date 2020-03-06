@@ -61,13 +61,13 @@ mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=
 aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
 
 # communicate with user
-print(aio.tidyMessage('AMiGA is trimming samples based on user input'))
+print(aio.tidyMessage('AMiGA is preparing data based on user input'))
 
 # trim mapping data based on user input
 data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
 
 # communicate with user
-print(aio.tidyMessage('AMiGA is preparing data for growth curve fitting'))
+print(aio.tidyMessage('AMiGA is busy processing your request, approx. 5 minutes per plate.'))
 
 # run hypothesis testing, if requested
 aio.testHypothesis(data,mappings,params,verbose=args['verbose'])

@@ -114,8 +114,9 @@ def parseCommand(config):
     parser.add_argument('-i','--input',required=True)
     parser.add_argument('-f','--flag',required=False)
     parser.add_argument('-s','--subset',required=False)
-    parser.add_argument('-p','--hypothesis',required=False)
+    parser.add_argument('-y','--hypothesis',required=False)
     parser.add_argument('-t','--interval',required=False)
+    parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
@@ -129,6 +130,7 @@ def parseCommand(config):
     args_dict['subset'] = args.subset
     args_dict['hypo'] = args.hypothesis
     args_dict['interval'] = args.interval
+    args_dict['plot'] = args.plot
     args_dict['verbose'] = args.verbose
     args_dict['merge'] = args.merge_summary
     args_dict['opp'] = args.only_plot_plate
@@ -1420,24 +1422,51 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     plate.convertTimeUnits(input='seconds',output='hours')
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
-    plate.GP()
-    df = plate.key
 
     # if merge-summary selected by user, then save a single text file for summary
     if args['merge']:
-        time_stamp = datetime.datetime.now()
-        time_stamp = time_stamp.strftime("%Y-%m-%d_%H-%M-%S") 
+
+        plate.model()  # run model
+        df = plate.key  # get reults
+
+        # format file name based on current time and save
+        time_stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") 
         sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
         df_path = '{}{}summary_{}.txt'.format(directory['summary'],sep,time_stamp)
+
+        # save summary
         df.to_csv(df_path,sep='\t',header=True,index=True)
+
     else:
+
         # for each plate, get samples and save individual text file for plate-specific summaries
-        for pid in df.Plate_ID.unique():
-            df_sub = df[df.Plate_ID==pid]
+        for pid in plate.key.Plate_ID.unique():
+
+            # grab plate-specific summary
+            sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
+            sub_plate.model(args['plot'])  # run model 
+            df = sub_plate.key  # get results
+
+            # format name and save
             sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
             df_path = '{}{}{}.txt'.format(directory['summary'],sep,pid)
-            df_sub.to_csv(df_path,sep='\t',header=True,index=True)
-            print('saved to {}'.format(df_path)) 
+
+            # save summary
+            df.to_csv(df_path,sep='\t',header=True,index=True)
+
+            if args['plot']:
+
+                # format name and save
+                sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
+                fig_path = '{}{}{}_fit.pdf'.format(directory['figures'],sep,pid)
+
+                sub_plate.plot(fig_path,plot_fit=True)
+                sub_plate.pred.to_csv('{}.fit.txt'.format(fig_path),sep='\t',header=True,index=True)
+                sub_plate.derivative.to_csv('{}.derivative.txt'.format(fig_path),sep='\t',header=True,index=True)
+
+                
+             
+ 
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
