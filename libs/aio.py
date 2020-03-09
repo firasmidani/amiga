@@ -102,6 +102,9 @@ def parseCommand(config):
 
     Note: Function is AMiGA-specific and should not be used verbatim for other apps.
 
+    Args:
+        config (dictionary): variables saved in config.py where key is variable and value is value
+
     Returns:
         args (dict): a dictionary with keys as suggested variable names
             and keys as the user-passed and argparse-interpreted arguments.
@@ -119,6 +122,7 @@ def parseCommand(config):
     parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('--merge-summary',action='store_true',default=False)
+    parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
@@ -133,6 +137,7 @@ def parseCommand(config):
     args_dict['plot'] = args.plot
     args_dict['verbose'] = args.verbose
     args_dict['merge'] = args.merge_summary
+    args_dict['pd'] = args.plot_derivative
     args_dict['opp'] = args.only_plot_plate
     args_dict['sdd'] = args.save_derived_data
     args_dict['opd'] = args.only_print_defaults
@@ -626,6 +631,9 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
 
     # remove columns (time points) with only NA values (sometimes happends in plate reader files)
     df = df.iloc[:,np.where(~df.isna().all(0))[0]]
+
+    # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
+    df = df.iloc[np.where(~df.T.isna().all(0))[0],:]
     df = df.astype(float)
 
     # set to following format: time point (row) by well (column)
@@ -688,6 +696,7 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
     Args:
         filename (str or None): str indicates user is intersted in a single data file, None otherwise
         directory (dictionary): keys are folder names, values are their paths
+        config (dictionary): variables saved in config.py where key is variable and value is value
         save (boolean): 
         interval_dict (dictionary)
         verbose (boolean)
@@ -1006,13 +1015,13 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
 
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
-            smartPrint('{:.<24}Reading {}.'.format(filebase,mapping_file_path),verbose)
+            smartPrint('{:.<24} Reading {}.'.format(filebase,mapping_file_path),verbose)
 
         # see if user described the file in meta.txt 
         elif filebase in meta_df_plates:
 
             meta_info = meta_df[meta_df.Plate_ID==filebase]
-            msg = '{:.<24}Found meta-data in meta.txt '.format(filebase)
+            msg = '{:.<24} Found meta-data in meta.txt '.format(filebase)
 
             biolog = isBiologFromMeta(meta_info)  # does meta_df indicate this is a BIOLOG plate
 
@@ -1028,13 +1037,13 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
         elif isBiologFromName(filebase):
 
             df_mapping = initBiologPlateKey(filebase)
-            msg = '{:.<24}Did not find mapping file or meta-data '.format(filebase)
+            msg = '{:.<24} Did not find mapping file or meta-data '.format(filebase)
             msg += 'BUT seems to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
 
         else:
             df_mapping = initMappingDf(filebase,well_ids) 
-            msg = '{:.<24}Did not find mapping file or meta-data '.format(filebase)
+            msg = '{:.<24} Did not find mapping file or meta-data '.format(filebase)
             msg += '& does not seem to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
 
@@ -1083,7 +1092,7 @@ def flagWells(df,flags,verbose=False):
     '''
 
     if (len(flags)==0):
-        smartPrint('No wells  was flagged.\n',verbose)
+        smartPrint('No wells were flagged.\n',verbose)
         return df
 
     for plate, wells in flags.items():
@@ -1397,7 +1406,7 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
 
     sys.exit()
 
-def runGrowthFitting(data,mapping,directory,args,verbose=False):
+def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     '''
     Uses Gaussian Processes to fit growth curves and infer paramters of growth kinetics.  
 
@@ -1407,6 +1416,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
         directory (dictionary): keys are folder names, values are their paths
         params (dictionary): keys are arguments and value are user/default choices
+        config (dictionary): variables saved in config.py where key is variable and value is value
         verbose (boolean)
 
     Action:
@@ -1426,7 +1436,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     # if merge-summary selected by user, then save a single text file for summary
     if args['merge']:
 
-        plate.model()  # run model
+        plate.model(diauxie=config['diauxie'])  # run model
         df = plate.key  # get reults
 
         # format file name based on current time and save
@@ -1444,7 +1454,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
 
             # grab plate-specific summary
             sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
-            sub_plate.model(args['plot'])  # run model 
+            sub_plate.model(args['plot'],diauxie=config['diauxie'])  # run model 
             df = sub_plate.key  # get results
 
             # format name and save
@@ -1462,10 +1472,14 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
 
                 sub_plate.plot(fig_path,plot_fit=True)
                 sub_plate.pred.to_csv('{}.fit.txt'.format(fig_path),sep='\t',header=True,index=True)
-                sub_plate.derivative.to_csv('{}.derivative.txt'.format(fig_path),sep='\t',header=True,index=True)
+                sub_plate.derivative.to_csv('{}.derivative.txt'.format(fig_path),sep='\t',header=True,index=True) 
+ 
+            if args['pd']:
 
-                
-             
+                # format name and save
+                sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
+                fig_path = '{}{}{}_derivative.pdf'.format(directory['figures'],sep,pid)
+                sub_plate.plot(fig_path,plot_fit=True,plot_derivative=True)
  
 
 def printDirectoryContents(directory,sort=True,tab=True):

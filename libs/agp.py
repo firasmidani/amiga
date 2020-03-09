@@ -210,7 +210,7 @@ class GP(object):
         return self.lag
 
 
-    def diauxie(self,ratio_max=0.2,x_as_time=True):
+    def diauxie(self,ratio_max=0.25,x_as_time=True):
         '''
         Detects if diauxie occurs and determines the time at which growth phases are centered.
 
@@ -226,47 +226,59 @@ class GP(object):
 
         # find peak and vallies
         peaks,_ = callPeaks(y_derivative,0.2)
-        vallies,_ = callPeaks(1-y_derivative,0.2)
+        valleys,_ = callPeaks(1-y_derivative,0.2)
+        valleys = valleys + [0]  # useful below, if no valley left of peak, it will be instead zero
 
+
+        print(peaks,valleys)
         # find heights
         x_ind,y_ind = [],[]
         for peak in peaks:
 
+            # time difference to valleys
+            lefts = [ii for ii in valleys if ii < peak]
+            smallest_diff = np.max([ii-peak for ii in lefts])
+            valley = peak + smallest_diff
+
             # find adjacent vallies
-            left = [ii if ii < peak else 0 for ii in vallies][0]
-            right = [ii if ii > peak else -1 for ii in vallies][0]
+            #left = [ii if ii < peak else 0 for ii in valleys][0]
+            #right = [ii if ii > peak else -1 for ii in valleys][0]
 
             # find y-values at x-values
-            left, center, right = [y_fit[ii] for ii in [left,peak,right]]
+            #left, center,right = [y_fit[ii] for ii in [left,peak,right]]
 
             # find heights
-            height = np.max([center-left,center-right])
-
+            #height = np.max([center-left,center-right])
+            height = y_fit[peak]-y_fit[valley]
+            print('\t{},{},{}'.format(peak,valley,height))
             # pass x-values and heights
             x_ind.append(peak)
             y_ind.append(height)
 
+        print(x_ind,y_ind)
         # get height ratios
         y_ind = list(y_ind / np.max(y_ind))
 
+        print(y_ind)
         # only keep peaks with height that are at least a certain ratio relative to maximum peak
         peaks = []
         for x,y in zip(x_ind,y_ind):
             if y > ratio_max:
                 peaks.append(x)
+        print(peaks)
 
         # save either as indices or time-points
         if x_as_time:
-            self.peaks= list(time[peaks][0])
+            self.peaks= list(np.ravel(time[peaks]))
         else:
-            self.peaks = list(peaks)
+            self.peaks = list(np.ravel(peaks))
 
         self.diauxie = [1 if len(self.peaks)>1 else 0][0]
- 
+        print() 
         return self.diauxie, self.peaks
 
 
-    def describe(self):
+    def describe(self,diauxie=0.25):
 
         params = {}
 
@@ -280,7 +292,7 @@ class GP(object):
         params['dr'] = self.dr()[0]
         params['td'] = self.td()
         params['lag'] = self.lag()
-        params['diauxie'],params['peaks'] = self.diauxie(ratio_max=0.5,x_as_time=True)
+        params['diauxie'],params['peaks'] = self.diauxie(ratio_max=diauxie,x_as_time=True)
 
         self.params = params
 

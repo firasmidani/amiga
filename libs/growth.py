@@ -201,7 +201,7 @@ class GrowthPlate(object):
 
         self.key.to_csv(save_path,sep='\t',header=True,index=True)
 
-    def plot(self,save_path='',plot_fit=False):
+    def plot(self,save_path='',plot_fit=False,plot_derivative=False,plot_raw=False):
         '''
         Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
             Plot aesthetics require several parameters that are saved in config.py and pulled using 
@@ -219,13 +219,6 @@ class GrowthPlate(object):
             if user passes save_path argument, plot will be saved as PDF in desired location 
         '''
 
-#        if raw:
-#            df = self.input_data.copy()
-#        else:
-#            df = self.data.copy()
-#
-#        df.columns = np
-
         # make sure plate is 96-well version, otherwise skip plotting
         if not self.isSingleMultiWellPlate():
             msg = 'USER ERROR: GrowthPlate() object is not a 96-well plate. '
@@ -235,7 +228,13 @@ class GrowthPlate(object):
 
         self.addLocation()
 
-        data = self.data
+        if plot_derivative: 
+            data = self.derivative
+        elif plot_raw:
+            data = self.input_data
+        else:
+            data = self.data
+
         time = self.time
         key = self.key
 
@@ -295,7 +294,11 @@ class GrowthPlate(object):
         # add x- and y-labels and title
         ylabel_base = aux.getText('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
-        ylabel_text = ylabel_mod + ylabel_base
+
+        if plot_derivative:
+            ylabel_text = 'd[{}]/dt'.format(ylabel_base)
+        else:
+            ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
         fig.text(0.512,0.07,'Time (hours)',fontsize=15,
@@ -328,7 +331,7 @@ class GrowthPlate(object):
         else:
             self.key = self.key.join(aio.parseWellLayout().reset_index())
 
-        row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'H':7,'G':8}
+        row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'G':7,'H':8}
 
         self.key.Row = self.key.Row.replace(row_map)
         self.key.Column = self.key.Column.replace(int)
@@ -391,7 +394,7 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-    def model(self,plot=False):
+    def model(self,plot=False,diauxie=0.25):
         '''
         '''
 
@@ -407,9 +410,9 @@ class GrowthPlate(object):
 
             # create GP object and analyze
             gp = agp.GP(sample_growth.time,sample_growth.data)
-            gpp = gp.describe()
+            gpp = gp.describe(diauxie=diauxie)
             df_params.loc[sample_id,list(gpp.keys())] = list(gpp.values())
-            
+
             if plot:
                 data_ls.append(gp.data(sample_id))
 

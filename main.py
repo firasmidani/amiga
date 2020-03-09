@@ -73,5 +73,5 @@ print(aio.tidyMessage('AMiGA is busy processing your request, approx. 5 minutes 
 aio.testHypothesis(data,mappings,params,verbose=args['verbose'])
 
 # run growth fitting 
-aio.runGrowthFitting(data,mappings,directory,args,verbose=args['verbose'])
+aio.runGrowthFitting(data,mappings,directory,args,config,verbose=args['verbose'])
 

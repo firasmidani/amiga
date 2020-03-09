@@ -35,3 +35,6 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 
 # parameter for labeling y-axis of grid plots
 config['grid_plot_y_label'] = 'Optical Density (620 nm)'
+
+# diaxuic shift paramters
+config['diauxie'] = 0.333  # minimum ratio relative to maximum peak for each growth phase
