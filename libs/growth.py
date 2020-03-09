@@ -395,7 +395,7 @@ class GrowthPlate(object):
         '''
         '''
 
-        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag','peaks'])
+        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag','diauxie','peaks'])
 
         data_ls = []
 
