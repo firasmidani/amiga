@@ -212,11 +212,11 @@ class GP(object):
 
     def diauxie(self,ratio_max=0.2,x_as_time=True):
         '''
-        Detects if diauxie occurs and determines the time at which growth phases are centered
-            and their ratio of their corresponding growths relative to the maximum primary growth phase.
+        Detects if diauxie occurs and determines the time at which growth phases are centered.
 
         Args:
-            ratio_max (float): only peaks with ratio of counter height relative to maximum peak are called
+            ratio_max (float): only peaks with ratio of counter height relative to maximum peak are called.
+            x_as_time (boolean): return x-values either as time-points (True) or simply numerical index (False).
         '''
 
         # point to data needed for function

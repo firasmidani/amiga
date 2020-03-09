@@ -273,7 +273,7 @@ class GrowthPlate(object):
             # add fit lines, if desired
             if plot_fit:
                 y_fit = self.pred.loc[:,well].values
-                ax.plot(x,y_fit,color='green',alpha=0.65,ls='--',lw=1.5)
+                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5)
 
             # show tick labels for bottom left subplot only, so by default no labels
             plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
