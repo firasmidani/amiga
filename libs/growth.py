@@ -210,7 +210,8 @@ class GrowthPlate(object):
 
         Args:
             save_path (str): file path: if empty, plot will not be saved at all.
-            plot_fit (boolean): whether to plot GP fits on top of raw OD. 
+            plot_fit (boolean): whether to plot GP fits on top of raw OD.
+            plot_derivative (boolean): if True, plot only the derivative of GP fit instead. 
 
         Returns:
             fig,axes: figure and axis handles.
@@ -265,18 +266,22 @@ class GrowthPlate(object):
             x = np.ravel(time.values)
             y = data.loc[:,well].values
 
-            # plot line
-            ax.plot(x,y,color=color_l,lw=1.5)
-            ax.fill_between(x=x,y1=[ax.get_ylim()[0]]*len(y),y2=y,color=color_f)
+            # plot line and fill_betwen, if plotting OD estimate
+            ax.plot(x,y,color=color_l,lw=1.5,zorder=10)
+            if not plot_derivative:
+                ax.fill_between(x=x,y1=[ax.get_ylim()[0]]*len(y),y2=y,color=color_f,zorder=7)
 
             # add fit lines, if desired
             if plot_fit:
                 y_fit = self.pred.loc[:,well].values
-                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5)
+                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=4)
 
             # show tick labels for bottom left subplot only, so by default no labels
+            if plot_derivative:
+                plt.setp(ax,yticks=[ymin,0,ymax],yticklabels=[])  # zero derivative indicates no instantaneous growth
+            else:
+                plt.setp(ax,yticks=[ymin,ymax],yticklabels=[])
             plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
-            plt.setp(ax,yticks=[ymin,ymax],yticklabels=[])
 
             # add well identifier on top left of each sub-plot
             well_color = aux.getTextColors('Well_ID')
@@ -287,7 +292,12 @@ class GrowthPlate(object):
             ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=aux.getTextColors('OD_Max'),
                 ha='right',va='top',transform=ax.transAxes)
 
-        # show tick labels for bottom left sub-plot only
+            # add grid lines without yticklabels
+             
+            for ii in np.arange(int(xmin),int(xmax),6):
+                ax.axvline(x=ii,ymin=0,ymax=1,color=(0,0,0,0.15),lw=0.25,zorder=1)
+
+       # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
 
