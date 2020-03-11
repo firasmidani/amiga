@@ -292,11 +292,6 @@ class GrowthPlate(object):
             ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=aux.getTextColors('OD_Max'),
                 ha='right',va='top',transform=ax.transAxes)
 
-            # add grid lines without yticklabels
-             
-            for ii in np.arange(int(xmin),int(xmax),6):
-                ax.axvline(x=ii,ymin=0,ymax=1,color=(0,0,0,0.15),lw=0.25,zorder=1)
-
        # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
@@ -374,7 +369,10 @@ class GrowthPlate(object):
             elif isinstance(dict_value,(int,float,str)):
                 args_dict[dict_key] = [dict_value]
 
-        sub_key = self.key[self.key.isin(args_dict).sum(1)==len(args_dict)]
+        sub_key = self.key
+        sub_key.to_csv('/Users/firasmidani/Downloads/20200310_sub_key.txt',sep='\t',header=True,index=True)
+        sub_key.isin({'Plate_ID':['S012_PM1-1']})
+        sub_key = sub_key[sub_key.isin(args_dict).sum(1)==len(args_dict)]
         sub_mods = self.mods
 
         sub_input_data = self.input_data.loc[:,sub_key.index]
@@ -406,11 +404,21 @@ class GrowthPlate(object):
 
     def model(self,plot=False,diauxie=0.25):
         '''
+        Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
+
+        Args:
+            plot (boolean): if True, certain data will be store as object's attributes
+            diauxie (float): ratio of peak height (relative to maximum) used to call if diauxie occured or not
+
+        Actions:
+            modifies self.key, and may create self.pred and self.derivative objects
         '''
 
-        df_params = pd.DataFrame(index=self.key.index,columns=['auc','k','gr','dr','td','lag','diauxie','peaks'])
+        data_ls, diauxie_ls = [], []
 
-        data_ls = []
+        # initialize dataframe to store resutls of GP fitting
+        ls_params = ['auc','k','gr','dr','td','lag']
+        df_params = pd.DataFrame(index=self.key.index,columns=ls_params)
 
         for sample_id in self.key.index:
 
@@ -421,18 +429,40 @@ class GrowthPlate(object):
             # create GP object and analyze
             gp = agp.GP(sample_growth.time,sample_growth.data)
             gpp = gp.describe(diauxie=diauxie)
-            df_params.loc[sample_id,list(gpp.keys())] = list(gpp.values())
 
-            if plot:
-                data_ls.append(gp.data(sample_id))
+            # directly record select parameters in dataframe
+            df_params.loc[sample_id,ls_params] = [gpp[ii] for ii in ls_params]
 
-        self.key = self.key.join(df_params)
+            # passively save to diauxic shift detection resutls, manipulation occurs below
+            diauxie_ls.append([sample_id,gpp['diauxie'],gpp['peaks']])
 
-        data_df = pd.concat(data_ls).reset_index(drop=True)
-        pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')
-        derivative_df = data_df.pivot(columns='Sample_ID',index='Time',values='Derivative')
-        self.pred = pred_df
-        self.derivative = derivative_df
+            # passively save to data, manipulation occurs below (input OD, GP fit, & GP derivative)
+            data_ls.append(gp.data(sample_id))
+
+        # maximum number of growth phases based on diauxic shift detection
+        max_n_peaks = np.max([len(ii[2]) for ii in diauxie_ls])
+
+        # initialize dataframe to store results of diauxic shift detection
+        columns = ['diauxie'] + ['t_peak_{}'.format(ii) for ii in range(1,max_n_peaks+1)]
+        diauxie_df = pd.DataFrame(index=self.key.index,columns=columns)
+
+        # populate diauxic shift dataframe
+        for ii,(sample_id,status,peaks) in enumerate(diauxie_ls):
+            diauxie_df.loc[sample_id,'diauxie'] = status  # 1 if diauxic shift detected, 0 otherwise
+            for jj,peak in enumerate(peaks):
+                diauxie_df.loc[sample_id,'t_peak_{}'.format(jj+1)] = peak   # time at which growth rate is at local maxima
+
+        # record results in object's key
+        self.key = self.key.join(df_params) 
+        self.key = self.key.join(diauxie_df) 
+
+        # plotting needs raw OD & GP fit, and may need GP derivative, save all as obejct's attributes
+        if plot:
+            data_df = pd.concat(data_ls).reset_index(drop=True)
+            pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')
+            derivative_df = data_df.pivot(columns='Sample_ID',index='Time',values='Derivative')
+            self.pred = pred_df
+            self.derivative = derivative_df
 
         return None
 

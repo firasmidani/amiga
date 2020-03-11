@@ -126,6 +126,7 @@ def parseCommand(config):
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
+    parser.add_argument('--perform-regression',action='store_true',default=False)
 
     # pass arguments to local variables 
     args = parser.parse_args()
@@ -141,6 +142,7 @@ def parseCommand(config):
     args_dict['opp'] = args.only_plot_plate
     args_dict['sdd'] = args.save_derived_data
     args_dict['opd'] = args.only_print_defaults
+    args_dict['bayes'] = args.perform_regression
 
     # summarize command-line artguments and print
     if args_dict['verbose']:
@@ -1290,16 +1292,31 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
     return mapping_df
 
 
-def testHypothesis(data,mapping,params,verbose=False):
+def systematicHypothesisTesting(data,mapping,params,verbose=False):
+    '''
+    '''
+
+    # merge data-sets for easier analysis
+    plate = growth.GrowthPlate(data=data,key=mapping)
+
+    # perform basic summaries and manipulations 
+    plate.computeBasicSummary()
+    plate.computeFoldChange(subtract_baseline=True)
+    plate.convertTimeUnits(input='seconds',output='hours')
+    plate.logData()  # natural-log transform
+    plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
+
+
+def testHypothesis(data,mapping,params,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
 
     Args:
-        data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
+        data (pandas.DataFrame): number of time points (t) x number of samples plus-one (n+1)
             plus-one because Time is not an index but rather a column.
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
-        params (dictionary): must at least include 'subset' and 'flag' keys and their values
+        params (dictionary): must at least include 'hypo' key and its values
         verbose (boolean)
 
     Actions:
@@ -1323,19 +1340,20 @@ def testHypothesis(data,mapping,params,verbose=False):
     LL1 = agp.computeLikelihood(data,hypothesis['H1'])
     BF = LL1-LL0
 
-    #fig,ax = plt.subplots(figsize=[10,10])
-   
-
     #plt.savefig('/Users/firasmidani/Downloads/20200303_134858.pdf')
-
+    smartPrint('Model Tested: {}'.format(hypothesis),verbose)
     smartPrint('Bayes Factor: {0:.3f}'.format(BF),verbose)
     smartPrint('',verbose)
 
-    msg = 'AMiGA completed your request and '
-    msg += 'wishes you good luck with the analysis!'
-    print(tidyMessage(msg))
+    if sys_exit:
 
-    sys.exit()
+        msg = 'AMiGA completed your request and '
+        msg += 'wishes you good luck with the analysis!'
+        print(tidyMessage(msg))
+
+        sys.exit()
+
+    return BF
 
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
@@ -1421,6 +1439,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
 
     Action:
         saves summary text file(s) in summary folder in the parent directory.
+        saves figures (PDFs) in figures folder in the parent directory.
     '''
 
     # merge data-sets for easier analysis
@@ -1455,14 +1474,6 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
             # grab plate-specific summary
             sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
             sub_plate.model(args['plot'],diauxie=config['diauxie'])  # run model 
-            df = sub_plate.key  # get results
-
-            # format name and save
-            sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
-            df_path = '{}{}{}.txt'.format(directory['summary'],sep,pid)
-
-            # save summary
-            df.to_csv(df_path,sep='\t',header=True,index=True)
 
             if args['plot']:
 
@@ -1480,7 +1491,39 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
                 sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
                 fig_path = '{}{}{}_derivative.pdf'.format(directory['figures'],sep,pid)
                 sub_plate.plot(fig_path,plot_fit=True,plot_derivative=True)
- 
+
+            if args['bayes']:
+
+                bayes = []
+
+                for substrate in sub_plate.key.Substrate.unique():
+
+                    # initialize hypothesis test parameters
+                    args_dict = {'Substrate':['Negative Control',substrate]}
+                    hypo_param = {'hypo':{'H0':['Time'],'H1':['Time','Substrate']}}
+
+                    # format data needed for hypothesis test
+                    hypo_plate = sub_plate.extractGrowthData(args_dict)
+                    hypo_data = hypo_plate.time.join(hypo_plate.data)
+                    hypo_key = hypo_plate.key
+
+                    # and boom goes the dynamite
+
+                    print((pid,substrate))
+                    bf = testHypothesis(hypo_data,hypo_key,hypo_param,sys_exit=False,verbose=args['verbose'])
+                    bayes.append((substrate,bf))
+
+                # add hypothesis testing results to object's key
+                bayes = pd.DataFrame(bayes,columns=['Substrate','Bayes_Factor'])
+                sub_plate.key = pd.merge(sub_plate.key,bayes,on='Substrate',how='left')
+                df = sub_plate.key
+
+            # format name and save
+            sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
+            df_path = '{}{}{}.txt'.format(directory['summary'],sep,pid)
+
+            # save summary
+            df.to_csv(df_path,sep='\t',header=True,index=True)
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''

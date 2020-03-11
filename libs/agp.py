@@ -229,8 +229,6 @@ class GP(object):
         valleys,_ = callPeaks(1-y_derivative,0.2)
         valleys = valleys + [0]  # useful below, if no valley left of peak, it will be instead zero
 
-
-        print(peaks,valleys)
         # find heights
         x_ind,y_ind = [],[]
         for peak in peaks:
@@ -240,32 +238,21 @@ class GP(object):
             smallest_diff = np.max([ii-peak for ii in lefts])
             valley = peak + smallest_diff
 
-            # find adjacent vallies
-            #left = [ii if ii < peak else 0 for ii in valleys][0]
-            #right = [ii if ii > peak else -1 for ii in valleys][0]
-
-            # find y-values at x-values
-            #left, center,right = [y_fit[ii] for ii in [left,peak,right]]
-
             # find heights
-            #height = np.max([center-left,center-right])
             height = y_fit[peak]-y_fit[valley]
-            print('\t{},{},{}'.format(peak,valley,height))
+
             # pass x-values and heights
             x_ind.append(peak)
             y_ind.append(height)
 
-        print(x_ind,y_ind)
         # get height ratios
         y_ind = list(y_ind / np.max(y_ind))
 
-        print(y_ind)
         # only keep peaks with height that are at least a certain ratio relative to maximum peak
         peaks = []
         for x,y in zip(x_ind,y_ind):
             if y > ratio_max:
                 peaks.append(x)
-        print(peaks)
 
         # save either as indices or time-points
         if x_as_time:
@@ -274,7 +261,7 @@ class GP(object):
             self.peaks = list(np.ravel(peaks))
 
         self.diauxie = [1 if len(self.peaks)>1 else 0][0]
-        print() 
+
         return self.diauxie, self.peaks
 
 
