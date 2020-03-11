@@ -1219,10 +1219,16 @@ def trimMergeData(data_dict,master_mapping,verbose=False):
             plus-one because Time is not an index but rather a column
     '''
 
+    new_data_dict = {}
+
     for pid,data in data_dict.items():
 
         # grab plate-specific samples
         mapping_df = master_mapping[master_mapping.Plate_ID==pid]
+
+        # if no plate-specific samples are included in master_mapping, skip
+        if mapping_df.shape[0]==0:
+            continue
 
         # grab plate-specific data
         wells = list(mapping_df.Well.values)
@@ -1234,13 +1240,13 @@ def trimMergeData(data_dict,master_mapping,verbose=False):
         df.T.index.name = 'Sample_ID'
 
         # udpate dictionary
-        data_dict[pid] = df
+        new_data_dict[pid] = df
 
     # each data is time (T) x wells (N), will merge all data and keep a single Time column
     #     reduce(fun,seq) applies a function (fun) recursively to all elements in list (seq)
     #     here, reduce will merge the first two dataFrames in data_dict.values(), then it
     #     will take this output and merge it with third dataFrame in list, and so on
-    master_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),data_dict.values())
+    master_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),new_data_dict.values())
     master_data = master_data.sort_values(['Time']).reset_index(drop=True)
 
     return master_data
@@ -1271,7 +1277,7 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     # trim and merge into single pandas.DataFrames
     master_mapping = trimMergeMapping(mapping_dict,verbose) # named index: Sample_ID
     master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
-    
+
     return master_data,master_mapping
 
 
@@ -1323,9 +1329,15 @@ def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_ex
     #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
     #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis. 
 
+    print(mapping)
+    print(data)
+
     if thinning!=1:
         select = np.arange(0,data.shape[0],thinning)
         data = data.iloc[select,:]
+
+    print(mapping)
+    print(data)
  
     data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
     data = data.merge(mapping,on='Sample_ID')
@@ -1344,7 +1356,7 @@ def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_ex
             null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
             null_dist.append(null_value-LL0)
 
-        print(null_dist,LL0,LL1)
+        print(null_dist,BF)
         print(percentileofscore(null_dist,LL1-LL0))
 
     #plt.savefig('/Users/firasmidani/Downloads/20200303_134858.pdf')
