@@ -344,9 +344,11 @@ class GP(object):
             return ax_user
 
 
-def computeLikelihood(df,variables):
+def computeLikelihood(df,variables,permute=False):
     '''
-    Computes log-likelihood of a Gaussian Process Regression inference. 
+    Computes log-likelihood of a Gaussian Process Regression inference. Permutation is performed 
+        by shuffling the values in each variable (e.g. Substrate, PM, but not time or OD) which 
+        maintains the true value counts. 
 
     Args:
         df (pandas.DataFrame): N x p, where N is the number of individual observations (i.e.
@@ -374,6 +376,11 @@ def computeLikelihood(df,variables):
     # define design matrix
     y = pd.DataFrame(df.OD)
     x = pd.DataFrame(df.drop('OD',axis=1))
+
+    # permutation test, if requested
+    if permute:
+        to_permute = [ii for ii in variables if ii!='Time']
+        x.loc[:,to_permute] = x.sample(n=x.shape[0]).loc[:,to_permute].values
 
     # build and optimize model, then return maximized log-likelihood
     opt_model = GP(x,y).fit();  

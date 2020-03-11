@@ -36,7 +36,7 @@ aio.validateDirectories(directory,verbose=args['verbose'])
 # communicate with user
 print(aio.tidyMessage('AMiGA is parsing command-line arguments and parameter files'))
 
-# interpret terminal command or text files for parameters (dict)
+# interpret terminal command or text files for parameters` (dict)
 params = aio.interpretParameters(files,args,verbose=args['verbose'])
 
 # parse meta.txt file if it exists (df,list)
@@ -70,7 +70,7 @@ data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
 print(aio.tidyMessage('AMiGA is busy processing your request, approx. 5 minutes per plate.'))
 
 # run hypothesis testing, if requested
-aio.testHypothesis(data,mappings,params,verbose=args['verbose'])
+aio.testHypothesis(data,mappings,params,permute=True,nperm=args['nperm'],sys_exit=True,verbose=args['verbose'])
 
 # run growth fitting 
 aio.runGrowthFitting(data,mappings,directory,args,config,verbose=args['verbose'])

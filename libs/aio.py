@@ -44,6 +44,8 @@ from functools import reduce
 from libs import biolog_pm_layout as bpl
 from libs import agp,growth
 
+from scipy.stats import percentileofscore
+
 def smartPrint(msg,verbose):
     '''
     Only print if verbose argument is True. 
@@ -121,6 +123,7 @@ def parseCommand(config):
     parser.add_argument('-t','--interval',required=False)
     parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
+    parser.add_argument('-np','--number-permutations',action='store',type=int,default=10)
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
@@ -137,6 +140,7 @@ def parseCommand(config):
     args_dict['interval'] = args.interval
     args_dict['plot'] = args.plot
     args_dict['verbose'] = args.verbose
+    args_dict['nperm'] = args.number_permutations
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
     args_dict['opp'] = args.only_plot_plate
@@ -625,13 +629,14 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     df.columns = listTimePoints(interval=interval,numTimePoints=df.shape[1])
 
     # if index column is absent, create one 
-    if index_col == None:
-        df.index = parseWellLayout(order_axis=0).index.values
+    #if index_col == None:
+    #    nrows = df.shape[0]
+    #    df.index = parseWellLayout(order_axis=0).index[0:nrows].values
 
     # explicilty assign column names 
     df.T.index.name = 'Time'
 
-    # remove columns (time points) with only NA values (sometimes happends in plate reader files)
+    # remove columns (time points) with only NA values (sometimes happens in plate reader files)
     df = df.iloc[:,np.where(~df.isna().all(0))[0]]
 
     # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
@@ -834,6 +839,7 @@ def initMappingDf(filebase,well_ids):
     data = [filebase]*len(well_ids)
 
     df_mapping = pd.DataFrame(index=well_ids,columns=['Plate_ID'],data=data)
+    df_mapping.index.name = 'Well'
 
     return df_mapping
 
@@ -907,6 +913,7 @@ def initKeyFromMeta(series,well_ids):
 
     df_meta = pd.concat([series]*len(well_ids))
     df_meta.index = well_ids
+    df_meta.index.name = 'Well'
 
     return df_meta
 
@@ -1017,6 +1024,7 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
 
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
+
             smartPrint('{:.<24} Reading {}.'.format(filebase,mapping_file_path),verbose)
 
         # see if user described the file in meta.txt 
@@ -1263,7 +1271,7 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     # trim and merge into single pandas.DataFrames
     master_mapping = trimMergeMapping(mapping_dict,verbose) # named index: Sample_ID
     master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
-
+    
     return master_data,master_mapping
 
 
@@ -1292,22 +1300,7 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
     return mapping_df
 
 
-def systematicHypothesisTesting(data,mapping,params,verbose=False):
-    '''
-    '''
-
-    # merge data-sets for easier analysis
-    plate = growth.GrowthPlate(data=data,key=mapping)
-
-    # perform basic summaries and manipulations 
-    plate.computeBasicSummary()
-    plate.computeFoldChange(subtract_baseline=True)
-    plate.convertTimeUnits(input='seconds',output='hours')
-    plate.logData()  # natural-log transform
-    plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
-
-
-def testHypothesis(data,mapping,params,sys_exit=True,verbose=False):
+def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1329,6 +1322,11 @@ def testHypothesis(data,mapping,params,sys_exit=True,verbose=False):
     # melt data frame so that each row is a single time measurement
     #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
     #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis. 
+
+    if thinning!=1:
+        select = np.arange(0,data.shape[0],thinning)
+        data = data.iloc[select,:]
+ 
     data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
     data = data.merge(mapping,on='Sample_ID')
 
@@ -1339,6 +1337,15 @@ def testHypothesis(data,mapping,params,sys_exit=True,verbose=False):
     LL0 = agp.computeLikelihood(data,hypothesis['H0'])
     LL1 = agp.computeLikelihood(data,hypothesis['H1'])
     BF = LL1-LL0
+
+    if permute:
+        null_dist = []
+        for rep in range(nperm):
+            null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
+            null_dist.append(null_value-LL0)
+
+        print(null_dist,LL0,LL1)
+        print(percentileofscore(null_dist,LL1-LL0))
 
     #plt.savefig('/Users/firasmidani/Downloads/20200303_134858.pdf')
     smartPrint('Model Tested: {}'.format(hypothesis),verbose)
