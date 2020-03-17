@@ -54,23 +54,21 @@ print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 # parse mapping files and mapping data (dict)
 mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])
 
-# annotate mapping files based on user input (dict)
-#mappings = aio.annotateMappings(mappings,params,verbose=args['verbose'])
-
 # plot plate(s), if it is the only request
 aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
+
+# communicate with user
+print(aio.tidyMessage('AMiGA is busy processing your request'))
+
+# run hypothesis testing, if requested
+aio.testHypothesis(data,mappings,params,permute=True,nperm=args['nperm'],thinning=args['nthin'],
+                   sys_exit=True,verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is preparing data based on user input'))
 
 # trim mapping data based on user input
 data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])
-
-# communicate with user
-print(aio.tidyMessage('AMiGA is busy processing your request, approx. 5 minutes per plate.'))
-
-# run hypothesis testing, if requested
-aio.testHypothesis(data,mappings,params,permute=True,nperm=args['nperm'],sys_exit=True,verbose=args['verbose'])
 
 # run growth fitting 
 aio.runGrowthFitting(data,mappings,directory,args,config,verbose=args['verbose'])

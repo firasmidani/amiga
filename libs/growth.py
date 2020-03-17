@@ -80,6 +80,60 @@ class GrowthPlate(object):
         self.key = self.key.join(joint_df)
 
 
+    def subtractControl(self,to_do=False,drop=True):
+        '''
+        For each sample, it subtracts control well. What to do if there is no control?
+        '''
+
+        if not to_do:
+            return None
+
+        data = self.data.copy()
+        mapping = self.key
+
+        # find all unique groups
+        plate_groups = mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
+        plate_groups = [tuple(x) for x in plate_groups.values]
+
+        for plate_group in plate_groups:
+
+            pid,group = plate_group
+
+            # grab lists of Sample_ID of wells corresponding to control and cases
+            controls = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
+            cases = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+
+            data_controls = data.loc[:,controls]
+            data_cases = data.loc[:,cases]
+
+            # for each case, divide data by mean controls (if log-transformed), o.w. subtract mean controls
+            data_controls = data_controls.mean(1)
+            data_cases = (data_cases.T - data_controls).T
+            data.loc[:,cases] = data_cases.values
+
+            if drop:
+                data = data.drop(controls,axis=1)
+
+        self.data = data
+
+
+    def thinMeasurements(self,step=11):
+        '''
+        Thin the number of measurements (for both object's time and data).
+
+        Args:
+            step (int)
+        '''
+
+        matrix = (self.time).join(self.data)
+        select = np.arange(0,self.data.shape[0],step)
+        matrix = matrix.iloc[select,:]
+
+        self.time = pd.DataFrame(matrix.iloc[:,0])
+        self.data = matrix.iloc[:,1:]
+ 
+
+
     def computeFoldChange(self,subtract_baseline=True):
         '''
         Computes the fold change for all wells using the object's unmodified raw data. The object's key

@@ -42,7 +42,7 @@ import datetime
 from functools import reduce
 
 from libs import biolog_pm_layout as bpl
-from libs import agp,growth
+from libs import agp,aux,growth
 
 from scipy.stats import percentileofscore
 
@@ -124,6 +124,7 @@ def parseCommand(config):
     parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('-np','--number-permutations',action='store',type=int,default=10)
+    parser.add_argument('-nt','--time-points-skips',action='store',type=int,default=11)
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
@@ -141,6 +142,7 @@ def parseCommand(config):
     args_dict['plot'] = args.plot
     args_dict['verbose'] = args.verbose
     args_dict['nperm'] = args.number_permutations
+    args_dict['nthin'] = args.time_points_skips
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
     args_dict['opp'] = args.only_plot_plate
@@ -1025,13 +1027,13 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
 
-            smartPrint('{:.<24} Reading {}.'.format(filebase,mapping_file_path),verbose)
+            smartPrint('{:.<30} Reading {}.'.format(filebase,mapping_file_path),verbose)
 
         # see if user described the file in meta.txt 
         elif filebase in meta_df_plates:
 
             meta_info = meta_df[meta_df.Plate_ID==filebase]
-            msg = '{:.<24} Found meta-data in meta.txt '.format(filebase)
+            msg = '{:.<30} Found meta-data in meta.txt '.format(filebase)
 
             biolog = isBiologFromMeta(meta_info)  # does meta_df indicate this is a BIOLOG plate
 
@@ -1047,13 +1049,13 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
         elif isBiologFromName(filebase):
 
             df_mapping = initBiologPlateKey(filebase)
-            msg = '{:.<24} Did not find mapping file or meta-data '.format(filebase)
+            msg = '{:.<30} Did not find mapping file or meta-data '.format(filebase)
             msg += 'BUT seems to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
 
         else:
             df_mapping = initMappingDf(filebase,well_ids) 
-            msg = '{:.<24} Did not find mapping file or meta-data '.format(filebase)
+            msg = '{:.<30} Did not find mapping file or meta-data '.format(filebase)
             msg += '& does not seem to be a BIOLOG PM plate.'
             smartPrint(msg,verbose)
 
@@ -1114,13 +1116,14 @@ def flagWells(df,flags,verbose=False):
     return df
 
 
-def subsetWells(df_mapping_dict,criteria,verbose=False):
+def subsetWells(df_mapping_dict,criteria,hypothesis,verbose=False):
     '''
     Tag wells that meet user-passed criteria.
 
     Args:
         df (pandas.DataFrame) must have Plate_IDs and Well as columns
         criteria (dictionary) with mapping variables (str) as keys and accepted instances (str) as values
+        hypothesis (dictionary) 
         verbose (boolean)
 
     Returns:
@@ -1139,6 +1142,11 @@ def subsetWells(df_mapping_dict,criteria,verbose=False):
         remove_boolean = ~(mapping_df_str.isin(criteria).sum(1)==len(criteria)).values  # list of booleans
         remove_idx = mapping_df_str.index[remove_boolean]
         mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
+
+        # keep controls for all subsetted groups
+        #groups = mapping_df[mapping_df.Subset==1].Group.unique()
+        #controls = aux.subsetDf(mapping_df,{'Group':groups,'Control':[1]}).index.values
+        #mapping_df.loc[controls,'Subset'] = [1]*len(controls)
 
     smartPrint('The following criteria were used to subset data:\n',verbose)
     smartPrint(tidyDictPrint(criteria),verbose)
@@ -1165,7 +1173,7 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
 
     # tag wells that meet user-passed criteria for analysis
-    mapping_dict = subsetWells(mapping_dict,params_dict['subset'],verbose=verbose)
+    mapping_dict = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
 
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case
@@ -1306,7 +1314,210 @@ def resetNameIndex(mapping_df,index_name,new_index=False):
     return mapping_df
 
 
-def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_exit=True,verbose=False):
+def updateMappingControls(master_mapping,mapping_dict,to_do=False):
+    '''
+    For all samples in master mapping, find relevant controls and add these controls to the master mapping dataframe.
+
+    Args:
+        master_mapping (pandas.DataFrame)
+        mapping_dict (dictionary)
+        to_do (boolean)
+
+    Returns:
+        master_mapping (pandas.DataFrame): will have more rows (i.e. samples) than input
+    '''
+
+    # check first if you need to do this
+    if not to_do:
+        return master_mapping
+
+    # find all unique groups
+    plate_groups = master_mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
+    plate_groups = [tuple(x) for x in plate_groups.values]
+
+    # grab all relevant control samples
+    df_controls = []
+    for plate_group in plate_groups:
+        pid,group = plate_group
+        pid_mapping = mapping_dict[pid]
+        df_controls.append(aux.subsetDf(pid_mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}))
+
+    # re-assemble the master mapping dataframe, including the propercontrols
+    df_controls = pd.concat(df_controls)
+    master_mapping = pd.concat([master_mapping.copy(),df_controls.copy()],sort=True)
+    master_mapping = master_mapping.reset_index(drop=True)
+    master_mapping.index.name = 'Sample_ID'
+    master_mapping = master_mapping.sort_values(['Plate_ID','Group','Control'])
+
+    return master_mapping
+
+
+def checkHypothesis(hypothesis):
+    '''
+    Verifies that a user provided a hypothesis ant that is meets the following crieteria. The alternative
+        hypothesis must have only two variables, one being time.
+
+    Args:
+        hypothesis (dictionary): e.g. {'H0':['Time'],'H1':['Time','Substrate']}
+
+    Returns
+        (str)
+    '''
+
+    if len(hypothesis)==0:
+        msg = 'USER ERROR: No hypothesis has been passed to AMiGA via either command-line or text file.\n'
+        sys.exit(msg)
+
+    # what is the variable of interest based on hypothesis?
+    variables = hypothesis['H1'].copy()
+    variables.remove('Time')
+    if len(variables) > 1:
+        msg = 'USER ERROR: AMiGA can only perform GP regression on a single variable in addition to time.\n'
+        msg += 'User has however selected the following variables: {}.\n'.format(hypothesis['H1'])
+        sys.exit(msg)
+
+    return variables[0]
+
+
+def shouldYouSubtractControl(mapping,variable):
+    '''
+    Checks if control samples must be subtracted from treatment samples for proper hypothesis testing.
+        In particular, make sure that the variable of interest is binary (i.e. it has only two possible
+        values in the mapping dataframe. This makes sure that GP regression on variable of interest is 
+        performing a test on a binary variable.
+
+    Args:
+        mapping (pandas.DataFrame): samples (n) by variables (k)
+        variable (str): must be one of the column headers for mapping argument
+
+    Returns:
+        (boolean)
+    '''
+
+    unique_values = mapping.loc[:,variable].unique()
+    if len(unique_values) !=2:
+        msg = 'USER ERROR: AMiGA can only perform a binary hypothesis test. '
+        msg += 'For the variable of interst ({}), '.format(variable)
+        msg += 'There should be only 2 possible values. '
+        msg += 'These are the current possible values: {}. '.format(unique_values)
+        msg += 'If you see less than 2 values, check your hypothesis for typos. '
+        msg += 'If you see more than 2 values, try pairwise testing instead.\n'
+        sys.exit(msg)
+
+    # subtract control curves if none of the values correspond to a control
+    subtract_control = False
+    for value in unique_values:
+        sub_map = aux.subsetDf(mapping,{variable:[value]})
+        sub_map_controls_n = sub_map[sub_map.Control==1].shape[0]
+        sub_map_total_n = sub_map.shape[0]
+        if sub_map_controls_n == sub_map_total_n:
+            return False  # found a value whose samples all correspond to control wells
+    else:
+        return True
+    
+
+def prepRegressionPlate(data,mapping,subtract_control,thinning_step):
+    '''
+    Packages data into a growth.GrowthPlate() object and performs a select number of class functions.
+
+    Args:
+        data (pandas.DataFrame): t (number of measurements) by n+1 (number of samples + one column for time)
+        mapping (pandas.DataFrame): n (number of samples) by p (number of variables)
+        subtract_control (boolean)
+        thinning_step (int): how many time points to skip between selected time points. 
+    '''
+
+    plate = growth.GrowthPlate(data=data,key=mapping)
+    plate.convertTimeUnits(input='seconds',output='hours')
+    plate.logData()
+    plate.subtractBaseline()
+    plate.subtractControl(to_do=subtract_control,drop=True)
+    plate.thinMeasurements(thinning_step)
+
+    return plate
+
+def tidifyRegressionData(plate,save_path=None):
+    '''
+    Prepares a single dataframe for running GP regression.
+
+    Args:
+        plate (growth.GrowthPlate)
+        save_path (str): default is None
+
+    Returns:
+        data (pandas.DataFrame): long-format
+    '''
+
+    # melt data frame so that each row is a single time measurement
+    #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
+    #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis.
+    data = (plate.time).join(plate.data)
+    data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
+    data = data.merge(plate.key,on='Sample_ID')
+
+    if save_path:
+        data.to_csv('/Users/firasmidani/Downloads/20200303_data.txt',sep='\t',header=True,index=True)
+ 
+    return data
+
+
+def executeRegression(data,hypothesis,nperm=0):
+    '''
+    '''
+
+    LL0 = agp.computeLikelihood(data,hypothesis['H0'])
+    LL1 = agp.computeLikelihood(data,hypothesis['H1'])
+    log_BF = LL1-LL0
+
+    if nperm==0:
+        return log_BF, None
+
+    null_distribution = []
+    for rep in range(nperm):
+        null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
+        null_distribution.append(null_value)
+
+    return log_BF, null_distribution 
+
+
+def reportRegression(hypothesis,log_BF,dist_log_BF=None,verbose=False):
+    '''
+
+    Args:
+        hypothesis (dictionary): e.g. {'H0':['Time'],'H1':['Time','Substrate']}
+        log_BF (float)
+        dist_log_BF (lsit of floats)
+        verbose (boolean)
+    '''
+
+    if dist_log_BF is None:
+
+        msg = 'Model Tested: {}\n'.format(hypothesis) 
+        msg += 'log Bayes Factor: {0:.3f}\n'.format(log_BF)
+        smartPrint(msg,verbose)
+
+        return None 
+
+    # The 20% percentile in null distribution, a log BF higher has FDR <=20% that H1 fits data better than H0
+    M1_Pct_Cutoff = np.percentile(dist_log_BF,80)
+
+    # The 80% percentile in null distribution, a lo gBF lower has FDR <=20% that H0 fits data better than H1
+    M0_Pct_Cutoff = np.percentile(dist_log_BF,20)
+
+    # Percentile of actual log BF relative to null distribution
+    log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
+
+    msg = 'Model Tested: {}\n'.format(hypothesis) 
+    msg += 'log Bayes Factor: {0:.3f} '.format(log_BF)
+    msg += '({0:.1f}-percentile in null distribution)\n'.format(log_BF_Pct)
+    msg += 'For P(H1|D) > P(H0|D) and FDR <= 20%, log BF must be > {0:.3f}\n'.format(M1_Pct_Cutoff)
+    msg += 'For P(H0|D) > P(H1|D) and FDR <= 20%, log BF must be < {0:.3f}\n'.format(M0_Pct_Cutoff)
+    smartPrint(msg,verbose)
+
+    return None
+
+
+def testHypothesis(data_dict,mapping_dict,params_dict,permute=False,nperm=0,thinning=1,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1315,6 +1526,10 @@ def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_ex
         data (pandas.DataFrame): number of time points (t) x number of samples plus-one (n+1)
             plus-one because Time is not an index but rather a column.
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
+
+        data_dict (dictionary)
+        mapping_dict (dictionary)
+
         params (dictionary): must at least include 'hypo' key and its values
         verbose (boolean)
 
@@ -1322,57 +1537,36 @@ def testHypothesis(data,mapping,params,permute=False,nperm=10,thinning=11,sys_ex
         prints a message that describes the computed Bayes Factor based on user-passed hypothesis and data. 
     '''
 
-    if len(params['hypo'])==0:  # only continue if user passed a hypothesis
-        return None
+    hypothesis = params_dict['hypo']
+    variable = checkHypothesis(hypothesis)
 
-    # melt data frame so that each row is a single time measurement
-    #   columns include at least 'Sample_ID' (i.e. specific well in a specific plate) and
-    #   'Time' and 'OD'. Additioncal column can be explicilty called by user using hypothesis. 
+    # annotate Subset and Flag columns in mapping files, then trim and merge into single dataframe
+    mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
+    master_mapping = trimMergeMapping(mapping_dict,verbose) # named index: Sample_ID
 
-    print(mapping)
-    print(data)
+    # if you need to subtract control, retrieve relevant control samples
+    subtract_control = shouldYouSubtractControl(master_mapping,variable)
+    master_mapping = updateMappingControls(master_mapping,mapping_dict,to_do=subtract_control)
 
-    if thinning!=1:
-        select = np.arange(0,data.shape[0],thinning)
-        data = data.iloc[select,:]
+    # grab all data
+    master_mapping = master_mapping.dropna(1)
+    master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
 
-    print(mapping)
-    print(data)
+    # package, format, and clean data input
+    plate = prepRegressionPlate(master_data,master_mapping,subtract_control,thinning)
+    data = tidifyRegressionData(plate)
  
-    data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
-    data = data.merge(mapping,on='Sample_ID')
+    # compute log Bayes Factor and its null distribution 
+    log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm) 
+    reportRegression(hypothesis,log_BF,dist_log_BF,verbose=verbose)
 
-    data.to_csv('/Users/firasmidani/Downloads/20200303_data.txt',sep='\t',header=True,index=True)
- 
-    # compute likliehoods and Bayes Factor
-    hypothesis = params['hypo']
-    LL0 = agp.computeLikelihood(data,hypothesis['H0'])
-    LL1 = agp.computeLikelihood(data,hypothesis['H1'])
-    BF = LL1-LL0
-
-    if permute:
-        null_dist = []
-        for rep in range(nperm):
-            null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
-            null_dist.append(null_value-LL0)
-
-        print(null_dist,BF)
-        print(percentileofscore(null_dist,LL1-LL0))
-
-    #plt.savefig('/Users/firasmidani/Downloads/20200303_134858.pdf')
-    smartPrint('Model Tested: {}'.format(hypothesis),verbose)
-    smartPrint('Bayes Factor: {0:.3f}'.format(BF),verbose)
-    smartPrint('',verbose)
-
+    # bid user farewell
     if sys_exit:
-
-        msg = 'AMiGA completed your request and '
-        msg += 'wishes you good luck with the analysis!'
+        msg = 'AMiGA completed your request and wishes you good luck with the analysis!'
         print(tidyMessage(msg))
-
         sys.exit()
 
-    return BF
+    return log_BF,M1_Pct_Cutoff,M0_Pct_Cutoff
 
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
@@ -1482,7 +1676,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
         df_path = '{}{}summary_{}.txt'.format(directory['summary'],sep,time_stamp)
 
-        # save summary
+        # save summar
         df.to_csv(df_path,sep='\t',header=True,index=True)
 
     else:
@@ -1494,7 +1688,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
             sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
             sub_plate.model(args['plot'],diauxie=config['diauxie'])  # run model 
 
-            if args['plot']:
+            if args['plot']:  # plot OD and its GP estimate
 
                 # format name and save
                 sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
@@ -1504,14 +1698,14 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
                 sub_plate.pred.to_csv('{}.fit.txt'.format(fig_path),sep='\t',header=True,index=True)
                 sub_plate.derivative.to_csv('{}.derivative.txt'.format(fig_path),sep='\t',header=True,index=True) 
  
-            if args['pd']:
+            if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
 
                 # format name and save
                 sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
                 fig_path = '{}{}{}_derivative.pdf'.format(directory['figures'],sep,pid)
                 sub_plate.plot(fig_path,plot_fit=True,plot_derivative=True)
 
-            if args['bayes']:
+            if args['bayes']:  # perform systematic testing of substrates against negative control
 
                 bayes = []
 
@@ -1523,17 +1717,20 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
 
                     # format data needed for hypothesis test
                     hypo_plate = sub_plate.extractGrowthData(args_dict)
+                    hypo_plate.subtractControl() 
                     hypo_data = hypo_plate.time.join(hypo_plate.data)
                     hypo_key = hypo_plate.key
 
                     # and boom goes the dynamite
 
                     print((pid,substrate))
-                    bf = testHypothesis(hypo_data,hypo_key,hypo_param,sys_exit=False,verbose=args['verbose'])
-                    bayes.append((substrate,bf))
+                    bf,bf_upper,bf_lower = testHypothesis(hypo_data,hypo_key,hypo_param,
+                        permute=True,nperm=args['nperm'],thinning=args['nthin'],
+                        sys_exit=False,verbose=args['verbose'])
+                    bayes.append((substrate,bf,bf_upper,bf_lower))
 
                 # add hypothesis testing results to object's key
-                bayes = pd.DataFrame(bayes,columns=['Substrate','Bayes_Factor'])
+                bayes = pd.DataFrame(bayes,columns=['Substrate','log_BF','log_BF_upper','log_BF_lower'])
                 sub_plate.key = pd.merge(sub_plate.key,bayes,on='Substrate',how='left')
                 df = sub_plate.key
 
