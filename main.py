@@ -61,7 +61,7 @@ aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
 print(aio.tidyMessage('AMiGA is preparing data based on user input'))
 
 # run hypothesis testing, if requested
-aio.testHypothesis(data,mappings,params,args_dict=args,sys_exit=True,verbose=args['verbose'])
+aio.testHypothesis(data,mappings,params,args,subtract_control=args['sc'],sys_exit=True,verbose=args['verbose'])
 
 # trim mapping data based on user input
 data,mappings = aio.trimInput(data,mappings,params,verbose=args['verbose'])

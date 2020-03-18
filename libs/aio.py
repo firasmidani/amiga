@@ -134,6 +134,7 @@ def parseCommand(config):
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
     parser.add_argument('--perform-regression',action='store_true',default=False)
+    parser.add_argument('--dont-subtract-control',action='store_true',default=False)
 
     # pass arguments to local variables 
     args = parser.parse_args()
@@ -153,6 +154,7 @@ def parseCommand(config):
     args_dict['sdd'] = args.save_derived_data
     args_dict['opd'] = args.only_print_defaults
     args_dict['bayes'] = args.perform_regression
+    args_dict['sc'] = not args.dont_subtract_control
 
     # summarize command-line artguments and print
     if args_dict['verbose']:
@@ -1545,7 +1547,7 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
 
 
-def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,verbose=False):
+def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control=True,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1587,7 +1589,8 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,ve
     master_mapping = trimMergeMapping(mapping_dict,verbose) # named index: Sample_ID
 
     # if you need to subtract control, retrieve relevant control samples
-    subtract_control = shouldYouSubtractControl(master_mapping,variable)
+    if subtract_control is True:
+        subtract_control = shouldYouSubtractControl(master_mapping,variable)
     master_mapping = updateMappingControls(master_mapping,mapping_dict,to_do=subtract_control)
 
     # grab all data
@@ -1630,12 +1633,15 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
 
     for value,color in zip(values,colors):
 
+        # extract value-specific data
         long_df = aux.subsetDf(data,{variable:[value]})   # long format: time, od, sample_id, ...
         wide_df = pd.pivot(long_df,index='Time',columns='Sample_ID',values='OD')  # wide format: time x sample_id
 
+        # fit GP model
         model = agp.GP(x=pd.DataFrame(long_df.Time),y=pd.DataFrame(long_df.OD))
         model = model.fit()
 
+        # define plot values for GP fit
         fit_x = pd.DataFrame(wide_df.index).values
         fit_mu,fit_var = model.predict(fit_x)
         fit_mu = np.ravel(fit_mu)
@@ -1643,10 +1649,12 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
         fit_low = fit_mu - fit_var
         fit_upp = fit_mu + fit_var
 
+        # plot actual data, and GP fit
         ax.plot(wide_df,color=color,alpha=0.5,lw=1)
         ax.plot(fit_x,fit_mu,color=color,alpha=1.0,lw=3,label=value)
         ax.fill_between(np.ravel(fit_x),fit_low,fit_upp,color=color,alpha=0.10)
  
+    # plot aesthetics
     ax.set_xlabel('Time (hours)',fontsize=20)
     ax.set_ylabel('OD',fontsize=20)
 
