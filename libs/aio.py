@@ -1465,6 +1465,18 @@ def tidifyRegressionData(plate,save_path=None):
 
 def executeRegression(data,hypothesis,nperm=0):
     '''
+    Computes the log Bayes Factor and its null distribution (based on permutation tests).
+
+    Args:
+        data (pandas.DataFrame): each row is a single measurement (i.e. time point in a well), columns are variables
+            and must include 'Time', 'OD'.
+        hypothesis (dictionary): keys must be 'H0' and 'H1', values are lists of variables (must match data keys)
+        nperm (int): number of permutations to generate null distribution
+
+    Returns:
+        log_BF (float): log Bayes Factor = log (P(H1|D)/P(H0|D))
+        null_distribution (list of floats): the null distribution for log Bayes Factor where variable of interest
+            was permuted for a certain number of times (based on nperm).
     '''
 
     LL0 = agp.computeLikelihood(data,hypothesis['H0'])
@@ -1495,8 +1507,8 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
         verbose (boolean)
 
     Returns:
-        M1_Pct_Cutoff (float): FDR <=20% cut-off for accepting alt. model (actual BF must be higher)
-        M0_Pct_Cutoff (flaot): FDR <=20% cut-off for accepting null model (actual BF must be lower)
+        M1_Pct_Cutoff (float): FDR-based cut-off for accepting alt. model (actual BF must be higher)
+        M0_Pct_Cutoff (flaot): FDR-based cut-off for accepting null model (actual BF must be lower)
         log_BF_Pct (float): percentile of actual log Bayes Factor relative to log Bayes Factor null distribution
     '''
 
@@ -1542,6 +1554,11 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,ve
 
         params (dictionary): must at least include 'hypo' key and its values
         verbose (boolean)
+
+    Returns:
+        log_BF (float): log Bayes Factor = log (P(H1|D)/P(H0|D))
+        upper (float): the FDR-based cut-off for log BF to support P(H1|D) > P(H0|D)
+        lower (float): the FDR-based cut-off for log BF to support P(H0|D) > P(H1|D)
 
     Actions:
         prints a message that describes the computed Bayes Factor based on user-passed hypothesis and data. 
@@ -1655,7 +1672,6 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     print(tidyMessage(msg))
 
     sys.exit()
-
 
 
 def runGrowthFitting(data,mapping,directory,args,config,verbose=False):

@@ -82,7 +82,11 @@ class GrowthPlate(object):
 
     def subtractControl(self,to_do=False,drop=True):
         '''
-        For each sample, it subtracts control well. What to do if there is no control?
+        Subtract from each treatment sample's growth curve, the growth curve of its corresponding control sample.
+
+        Args:
+            to_do (boolean): if False, do not subtract control wells and return None.
+            drop (boolean): if True, drop control samples from data.
         '''
 
         if not to_do:
