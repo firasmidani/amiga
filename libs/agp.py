@@ -87,13 +87,15 @@ class GP(object):
         return self.derivative
 
 
-    def predict(self):
+    def predict(self,x=None):
         '''
         Infers GP estimate using optimized model. 
         ''' 
 
         model = self.model
-        x = self.x.values
+
+        if x is None:
+            x = self.x.values
 
         # mu: np.ndarray (x.shape[0],1), cov: np.ndarray (x.shape[0],x.shape[0])
         mu,cov = model.predict(x,full_cov=True)

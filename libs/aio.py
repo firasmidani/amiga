@@ -38,6 +38,8 @@ import pandas as pd
 import tabulate
 import string
 import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from functools import reduce
 
@@ -1517,8 +1519,8 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
         msg = 'Model Tested: {}\n'.format(hypothesis) 
         msg += 'log Bayes Factor: {0:.3f}\n'.format(log_BF)
         smartPrint(msg,verbose)
-
-        return None 
+        
+        return None, None, None
 
     # The 20% percentile in null distribution, a log BF higher has FDR <=20% that H1 fits data better than H0
     M1_Pct_Cutoff = np.percentile(dist_log_BF,100-FDR)
@@ -1535,6 +1537,10 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {:.3f}\n'.format(FDR,M1_Pct_Cutoff)
     msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {:.3f}\n'.format(FDR,M0_Pct_Cutoff)
     smartPrint(msg,verbose)
+
+    print(M1_Pct_Cutoff)
+    print(M0_Pct_Cutoff)
+    print(log_BF_Pct)
 
     return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
 
@@ -1593,8 +1599,11 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,ve
     data = tidifyRegressionData(plate)
  
     # compute log Bayes Factor and its null distribution 
-    log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm) 
+    log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm)
     upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
+
+    # plot results
+    plotHypothesisTest(data,hypothesis,subtract_control)
 
     # bid user farewell
     if sys_exit:
@@ -1604,6 +1613,49 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,ve
 
     return log_BF,upper,lower
 
+
+def plotHypothesisTest(data,hypothesis,subtract_control):
+    '''
+    '''
+
+    sns.set_style('whitegrid')
+    colors = [(1,0,0),(0,0,1)]
+
+    fig,ax = plt.subplots(figsize=[8,6])
+
+    variable = hypothesis['H1'].copy()
+    variable.remove('Time')
+    variable = variable[0]
+    values = data.loc[:,variable].unique()
+
+    for value,color in zip(values,colors):
+
+        long_df = aux.subsetDf(data,{variable:[value]})   # long format: time, od, sample_id, ...
+        wide_df = pd.pivot(long_df,index='Time',columns='Sample_ID',values='OD')  # wide format: time x sample_id
+
+        model = agp.GP(x=pd.DataFrame(long_df.Time),y=pd.DataFrame(long_df.OD))
+        model = model.fit()
+
+        fit_x = pd.DataFrame(wide_df.index).values
+        fit_mu,fit_var = model.predict(fit_x)
+        fit_mu = np.ravel(fit_mu)
+        fit_var = np.ravel(fit_var)
+        fit_low = fit_mu - fit_var
+        fit_upp = fit_mu + fit_var
+
+        ax.plot(wide_df,color=color,alpha=0.5,lw=1)
+        ax.plot(fit_x,fit_mu,color=color,alpha=1.0,lw=3,label=value)
+        ax.fill_between(np.ravel(fit_x),fit_low,fit_upp,color=color,alpha=0.10)
+ 
+    ax.set_xlabel('Time (hours)',fontsize=20)
+    ax.set_ylabel('OD',fontsize=20)
+
+    ax.legend(fontsize=20)
+
+    [ii.set(fontsize=20) for ii in ax.get_xticklabels()+ax.get_yticklabels()]
+   
+    plt.subplots_adjust(left=0.15) 
+    plt.savefig('/Users/firasmidani/Downloads/20200318_hypo.pdf')
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     '''

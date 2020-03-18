@@ -134,8 +134,7 @@ class GrowthPlate(object):
         matrix = matrix.iloc[select,:]
 
         self.time = pd.DataFrame(matrix.iloc[:,0])
-        self.data = matrix.iloc[:,1:]
- 
+        self.data = matrix.iloc[:,1:] 
 
 
     def computeFoldChange(self,subtract_baseline=True):
