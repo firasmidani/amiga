@@ -1527,7 +1527,7 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
 
 
-def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,permute=False,nperm=0,thinning=1,sys_exit=True,verbose=False):
+def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1547,7 +1547,16 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,permute=False,np
         prints a message that describes the computed Bayes Factor based on user-passed hypothesis and data. 
     '''
 
+    # define testing parameters
     hypothesis = params_dict['hypo']
+    nperm = args_dict['nperm']
+    nthin = args_dict['nthin']
+    fdr = args_dict['fdr']
+
+    if len(hypothesis)==0:
+        msg = 'USER ERROR: No hypothesis has been passed to AMiGA via either command-line or text file.\n'
+        return None
+
     variable = checkHypothesis(hypothesis)
 
     # annotate Subset and Flag columns in mapping files, then trim and merge into single dataframe
@@ -1563,12 +1572,12 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,permute=False,np
     master_data = trimMergeData(data_dict,master_mapping,verbose) # unnamed index: row number
 
     # package, format, and clean data input
-    plate = prepRegressionPlate(master_data,master_mapping,subtract_control,thinning)
+    plate = prepRegressionPlate(master_data,master_mapping,subtract_control,nthin)
     data = tidifyRegressionData(plate)
  
     # compute log Bayes Factor and its null distribution 
     log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm) 
-    upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=args_dict['fdr'],verbose=verbose)
+    upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
 
     # bid user farewell
     if sys_exit:
@@ -1646,6 +1655,8 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     print(tidyMessage(msg))
 
     sys.exit()
+
+
 
 def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     '''
@@ -1732,11 +1743,8 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
                     hypo_key = hypo_plate.key
 
                     # and boom goes the dynamite
-
                     print((pid,substrate))
-                    bf,bf_upper,bf_lower = testHypothesis(hypo_data,hypo_key,hypo_param,
-                        permute=True,nperm=args['nperm'],thinning=args['nthin'],
-                        sys_exit=False,verbose=args['verbose'])
+                    bf,bf_upper,bf_lower = testHypothesis(hypo_data,hypo_key,hypo_param,args,False,args['verbose'])
                     bayes.append((substrate,bf,bf_upper,bf_lower))
 
                 # add hypothesis testing results to object's key
