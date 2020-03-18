@@ -125,6 +125,7 @@ def parseCommand(config):
     parser.add_argument('-v','--verbose',action='store_true',default=False)
     parser.add_argument('-np','--number-permutations',action='store',type=int,default=10)
     parser.add_argument('-nt','--time-points-skips',action='store',type=int,default=11)
+    parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=20)
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-plot-plate',action='store_true',default=False)
@@ -143,6 +144,7 @@ def parseCommand(config):
     args_dict['verbose'] = args.verbose
     args_dict['nperm'] = args.number_permutations
     args_dict['nthin'] = args.time_points_skips
+    args_dict['fdr'] = args.false_discovery_rate
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
     args_dict['opp'] = args.only_plot_plate
@@ -1480,14 +1482,22 @@ def executeRegression(data,hypothesis,nperm=0):
     return log_BF, null_distribution 
 
 
-def reportRegression(hypothesis,log_BF,dist_log_BF=None,verbose=False):
+def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     '''
+    Describes the log Bayes Factor, and the percentile cut-offs for accepting H1 vs H0 based FDR <=20%.
+        Results can be reported to stdout.
 
     Args:
         hypothesis (dictionary): e.g. {'H0':['Time'],'H1':['Time','Substrate']}
         log_BF (float)
         dist_log_BF (lsit of floats)
+        FDR (int): false discovery rate cuto-ffo (%)
         verbose (boolean)
+
+    Returns:
+        M1_Pct_Cutoff (float): FDR <=20% cut-off for accepting alt. model (actual BF must be higher)
+        M0_Pct_Cutoff (flaot): FDR <=20% cut-off for accepting null model (actual BF must be lower)
+        log_BF_Pct (float): percentile of actual log Bayes Factor relative to log Bayes Factor null distribution
     '''
 
     if dist_log_BF is None:
@@ -1499,10 +1509,10 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,verbose=False):
         return None 
 
     # The 20% percentile in null distribution, a log BF higher has FDR <=20% that H1 fits data better than H0
-    M1_Pct_Cutoff = np.percentile(dist_log_BF,80)
+    M1_Pct_Cutoff = np.percentile(dist_log_BF,100-FDR)
 
     # The 80% percentile in null distribution, a lo gBF lower has FDR <=20% that H0 fits data better than H1
-    M0_Pct_Cutoff = np.percentile(dist_log_BF,20)
+    M0_Pct_Cutoff = np.percentile(dist_log_BF,FDR)
 
     # Percentile of actual log BF relative to null distribution
     log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
@@ -1510,14 +1520,14 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,verbose=False):
     msg = 'Model Tested: {}\n'.format(hypothesis) 
     msg += 'log Bayes Factor: {0:.3f} '.format(log_BF)
     msg += '({0:.1f}-percentile in null distribution)\n'.format(log_BF_Pct)
-    msg += 'For P(H1|D) > P(H0|D) and FDR <= 20%, log BF must be > {0:.3f}\n'.format(M1_Pct_Cutoff)
-    msg += 'For P(H0|D) > P(H1|D) and FDR <= 20%, log BF must be < {0:.3f}\n'.format(M0_Pct_Cutoff)
+    msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {:.3f}\n'.format(FDR,M1_Pct_Cutoff)
+    msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {:.3f}\n'.format(FDR,M0_Pct_Cutoff)
     smartPrint(msg,verbose)
 
-    return None
+    return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
 
 
-def testHypothesis(data_dict,mapping_dict,params_dict,permute=False,nperm=0,thinning=1,sys_exit=True,verbose=False):
+def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,permute=False,nperm=0,thinning=1,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1558,7 +1568,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,permute=False,nperm=0,thin
  
     # compute log Bayes Factor and its null distribution 
     log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm) 
-    reportRegression(hypothesis,log_BF,dist_log_BF,verbose=verbose)
+    upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=args_dict['fdr'],verbose=verbose)
 
     # bid user farewell
     if sys_exit:
@@ -1566,7 +1576,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,permute=False,nperm=0,thin
         print(tidyMessage(msg))
         sys.exit()
 
-    return log_BF,M1_Pct_Cutoff,M0_Pct_Cutoff
+    return log_BF,upper,lower
 
 
 def plotPlatesOnly(data,mapping,directory,args,verbose=False):

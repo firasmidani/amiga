@@ -61,7 +61,7 @@ aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
 print(aio.tidyMessage('AMiGA is busy processing your request'))
 
 # run hypothesis testing, if requested
-aio.testHypothesis(data,mappings,params,permute=True,nperm=args['nperm'],thinning=args['nthin'],
+aio.testHypothesis(data,mappings,params,args,permute=True,nperm=args['nperm'],thinning=args['nthin'],
                    sys_exit=True,verbose=args['verbose'])
 
 # communicate with user
