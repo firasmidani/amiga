@@ -92,8 +92,7 @@ def breakDownFilePath(filepath,copydirectory):
     filebase = ''.join(filename.split('.')[:-1])
     dirname = os.path.dirname(filepath)
 
-    sep = ['' if copydirectory[-1]=='/' else '/'][0]
-    newfilepath = '{}{}{}.tsv'.format(copydirectory,sep,filebase)
+    newfilepath = assemblePath(copydirectory,filebase,'.tsv')
 
     return filename, filebase, newfilepath
     
@@ -367,8 +366,7 @@ def mapDirectories(parent):
 
     for child in children:
 
-        sep = ['' if parent[-1]=='/' else '/'][0]
-        directory[child] = '{}{}{}'.format(parent,sep,child)
+        directory[child] = assemblePath(parent,child)
 
     return directory
 
@@ -388,7 +386,8 @@ def mapFiles(directory):
     children = ['flag','hypo','subset','interval']
 
     for child in children:
-        files[child] = '{}/{}.txt'.format(directory['parameters'],child)
+
+        files[child] = assemblePath(directory['parameters'],child,'.txt')
 
     return files
 
@@ -529,8 +528,8 @@ def findPlateReaderFiles(directory):
 
         # compose and store filepaths but avoid double slashes (i.e. //) between directory names
         for filename in filenames:
-            sep = ['' if dirpath[-1]=='/' else '/'][0]
-            list_files.append('{}{}{}'.format(dirpath,sep,filename))
+
+            list_files.append(assemblePath(dirpath,filename))
   
     return list_files
 
@@ -1693,10 +1692,8 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     for pid,data_df in data.items():
 
         # define paths where summary and plot will be saved
-        sep = ['' if directory['summary'][-1]=='/' else '/'][0]
-        key_file_path = '{}{}{}_summary.txt'.format(directory['summary'],sep,pid)
-        sep = ['' if directory['figures'][-1]=='/' else '/'][0]
-        key_fig_path = '{}{}{}_input.pdf'.format(directory['figures'],sep,pid)
+        key_file_path = assemblePath(directory['summary'],pid,'.txt')
+        key_fig_path = assemblePath(directory['figures'],pid,'.pdf')
 
         # grab plate-specific samples
         #   index should be well IDs but a column Well should also exist
@@ -1734,6 +1731,19 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
     sys.exit()
 
 
+def timeStamp():
+    '''
+    Reports the current time in a certain text format.
+
+    Returns:
+        ts (str)
+    '''
+
+    ts = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    return ts
+
+
 def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     '''
     Uses Gaussian Processes to fit growth curves and infer paramters of growth kinetics.  
@@ -1769,9 +1779,8 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         df = plate.key  # get reults
 
         # format file name based on current time and save
-        time_stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") 
-        sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
-        df_path = '{}{}summary_{}.txt'.format(directory['summary'],sep,time_stamp)
+        df_name = 'summary_{}'.format(ts())
+        df_path = assemblePath(directory['summary'],df_name,'.txt') 
 
         # save summar
         df.to_csv(df_path,sep='\t',header=True,index=True)
@@ -1788,8 +1797,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
             if args['plot']:  # plot OD and its GP estimate
 
                 # format name and save
-                sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
-                fig_path = '{}{}{}_fit.pdf'.format(directory['figures'],sep,pid)
+                fig_path = assemblePath(directory['summary'],pid,'.pdf')
 
                 sub_plate.plot(fig_path,plot_fit=True)
                 sub_plate.pred.to_csv('{}.fit.txt'.format(fig_path),sep='\t',header=True,index=True)
@@ -1798,8 +1806,8 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
             if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
 
                 # format name and save
-                sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
-                fig_path = '{}{}{}_derivative.pdf'.format(directory['figures'],sep,pid)
+                fig_name = '{}_derivative'.format(pid)
+                fig_path = assemblePath(directory['summary'],pid,'.pdf')
                 sub_plate.plot(fig_path,plot_fit=True,plot_derivative=True)
 
             if args['bayes']:  # perform systematic testing of substrates against negative control
@@ -1829,8 +1837,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
                 df = sub_plate.key
 
             # format name and save
-            sep = ['' if directory['summary'][-1]=='/' else '/'][0] 
-            df_path = '{}{}{}.txt'.format(directory['summary'],sep,pid)
+            df_path = assemblePath(directory['summary'],pid,'.txt')
 
             # save summary
             df.to_csv(df_path,sep='\t',header=True,index=True)
