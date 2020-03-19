@@ -801,7 +801,7 @@ def isBiologFromMeta(series):
 
     if 'PM' not in series.keys():
         return False
-    elif grabValueFromDf(series,'PM') in range(1,7): 
+    elif grabFirstValueFromDf(series,'PM') in range(1,7): 
         return True
     else:
         return False
@@ -851,7 +851,7 @@ def initMappingDf(filebase,well_ids):
     return df_mapping
 
 
-def grabValueFromDf(df,key,fillna=None):
+def grabFirstValueFromDf(df,key,fillna=None):
     '''
     Grabs the first value in a specific column in either a data frme or a series.
 
@@ -938,7 +938,7 @@ def expandBiologMetaData(sr):
         df (pandas.DataFrame)
     '''
 
-    pmn = grabValueFromDf(sr,'PM')  # PM plate number
+    pmn = grabFirstValueFromDf(sr,'PM')  # PM plate number
     df_substrates = initSubstrateDf(pmn)  # mapping of wells to substrates
     df_meta = initKeyFromMeta(sr,df_substrates.index)
     df = df_meta.join(df_substrates)
@@ -1148,11 +1148,6 @@ def subsetWells(df_mapping_dict,criteria,hypothesis,verbose=False):
         remove_idx = mapping_df_str.index[remove_boolean]
         mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
 
-        # keep controls for all subsetted groups
-        #groups = mapping_df[mapping_df.Subset==1].Group.unique()
-        #controls = aux.subsetDf(mapping_df,{'Group':groups,'Control':[1]}).index.values
-        #mapping_df.loc[controls,'Subset'] = [1]*len(controls)
-
     smartPrint('The following criteria were used to subset data:\n',verbose)
     smartPrint(tidyDictPrint(criteria),verbose)
 
@@ -1208,7 +1203,7 @@ def trimMergeMapping(mapping_dict,verbose=False):
     master_mapping = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
 
     # trim mapping based on Subset and Flag columns
-    master_mapping = master_mapping[master_mapping.isin({'Subset':[1],'Flag':[0]}).sum(1)==2]
+    master_mapping = aux.subsetDf(master_mapping,{'Subset':[1],'Flag':[0]})
 
     # reset_index and set as Sample_ID
     master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)
@@ -1294,27 +1289,26 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     return master_data,master_mapping
 
 
-def resetNameIndex(mapping_df,index_name,new_index=False):
+def resetNameIndex(df,index_name,new_index=False):
     '''
     Resets and names index of a pandas.DataFrame.
 
     Args:
-        mapping_df (pandas.DataFrame): index (row.names) should be Well IDs (e.g. A1,...,H12).
+        df (pandas.DataFrame): index (row.names), for mapping dataframes, index should be Well IDs (e.g. A1).
         index_name (str): name of index column, to be assigned.
-        new_index (boolean): create new index (row number) and drop current, 
-            otherwise keep index as column
+        new_index (boolean): create new index (row number) and drop current, otherwise keep index as column
 
     Returns:
         mapping_df (pandas.DataFrame): with an additional coulmn with the header 'Well'.
     '''
 
     if not new_index: 
-        mapping_df.index.name = index_name
-        mapping_df.reset_index(drop=False,inplace=True)
+        df.index.name = index_name
+        df.reset_index(drop=False,inplace=True)
 
     if new_index:
-        mapping_df.reset_index(drop=True,inplace=True)
-        mapping_df.index.name = index_name
+        df.reset_index(drop=True,inplace=True)
+        df.index.name = index_name
 
     return mapping_df
 

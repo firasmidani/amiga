@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-DESCRIPTION library for Gaussian Process inference
+DESCRIPTION library for Gaussian Process inference of growth curves and their paramters.
 '''
 
 __author__ = "Firas Said Midani"
@@ -9,9 +9,6 @@ __version__ = "0.1.0"
 __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
-
-# GP
-# computeLikelihood
 
 import GPy
 import numpy as np
