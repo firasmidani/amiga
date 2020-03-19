@@ -1504,9 +1504,9 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
 
     Args:
         hypothesis (dictionary): e.g. {'H0':['Time'],'H1':['Time','Substrate']}
-        log_BF (float)
-        dist_log_BF (lsit of floats)
-        FDR (int): false discovery rate cuto-ffo (%)
+        log_BF (float): log Bayes Factor
+        dist_log_BF (lsit of floats): log Bayes Factor based on permutation testing (i.e. null distribution)
+        FDR (int): false discovery rate cuto-off (%)
         verbose (boolean)
 
     Returns:
@@ -1552,14 +1552,15 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control
         if user passes a hypothesis.
 
     Args:
-        data (pandas.DataFrame): number of time points (t) x number of samples plus-one (n+1)
-            plus-one because Time is not an index but rather a column.
-        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
-
-        data_dict (dictionary)
-        mapping_dict (dictionary)
-
-        params (dictionary): must at least include 'hypo' key and its values
+        data_dict (dictionary): keys are unique Plate IDs, values are pandas.dataFrams
+            each is structured with number of time points (t) x number of samples + 1 (n+1) 
+            becasue Time is not an index but rather a column
+        mapping_dict (dictionary): keys are unique Plate IDs, values are pandas.dataFrames
+            each is structured with number of wells or samples (n) x number of variables (p)
+        params_dict (dictionary): must at least include 'hypo' key and its values
+        args_dict (dictionary): must at least include 'nperm', 'nthin', and 'fdr' as keys and their values
+        subtract_control (boolean): whether controm sample curves should be subtracted from treatment sample curves
+        sys_exit (boolean): whether system should be exited before returning a value to parent caller
         verbose (boolean)
 
     Returns:
@@ -1618,6 +1619,15 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control
 
 def plotHypothesisTest(data,hypothesis,subtract_control):
     '''
+    Visualizes the model tested by a specific hypothesis given the data.
+
+    Args:
+        data (pandas.DataFrmae): long format where each row is a sepcific measurement (well- and time-specific)
+        hypothesis (dictionary): keys are 'H0' and 'H1', values are lists of variables (must be column headers in data)
+        subtract_control (boolean): where control sample curves subtracted from treatment sample curves
+
+    Action:
+        saves a plot as PDF file
     '''
 
     sns.set_style('whitegrid')
@@ -1762,10 +1772,8 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         saves figures (PDFs) in figures folder in the parent directory.
     '''
 
-    # merge data-sets for easier analysis
+    # merge data-sets for easier analysis and perform basic summaries and manipulations
     plate = growth.GrowthPlate(data=data,key=mapping)
-
-    # perform basic summaries and manipulations 
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
     plate.convertTimeUnits(input='seconds',output='hours')
@@ -1775,15 +1783,12 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     # if merge-summary selected by user, then save a single text file for summary
     if args['merge']:
 
-        plate.model(diauxie=config['diauxie'])  # run model
-        df = plate.key  # get reults
-
         # format file name based on current time and save
-        df_name = 'summary_{}'.format(ts())
-        df_path = assemblePath(directory['summary'],df_name,'.txt') 
+        file_name = 'summary_{}'.format(ts())
+        file_path = assemblePath(directory['summary'],file_name,'.txt') 
 
-        # save summar
-        df.to_csv(df_path,sep='\t',header=True,index=True)
+        plate.model(diauxie=config['diauxie'])  # run model
+        plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save mdoel results
 
     else:
 

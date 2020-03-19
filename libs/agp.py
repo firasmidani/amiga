@@ -67,7 +67,10 @@ class GP(object):
 
     def derivative(self):
         '''
-        Computes the derivatives of the predicted latent function with respect to object's X. 
+        Computes the derivatives of the predicted latent function with respect to object's X.
+
+        Returns:
+            self.derivative () 
         '''
 
         model = self.model
@@ -90,6 +93,9 @@ class GP(object):
     def predict(self,x=None):
         '''
         Infers GP estimate using optimized model. 
+
+        Returns:
+            self.predict ()
         ''' 
 
         model = self.model
@@ -108,6 +114,9 @@ class GP(object):
     def auc(self):
         '''
         Infers the Area Under the Curve using GP estimate.
+
+        Returns:
+            self.auc (float): area under the curve
         '''
 
         x = self.x.values
@@ -129,6 +138,9 @@ class GP(object):
     def gr(self):
         '''
         Infers the maximmum specific growth rate using GP estimate.
+
+        Returns:
+            self.gr (float): maximum specific growth rate
         '''
 
         mu,cov = self.derivative
@@ -144,6 +156,9 @@ class GP(object):
 
     def dr(self):
         '''Infers the maximum specific death rate using GP estimate.
+
+        Returns:
+            self.dr (float): maximum specific death rate
         '''
 
         mu,cov = self.derivative
@@ -160,6 +175,9 @@ class GP(object):
     def k(self):
         '''
         Infers the carrying capacity using GP estimate.
+
+        Returns:
+            self.k (float): carrying capacity
         '''
 
         mu,cov = self.predict
@@ -176,6 +194,9 @@ class GP(object):
     def td(self):
         '''
         Infers the doubling time using GP estimate of maximum specific growth rate.
+
+        Returns:
+            self.td (float): doubling time (hours)
         '''
 
         if not self.gr:
@@ -196,6 +217,12 @@ class GP(object):
     def lag(self,threshold=0.95):
         '''
         Infers the lag time using GP estimate.
+
+        Args:
+            threshold (float): acceptable threshold for running variance of data.
+
+        Returns:
+            self.lag (float): lag time
         '''
 
         (mu,var) = self.derivative
@@ -219,6 +246,10 @@ class GP(object):
         Args:
             ratio_max (float): only peaks with ratio of counter height relative to maximum peak are called.
             x_as_time (boolean): return x-values either as time-points (True) or simply numerical index (False).
+
+        Returns:
+            self.diauxie (int): binary {0,1}, whether diauxic shift detected for object or not.
+            self.peaks (list of floats): time points at which peaks where detected.
         '''
 
         # point to data needed for function
@@ -268,6 +299,17 @@ class GP(object):
 
 
     def describe(self,diauxie=0.25):
+        '''
+        Complete growth curve analysis that includes fitting data to a Gaussian Process, predicting best fit of data, 
+        predicting best fit for derivative of data, and inferring growth curve kinetic parametrs.
+
+        Args:
+            diauxie (float): threshold used for calling diauxic shifts, see class function diauxie
+
+        Returns:
+            self.params (dictionary): keys are identifiers of growth curve parameters and values are their estimates.
+                all are floats/ints except for 'peaks' which is a list of floats.
+        '''
 
         params = {}
 
@@ -289,7 +331,15 @@ class GP(object):
 
 
     def data(self,sample_id=None):
+        '''
+        Summarizes the object's data, including estimates of best fit for data and its derivative using GPs.
 
+        Args:
+            sample_id (varies): can possibly be float, int, or str
+        Returns:
+            df (pandas.DataFrame): rows are time points (t) and columns are 'Time','OD','Fit','Derivative',
+                and possibly 'Sample_ID' (4-5).
+        '''
 
         time = self.x
         time.columns = ['Time']
@@ -310,6 +360,12 @@ class GP(object):
 
 
     def plot(self,ax_user=None):
+        '''
+        Plots two-panels that describe object's data, best fit based on GP estimate of data and its derivative.
+
+        Returns:
+            if ax_user was passed, returns ax_user, otherwise, return figure object and axis object.
+        '''
 
         # if user did not pass an axis
         if not ax_user:
