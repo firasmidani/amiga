@@ -23,7 +23,7 @@ AMiGA can do the following:
 
 ### Get Started
 
-Start by [installing](/docs/_posts/installation.md) `AMiGA`.
+Start by [installing](/docs/_posts/2020-03-23-installation.md) `AMiGA`.
 
 ```bash
 ruby bin/jekyll-page "Some Page Title" ref bash
