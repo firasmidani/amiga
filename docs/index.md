@@ -26,10 +26,10 @@ AMiGA can do the following:
 
 ##### References
 
-PS Swain, K Stevenson, A Leary, LF Montano-Gutierrez, IBN Clark, J Vogel, Teuta Pilizota. *Nature Communications*. 2016. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27941811">https://www.ncbi.nlm.nih.gov/pubmed/27941811</a>
+Peter S Swain, et *al*. (2016<a></a>) *Nature Communications*. 2016. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27941811">https://www.ncbi.nlm.nih.gov/pubmed/27941811</a>
 <br />
 <br />
-PD Tonner, CL Darnell, BE Engelhardt, AK Schmid. *Genome Research*. 2017. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27864351">https://www.ncbi.nlm.nih.gov/pubmed/27864351</a>
+Peter Tonner, et *al*. (2017<a></a>) *Genome Research*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27864351">https://www.ncbi.nlm.nih.gov/pubmed/27864351</a>
 <br />
 
 ### Get Started
