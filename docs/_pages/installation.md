@@ -1,1 +1,1 @@
-../_posts/2020-03-23-installation.md.md
+../_posts/2020-03-23-installation.md
