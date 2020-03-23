@@ -34,7 +34,7 @@ PD Tonner, CL Darnell, BE Engelhardt, AK Schmid. *Genome Research*. 2017. <a hre
 
 ### Get Started
 
-Start by [installing](/docs/installation.html) `AMiGA`.
+Start by [installing](/amiga/doc/installation.html) `AMiGA`.
 
 ```bash
 ruby bin/jekyll-page "Some Page Title" ref bash
