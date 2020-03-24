@@ -55,7 +55,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
 #### Install a module for virtual environments
 
-<br /><br />
+<br />
 **Mac OS and Unix users**
 
 1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
@@ -100,14 +100,22 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
 #### [Required] `Python` package requirements
 
-Please follow these instructions to install all requirements. If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first (e.g. source /Users/firasmidani/example/amiga-python-environment).
+Please follow these instructions to install all requirements. (see `amiga/requirements.txt` for full list of dependencies) If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first (e.g. `source /Users/firasmidani/virtual_environment`).
 
-Change your directory toAMiGA
+Change your directory to `AMiGA` which you cloned or downloaded from Github.
 
+`cd /Users/firasmidani/amiga`
 
-If you are using native installation of `Python`:
+You can install the requirements with either of the following
 
-```pip install -r requirements.txt```
+`pip install -r requirements.txt`
+
+`conda install -r requirements.txt`  if you are using `Anaconda`.
+
+If you are using `Anaconda` and `GPy` installation may fail, you can try:
+
+`conda install -c conda-forge gpy`
+
 
 
 
