@@ -31,7 +31,7 @@ Please follow these guides for creating virtual environments: a <a href="https:/
 
 **Check your Python installation and version**
 
-Your machine may have multiple installations of `Python`. You must use the same installation every time you run AMiGA. So, it helps know the following:
+Your machine may have multiple installations of `Python`. You must use the same installation every time you run `AMiGA`. So, it helps to know the following:
 
 1. You can find out which Python installation you are calling with the following commands.
 
@@ -49,8 +49,19 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python --version`
 
-**MacOS and Unix users of Python 3**
+**Install a module for virtual environments**
 
+1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
+
+    `python -m pip install --user virtualenv`
+
+2. Set-up the environment in the folder where you would like to save it. Here, I name it `amiga-virtual-environment`.
+
+    `python -m virtualenv /Users/firasmidani/amiga-virtual-environment`  you can substitute `venv` for `virtualenv`
+
+3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+
+    `source /Users/firasmidani/amiga-virtual-environment/bin/activate`
 
 <br /><br />
 
