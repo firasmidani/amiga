@@ -7,6 +7,8 @@ date: 2020-03-23 16:39:13
 
 **Note:** `AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on how to install `AMiGA`.
 
+**Table of Contents**
+
 * TOC
 {:toc}
 
