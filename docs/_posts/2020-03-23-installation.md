@@ -66,7 +66,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 <br />
 **Mac OS and Unix users**
 
-1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
+1. If you are using `Python 3.3` or newer, `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
 
     `python -m pip install --user virtualenv`
 
@@ -74,14 +74,14 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python -m virtualenv /Users/firasmidani/virtual_environment`  you can substitute `venv` for `virtualenv`
 
-3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+3. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
     `source /Users/firasmidani/virtual_environment/bin/activate`
 
 <br />
 **Windows Users**
 
-1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
+1. If you are using `Python 3.3` or newer, `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
 
     `python -m pip install --user virtualenv`
 
@@ -89,9 +89,9 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python -m virtualenv C:\Users\firasmidani\virtual_environment`  you can substitute `venv` for `virtualenv`
 
-3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+3. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
-    `C:\Users\firasmidani\virtual_environment/Scripts/activate`
+    `C:\Users\firasmidani\virtual_environment\Scripts\activate`
 
 <br />
 **Anaconda users**
@@ -100,7 +100,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `conda create -n amiga`
 
-2. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+2. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
     `conda activate amiga`  for conda version 4.6 or newer
 
