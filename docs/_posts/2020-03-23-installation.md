@@ -43,7 +43,7 @@ Please follow these guides for creating virtual environments: a <a href="https:/
     `/Users/firasmidani/python3`  for MacOS or Unix
     `C:\Users\firasmidani\python3` for Windows
 
-2. Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
+* Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
 
     `python --version`
 
