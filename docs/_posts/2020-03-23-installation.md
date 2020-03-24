@@ -62,17 +62,42 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python -m pip install --user virtualenv`
 
-2. Set-up the environment in the folder where you would like to save it. Here, I name it `amiga-virtual-environment`.
+2. Set-up the environment. Here, I name it `amiga-virtual-environment` and store it in my home directory.
 
     `python -m virtualenv /Users/firasmidani/amiga-virtual-environment`  you can substitute `venv` for `virtualenv`
 
 3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
 
     `source /Users/firasmidani/amiga-virtual-environment/bin/activate`
+
 <br /><br />
+
 **Windows Users**
+
+1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
+
+    `python -m pip install --user virtualenv`
+
+2. Set-up the environment. Here, I name it `amiga-virtual-environment` and store it in my home directory.
+
+    `python -m virtualenv C:\Users\firasmidani\amiga-virtual-environment`  you can substitute `venv` for `virtualenv`
+
+3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+
+    `C:\Users\firasmidani\amiga-virtual-environment/Scripts/activate`
+
 <br /><br />
+
 **Anaconda users**
+
+1. Here, I name it `amiga-virtual-environment`.
+
+    `conda create -n amiga`
+
+2. Activate the environment (You will need to do this every time you are working with `AMiGA`).
+
+    `conda activate amiga`  for conda version 4.6 or newer
+
 <br /><br />
 
 #### [Required] `Python` package requirements
