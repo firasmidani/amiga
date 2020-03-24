@@ -10,11 +10,7 @@ date: 2020-03-23 16:39:13
 <br />
 You can do either of the following
 <br />
-- Clone via the command terminal:
-
-    ```zsh
-    git clone https://github.com/firasmidani/amiga.github
-    ```
+- Clone via the command terminal: `git clone https://github.com/firasmidani/amiga.github`
 - Download manually: go to <a href="https://github.com/firasmidani/github">AMiGA</a>, click the green button <span style="color:#ffffff;background-color:#2ab748">&nbsp;Clone or download&nbsp;</span> on top right corner, then click <span style="color:#075bd0;">Download ZIP</span>.
 
 Please extract or download the ZIP folder in a location that you can easily access. You will have to point `Python` to this folder whenever you want to run `AMiGA`.
