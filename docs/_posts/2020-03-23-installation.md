@@ -70,7 +70,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `source /Users/firasmidani/virtual_environment/bin/activate`
 
-<br /><br />
+<br />
 **Windows Users**
 
 1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
@@ -85,7 +85,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `C:\Users\firasmidani\virtual_environment/Scripts/activate`
 
-<br /><br />
+<br />
 **Anaconda users**
 
 1. Here, I name it `virtual_environment`.
@@ -96,7 +96,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `conda activate amiga`  for conda version 4.6 or newer
 
-<br /><br />
+<br />
 
 #### [Required] `Python` package requirements
 
