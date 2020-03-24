@@ -53,7 +53,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
     `python --version`
 <br /><br />
 
-#### Install a module for virtual environments
+#### Set-up a virtual environment and activate it
 
 <br />
 **Mac OS and Unix users**
@@ -100,21 +100,25 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
 #### [Required] `Python` package requirements
 
-Please follow these instructions to install all requirements. (see `amiga/requirements.txt` for full list of dependencies) If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first (e.g. `source /Users/firasmidani/virtual_environment`).
+Please follow these instructions to install all requirements. See `amiga/requirements.txt` for full list of dependencies.
 
-Change your directory to `AMiGA` which you cloned or downloaded from Github.
+- If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first.
 
-`cd /Users/firasmidani/amiga`
+    `source /Users/firasmidani/virtual_environment`  for MacOS or Unix users
 
-You can install the requirements with either of the following
+- Change your directory to `AMiGA` which you cloned or downloaded from Github.
 
-`pip install -r requirements.txt`
+    `cd /Users/firasmidani/amiga`
 
-`conda install -r requirements.txt`  if you are using `Anaconda`.
+- You can install the requirements with either of the following
 
-If you are using `Anaconda` and `GPy` installation may fail, you can try:
+    `pip install -r requirements.txt`
 
-`conda install -c conda-forge gpy`
+    `conda install -r requirements.txt`  only if you are using `Anaconda`.
+
+- If you are using `Anaconda` and `GPy` installation fails or results in an error, you can try:
+
+    `conda install -c conda-forge gpy`
 
 
 
