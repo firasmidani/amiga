@@ -5,7 +5,9 @@ category: doc
 date: 2020-03-23 16:39:13
 ---
 
-#### [Required] Download repository or code
+**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command termina l. I have tried to somewhat thorough in my instructions here.
+
+### [Required] Download repository or code
 
 You can do either of the following
 <br />
@@ -15,7 +17,7 @@ You can do either of the following
 Please extract or download the ZIP folder in a location that you can easily access. You will have to point `Python` to this folder whenever you want to run `AMiGA`.
 <br /><br />
 
-#### [Required] `Python`
+### [Required] `Python`
 
 * If you are a Max or Unix user, your machine will have `Python` pre-installed.
 * If you are a Windows user and have not previously worked with `Python`, I recommend a `Python` distribution such as `Anaconda`. See this useful [guide](https://fangohr.github.io/blog/installation-of-python-spyder-numpy-sympy-scipy-pytest-matplotlib-via-anaconda.html) on installing Python. If you run into
@@ -23,13 +25,13 @@ Please extract or download the ZIP folder in a location that you can easily acce
 `AMIGA` was written in `Python 3` and should be compatible with `Python>=2.7`.
 <br /><br />
 
-#### [Optional] Set-up a local `Python` environment
+### [Optional] Set-up a local `Python` environment
 
 I highly recommend that you set-up a virtual `Python` environment for running `AMiGA` whether you are a new or experienced user of `Python`.  A virtual environment is a self-contained directory that will contain a copy of your `Python` installation, plus a limited number of additional packages that you select. You can create a virtual environment customized for `AMiGA` with the only packages that it needs. The main advantages are (1) you will know that your environment meets the requirements of `AMiGA` and (2) that it would not contradict the requirements of other programs that use your main `Python` installation.
 
 Please follow these guides for creating virtual environments: a <a href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">general guide</a> or a <a href="https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/">Anaconda-specific guide</a>. You can also try out my simple but limited instructions below. If the instructions below are not working for you, simply go to the before-mentioned guides and follow their more detailed instructions.
 
-##### Check your Python installation and version
+#### Check your Python installation and version
 
 Your machine may have multiple installations of `Python`. You must use the same installation every time you run `AMiGA`. So, it helps to know the following:
 
@@ -49,7 +51,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python --version`
 
-##### Install a module for virtual environments
+#### Install a module for virtual environments
 
 *Mac OS and Unix users*
 
