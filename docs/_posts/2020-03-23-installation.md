@@ -71,7 +71,6 @@ Your machine may have multiple installations of `Python`. You must use the same 
     `source /Users/firasmidani/amiga-virtual-environment/bin/activate`
 
 <br /><br />
-
 **Windows Users**
 
 1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
@@ -87,7 +86,6 @@ Your machine may have multiple installations of `Python`. You must use the same 
     `C:\Users\firasmidani\amiga-virtual-environment/Scripts/activate`
 
 <br /><br />
-
 **Anaconda users**
 
 1. Here, I name it `amiga-virtual-environment`.
