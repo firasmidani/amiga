@@ -31,21 +31,21 @@ Please follow these guides for creating virtual environments: a <a href="https:/
 
 **Check your Python installation and version**
 
-1. Your machine may have multiple installations of `Python`. You must use the same installation every time you run AMiGA.
+Your machine may have multiple installations of `Python`. You must use the same installation every time you run AMiGA. So, it helps know the following:
 
-    1. You can find out which Python installation you are calling with the following commands.
+1. You can find out which Python installation you are calling with the following commands.
 
-      `which python` in MacOS or Unix
+    `which python` in MacOS or Unix
 
-      `where python` in Windows
+    `where python` in Windows
 
-    2. You can call a specific Python installation by pointing to its full path.
+2. If this is not the installation that you need, you can call a specific Python installation by pointing to its full path.
 
-      `/Users/firasmidani/python3`  for MacOS or Unix
+    `/Users/firasmidani/python3`  for MacOS or Unix
 
-      `C:\Users\firasmidani\python3` for Windows
+    `C:\Users\firasmidani\python3` for Windows
 
-2. Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
+3. Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
 
     `python --version`
 
