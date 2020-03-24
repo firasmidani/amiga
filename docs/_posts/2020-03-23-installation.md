@@ -5,7 +5,7 @@ category: doc
 date: 2020-03-23 16:39:13
 ---
 
-**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on host to install `AMiGA`. 
+**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on host to install `AMiGA`.
 
 ### [Required] Download repository or code
 
@@ -30,7 +30,7 @@ Please extract or download the ZIP folder in a location that you can easily acce
 I highly recommend that you set-up a virtual `Python` environment for running `AMiGA` whether you are a new or experienced user of `Python`.  A virtual environment is a self-contained directory that will contain a copy of your `Python` installation, plus a limited number of additional packages that you select. You can create a virtual environment customized for `AMiGA` with the only packages that it needs. The main advantages are (1) you will know that your environment meets the requirements of `AMiGA` and (2) that it would not contradict the requirements of other programs that use your main `Python` installation.
 
 Please follow these guides for creating virtual environments: a <a href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">general guide</a> or a <a href="https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/">Anaconda-specific guide</a>. You can also try out my simple but limited instructions below. If the instructions below are not working for you, simply go to the before-mentioned guides and follow their more detailed instructions.
-
+<br /><br />
 #### Check your `Python` installation and version
 
 Your machine may have multiple installations of `Python`. You must use the same installation every time you run `AMiGA`. So, it helps to know the following:
@@ -50,10 +50,10 @@ Your machine may have multiple installations of `Python`. You must use the same 
 3. Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
 
     `python --version`
-
+<br /><br />
 #### Install a module for virtual environments
-
-__Mac OS and Unix users__
+<br /><br />
+**Mac OS and Unix users**
 
 1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
 
@@ -66,9 +66,10 @@ __Mac OS and Unix users__
 3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
 
     `source /Users/firasmidani/amiga-virtual-environment/bin/activate`
-
-*Windows Users*
-
+<br /><br />
+**Windows Users**
+<br /><br />
+**Anaconda users**
 <br /><br />
 
 
