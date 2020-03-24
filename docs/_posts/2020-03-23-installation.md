@@ -31,7 +31,7 @@ I highly recommend that you set-up a virtual `Python` environment for running `A
 
 Please follow these guides for creating virtual environments: a <a href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">general guide</a> or a <a href="https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/">Anaconda-specific guide</a>. You can also try out my simple but limited instructions below. If the instructions below are not working for you, simply go to the before-mentioned guides and follow their more detailed instructions.
 
-#### Check your Python installation and version
+#### Check your `Python` installation and version
 
 Your machine may have multiple installations of `Python`. You must use the same installation every time you run `AMiGA`. So, it helps to know the following:
 
@@ -53,7 +53,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
 #### Install a module for virtual environments
 
-*Mac OS and Unix users*
+__Mac OS and Unix users__
 
 1. If you are using `Python 3.3` or newer, the `venv` is a standard library and requires no additional installation. Otherwise, you can install `virtualenv`.
 
@@ -72,7 +72,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 <br /><br />
 
 
-#### [Required] Python package requirements
+#### [Required] `Python` package requirements
 
 Please follow these instructions to install all requirements. If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first (e.g. source /Users/firasmidani/example/amiga-python-environment).
 
