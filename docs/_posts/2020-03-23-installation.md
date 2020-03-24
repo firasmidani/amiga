@@ -5,7 +5,7 @@ category: doc
 date: 2020-03-23 16:39:13
 ---
 
-**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command termina l. I have tried to somewhat thorough in my instructions here.
+**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on host to install `AMiGA`. 
 
 ### [Required] Download repository or code
 
