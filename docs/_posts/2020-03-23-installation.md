@@ -7,15 +7,17 @@ date: 2020-03-23 16:39:13
 
 ### [Required] Download repository or code
 
+<br />
 You can do either of the following
 <br />
-Clone via the command terminal:
+1. Clone via the command terminal:
 
 ```zsh
 git clone https://github.com/firasmidani/amiga.github
 ```
 <br />
-Download manually: go to [AMiGA](/amiga), click the green button ```Clone or download``` on top right corner, then click ```Download ZIP```.
+
+2. Download manually: go to [AMiGA](/amiga), click the green button ```Clone or download``` on top right corner, then click ```Download ZIP```.
 
 ### [Required] Python
 
