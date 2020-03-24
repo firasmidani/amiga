@@ -15,8 +15,6 @@ You can do either of the following
     ```zsh
     git clone https://github.com/firasmidani/amiga.github
     ```
-<br />
-
 2. Download manually: go to [AMiGA](/amiga), click the green button ```Clone or download``` on top right corner, then click ```Download ZIP```.
 
 ### [Required] Python
