@@ -62,13 +62,13 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python -m pip install --user virtualenv`
 
-2. Set-up the environment. Here, I name it `amiga-virtual-environment` and store it in my home directory.
+2. Set-up the environment. Here, I name it `virtual_environment` and store it in my home directory.
 
-    `python -m virtualenv /Users/firasmidani/amiga-virtual-environment`  you can substitute `venv` for `virtualenv`
+    `python -m virtualenv /Users/firasmidani/virtual_environment`  you can substitute `venv` for `virtualenv`
 
 3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
 
-    `source /Users/firasmidani/amiga-virtual-environment/bin/activate`
+    `source /Users/firasmidani/virtual_environment/bin/activate`
 
 <br /><br />
 **Windows Users**
@@ -77,18 +77,18 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `python -m pip install --user virtualenv`
 
-2. Set-up the environment. Here, I name it `amiga-virtual-environment` and store it in my home directory.
+2. Set-up the environment. Here, I name it `virtual_environment` and store it in my home directory.
 
-    `python -m virtualenv C:\Users\firasmidani\amiga-virtual-environment`  you can substitute `venv` for `virtualenv`
+    `python -m virtualenv C:\Users\firasmidani\virtual_environment`  you can substitute `venv` for `virtualenv`
 
 3. Activate the environment (You will need to do this every time you are working with `AMiGA`).
 
-    `C:\Users\firasmidani\amiga-virtual-environment/Scripts/activate`
+    `C:\Users\firasmidani\virtual_environment/Scripts/activate`
 
 <br /><br />
 **Anaconda users**
 
-1. Here, I name it `amiga-virtual-environment`.
+1. Here, I name it `virtual_environment`.
 
     `conda create -n amiga`
 
