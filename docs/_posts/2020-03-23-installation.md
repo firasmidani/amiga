@@ -5,7 +5,10 @@ category: doc
 date: 2020-03-23 16:39:13
 ---
 
-**Note:** `AMiGA` was designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on host to install `AMiGA`.
+**Note:** `AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on how to install `AMiGA`.
+
+* TOC
+{:toc}
 
 ### [Required] Download repository or code
 
@@ -98,7 +101,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
 <br />
 
-#### [Required] `Python` package requirements
+### [Required] `Python` package requirements
 
 Please follow these instructions to install all requirements. See `amiga/requirements.txt` for full list of dependencies.
 
