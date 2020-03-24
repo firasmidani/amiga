@@ -29,16 +29,16 @@ I highly recommend that you set-up a virtual `Python` environment for running `A
 
 Please follow these guides for creating virtual environments: a <a href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">general guide</a> or a <a href="https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/">Anaconda-specific guide</a>. You can also try out my simple but limited instructions below. If the instructions below are not working for you, simply go to the before-mentioned guides and follow their more detailed instructions.
 
-**Basic instructions for setting-up an environment**
+**Check your Python installation and version**
 
-1. Your machine may have multiple installations of `Python`. You must use the same installation every time you run AMiGA.
+* Your machine may have multiple installations of `Python`. You must use the same installation every time you run AMiGA.
 
-    1. You can find out which Python installation you are calling with the following commands.
+    - You can find out which Python installation you are calling with the following commands.
 
     `which python` in MacOS or Unix
     `where python` in Windows
 
-    2. You can call a specific Python installation by pointing to its full path.
+    - You can call a specific Python installation by pointing to its full path.
 
     `/Users/firasmidani/python3`  for MacOS or Unix
     `C:\Users\firasmidani\python3` for Windows
