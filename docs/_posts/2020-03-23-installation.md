@@ -35,13 +35,15 @@ Please follow these guides for creating virtual environments: a <a href="https:/
 
     - You can find out which Python installation you are calling with the following commands.
 
-    `which python` in MacOS or Unix
-    `where python` in Windows
+      `which python` in MacOS or Unix
+
+      `where python` in Windows
 
     - You can call a specific Python installation by pointing to its full path.
 
-    `/Users/firasmidani/python3`  for MacOS or Unix
-    `C:\Users\firasmidani\python3` for Windows
+      `/Users/firasmidani/python3`  for MacOS or Unix
+      
+      `C:\Users\firasmidani\python3` for Windows
 
 * Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
 
