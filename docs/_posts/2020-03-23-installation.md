@@ -22,7 +22,7 @@ Please extract or download the ZIP folder in a location that you can easily acce
 * If you are a Max or Unix user, your machine will have `Python` pre-installed.
 * If you are a Windows user and have not previously worked with `Python`, I recommend a Python distribution such as Anaconda. See this useful [guide](https://fangohr.github.io/blog/installation-of-python-spyder-numpy-sympy-scipy-pytest-matplotlib-via-anaconda.html) on installing Python. If you run into
 
-`AMIGA` was written in `Python` 3 and is compatible with Python>=2.7.
+`AMIGA` was written in `Python 3` and is compatible with `Python>=2.7`.
 <br />
 
 #### [Optional] Set-up a local `Python` environment
