@@ -30,14 +30,14 @@ Please extract or download the ZIP folder in a location that you can easily acce
 `AMIGA` was written in `Python 3` and should be compatible with `Python>=2.7`.
 <br /><br />
 
-### [Optional] Set-up a local `Python` environment
+### [Optional] `Python` virtual environment
 
 I highly recommend that you set-up a virtual `Python` environment for running `AMiGA` whether you are a new or experienced user of `Python`.  A virtual environment is a self-contained directory that will contain a copy of your `Python` installation, plus a limited number of additional packages that you select. You can create a virtual environment customized for `AMiGA` with the only packages that it needs. The main advantages are (1) you will know that your environment meets the requirements of `AMiGA` and (2) that it would not contradict the requirements of other programs that use your main `Python` installation.
 
 Please follow these guides for creating virtual environments: a <a href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">general guide</a> or a <a href="https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/">Anaconda-specific guide</a>. You can also try out my simple but limited instructions below. If the instructions below are not working for you, simply go to the before-mentioned guides and follow their more detailed instructions.
 <br /><br />
 
-#### Check your `Python` installation and version
+#### Check your `Python` installation and its version
 
 Your machine may have multiple installations of `Python`. You must use the same installation every time you run `AMiGA`. So, it helps to know the following:
 
@@ -58,7 +58,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
     `python --version`
 <br /><br />
 
-#### Set-up a virtual environment and activate it
+#### Set-up and activate a virtual environment
 
 <br />
 **Mac OS and Unix users**
