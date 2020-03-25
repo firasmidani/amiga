@@ -11,7 +11,8 @@ date: 2020-03-23 16:39:13
 {:toc}
 <br />
 
-**Note:** `AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on how to install `AMiGA`.
+**Note:** `AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on how to install `AMiGA` under different computing conditions.
+<br />
 
 ### [Required] Download repository or code
 
@@ -56,7 +57,7 @@ Your machine may have multiple installations of `Python`. You must use the same 
 
     `C:\Users\firasmidani\python3` for Windows
 
-3. Make sure that you are using `Python 3`. You can out find out the version of your `Python` installation
+3. Make sure that you are using `Python 3`. You can identify the version of your `Python` installation with:
 
     `python --version`
 <br /><br />
@@ -92,27 +93,27 @@ Your machine may have multiple installations of `Python`. You must use the same 
 3. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
     `C:\Users\firasmidani\virtual_environment\Scripts\activate`
-
+z
 <br />
 **Anaconda users**
 
-1. Here, I name it `virtual_environment`.
+1. Set-up the environment.Here, I name it `virtual_environment`.
 
-    `conda create -n amiga`
+    `conda create -n virtual_environment`
 
 2. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
-    `conda activate amiga`  for conda version 4.6 or newer
+    `conda activate virtual_environment`  for `Anaconda` version 4.6 or newer
 
 <br />
 
 ### [Required] `Python` package requirements
 
-Please follow these instructions to install all requirements. See `amiga/requirements.txt` for full list of dependencies.
+Please follow these instructions to install all requirements. See `amiga/requirements.txt` for a full list of dependencies.
 
 - If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first.
 
-    `source /Users/firasmidani/virtual_environment`  for MacOS or Unix users
+    `source /Users/firasmidani/virtual_environment/bin/activate`  example for MacOS or Unix users
 
 - Change your directory to `AMiGA` which you cloned or downloaded from Github.
 
