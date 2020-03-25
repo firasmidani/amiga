@@ -37,20 +37,24 @@ Plate readers use different proprietary softwares that export data in slightly d
 
 <br /><br />
 
+### Naming your plate reader data files
+
+Biolog Phenotype Microarray (PM) plates are widely used in the scientific community. These are plates that have been arrayed with unique substrates in each well. If you name your data file a specific way, ```AMiGA``` will recognize it as a Biolog PM plate and automatically identify the content in each well on your plate and include these details in its summary of your growth curves. To do so, please use this nomenclature: \{isolate name\}_PM\{integer\}-\{integer\} where the isolate name can be composed of any alphanumeric characters, the first integer indicates the PM number (must be between and including 1 and 7), and the second integer indicates the replicate number. For example, `CD630_PM3-2.txt` correspond to the isolate `CD630` grown on `PM3` (which is a plate of unique nitrogen sources) and it is the second replicate. 
+
 ### Frequently Asked Questions (FAQ)
 
-__Which file formats can be read by AMiGA?__
+__Which file formats AMiGA read?__
 
-AMiGA can read only tab-delimited text files. These can be encoded in ASCII or BOM (e.g. UTF-8). This is the typical output format by most plate readers.
+AMiGA can only read tab-delimited text files which is the typical format for output by plate readers. These can be encoded in ASCII or BOM (e.g. UTF-8).
 
-__Can AMiGA read a Microsoft Excel file?__
+__Can AMiGA read a Microsoft Excel files?__
 
-No. Please convert the file to tab-delimited text file format.
+No, please convert the file to tab-delimited text file format.
 
 __Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?__
 
-No, the input does not have to conform to 96-well format. It can describe any number of wells/rows.
+No, the input does not have to conform to a 96-well format. It can describe results for any number of wells/rows.
 
 __Must the index column be well IDs? Can it be something else?__
 
-The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to specific column in the plate
+The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
