@@ -29,8 +29,18 @@ Plate readers use different proprietary softwares that export data in slightly d
 
 __Frequently Asked Questions (FAQ)__
 
-> *Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?*
->  No, the input does not have to conform to 96-well format. It can describe any number of wells/rows.
+__Which file formats can be read by AMiGA?__
 
-> *Must the index column be well IDs? Can it be something else?*
-> The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to specific column in the plate
+AMiGA can read only tab-delimited text files. These can be encoded in ASCII or BOM (e.g. UTF-8). This is the typical output format by most plate readers.
+
+__Can AMiGA read a Microsoft Excel file?__
+
+No. Please convert the file to tab-delimited text file format. 
+
+__Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?__
+
+No, the input does not have to conform to 96-well format. It can describe any number of wells/rows.
+
+__Must the index column be well IDs? Can it be something else?__
+
+The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to specific column in the plate
