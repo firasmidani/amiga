@@ -23,14 +23,14 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 <br /><br />
 
-Plate readers use different software that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the line corresponding to well/row A1 and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to identify the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride this by passing another `Interval` value as an argument. See PLACEHOLDER section for details.
+Plate readers use different software that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to identify the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride this by passing another `Interval` value as an argument. See PLACEHOLDER section for details.
 
 __Frequently Asked Questions (FAQ)__
 
-- *Must the input be a 96-well plate? Can it be a 384-plate? How about just a couple of wells/rows or even well/row?*
+- *Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?*
 
     No, the input does not have to conform to 96-well format. It can describe any number of wells/rows.
 
 - *Must the index column be well IDs? Can it be something else?*
 
-    The index column (or row names) can be any alpha-numeric strings, but the first row name must always be A1.
+    The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to specific column in the plate
