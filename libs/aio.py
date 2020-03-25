@@ -536,9 +536,9 @@ def findPlateReaderFiles(directory):
 
 def findFirstRow(filepath,encoding):
     '''
-    Searches for line beginning with the Well ID "A1", determines the number of
-        rows that need to be skipped for reading this line, and indicates if
-        index column was not found.
+    Searches for line that begins with a Well ID (defined as a letter followed by digits), 
+        determines the number of rows that need to be skipped for reading this line, and
+        indicates if index column was not found.
 
     Args:
         filepath (str)
@@ -552,7 +552,8 @@ def findFirstRow(filepath,encoding):
 
     count = 0
     for line in fid.readlines():
-        if line.startswith('A1'):
+        line_start = line.strip().split('\t')[0]
+        if isWellId(line_start):
             fid.close()
             index_column = 0  # row names are the zero-indexed column
             return count, index_column
@@ -562,6 +563,29 @@ def findFirstRow(filepath,encoding):
         count = 0
         index_column = None  # row names were not found
         return count, index_column
+
+
+def isWellId(item):
+    '''
+    Checks if argument is string and if it has a letter for first character and digits for remaining characters.
+
+    Args:
+        item (string)
+
+    Returns:
+        (boolean)
+    '''
+
+    if not isinstance(item,str):
+        return False
+
+    if len(item) < 2:
+        return False
+
+    if (item[0] in string.ascii_uppercase) and (item[1:].isdigit()):
+        return True
+    
+    return False
 
 
 def listTimePoints(interval,numTimePoints):
