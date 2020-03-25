@@ -5,6 +5,12 @@ category: doc
 date: 2020-03-24 19:33:36
 ---
 
+**Table of Contents**
+
+* TOC
+{:toc}
+<br />
+
 ### Organizing your working directory
 
 Before you begin with your first analysis, you need to create a folder which we will refer to as the __Working Directory__. Here, I name my example as __experiment__. In this folder, you must have a __data__ sub-folder where you will save all of your data files that need to be analyzed.
