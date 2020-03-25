@@ -18,7 +18,7 @@ Your data should look something like this
 
 <br /><br />
 
-![example data file](../assets/img/example_data_file.png){:width="500px"}
+![example data file](../assets/img/example_data_file.png){:width="300px"}
 <!--- ![amiga directory tree example](../assets/img/amiga_directory_tree_simple.png){:class="img-responsive"} --->
 
 <br /><br />
