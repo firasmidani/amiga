@@ -45,7 +45,7 @@ If you are analyzing Biolog Phenotype Microarray (PM) plates, you can name your 
 
 \{isolate name\}_PM\{integer\}-\{integer\}
 
-where the isolate name can be composed of any alphanumeric characters, the first integer indicates the PM number (must be between and including 1 and 7), and the second integer indicates the replicate number. For example, `CD630_PM3-2.txt` correspond to the isolate `CD630` grown on `PM3` (which is a plate of unique nitrogen sources) and it is the second replicate.
+where the isolate name can be composed of any alphanumeric characters, the first integer indicates the PM number (must be between and including 1 and 7), and the second integer indicates the replicate number. For example, `CD630_PM3-2.txt` corresponds to the second replicate of growing the isolate `CD630` on `PM3`.
 
 <br /><br />
 
