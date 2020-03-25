@@ -5,6 +5,8 @@ category: doc
 date: 2020-03-24 19:33:36
 ---
 
+### Organizing your working directory
+
 Before you begin with your first analysis, you need to create a folder which we will refer to as the __Working Directory__. Here, I name my example as __experiment__. In this folder, you must have a __data__ sub-folder where you will save all of your data files that need to be analyzed.
 
 <br />
@@ -13,6 +15,8 @@ Before you begin with your first analysis, you need to create a folder which we 
 <!--- ![amiga directory tree example](../assets/img/amiga_directory_tree_simple.png){:class="img-responsive"} --->
 
 <br />
+
+### Preparing your plate reader data files
 
 `AMiGA` is designed for the analysis of plate reader data. Plate readers typically measure the optical density in every well of a 96-well microplate at fixed time intervals (e.g. every 10 minutes). These files are often saved as `.TXT` or `.ASC` files and may contain run information such as protocol, temperature, ... etc., in the first few lines of the text file. After the run information, data will typically look like the following example. Here, the first column is the well location which is a unique identifier of each well. The  first row is the time measurement. The cell values are the measured optical density in each well at a specific time point.
 
@@ -27,7 +31,7 @@ Plate readers use different proprietary softwares that export data in slightly d
 
 <br /><br />
 
-__Frequently Asked Questions (FAQ)__
+### Frequently Asked Questions (FAQ)
 
 __Which file formats can be read by AMiGA?__
 
@@ -35,7 +39,7 @@ AMiGA can read only tab-delimited text files. These can be encoded in ASCII or B
 
 __Can AMiGA read a Microsoft Excel file?__
 
-No. Please convert the file to tab-delimited text file format. 
+No. Please convert the file to tab-delimited text file format.
 
 __Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?__
 
