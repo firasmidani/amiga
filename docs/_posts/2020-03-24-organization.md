@@ -25,13 +25,17 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 The first column is the well location which is a unique identifier of each well. The  first row is the time measurement. The cell values are the measured optical density in each well at a specific time point.
 
+<br /<br />
+
+
+
 
 __Frequently Asked Questions (FAQ)__
 
-*Must be the input be a 96-well plate? Can it be a 384-plate? How about just a couple of wells or even one?*
+- *Must the input be a 96-well plate? Can it be a 384-plate? How about just a couple of wells/rows or even well/row?*
 
-No, the input does not have to conform to 96-well format. It can by any number of wells.
+    No, the input does not have to conform to 96-well format. It can by any number of wells/rows.
 
-*Must the index column be well IDs? Can it be something else?*
+- *Must the index column be well IDs? Can it be something else?*
 
-Yes. 
+    The index column (or row names) can be any alpha-numeric strings, but the first row name must be A1.
