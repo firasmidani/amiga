@@ -44,7 +44,7 @@ Please use only alphanumeric characters in your file names.
 
 If you are analyzing Biolog Phenotype Microarray (PM) plates, you can name your data file in a specific way and ```AMiGA``` will automatically recognize it as a Biolog PM plate, identify the content in each well on your plate, and include these details in the summary of your growth curves. To do so, please use this nomenclature:
 
-`\{isolate name\}_PM\{integer\}-\{integer\}`
+`{isolate name}_PM{integer}-{integer}`
 
 where the isolate name can be composed of any alphanumeric characters, the first integer indicates the PM number (must be between and including 1 and 7), and the second integer indicates the replicate number. For example, `CD630_PM3-2.txt` corresponds to the second replicate of growing the isolate `CD630` on `PM3`.
 
@@ -54,7 +54,7 @@ where the isolate name can be composed of any alphanumeric characters, the first
 
 __Which file formats can AMiGA read?__
 
-AMiGA can only read tab-delimited text files which is the typical format for output by plate readers. These can be encoded in ASCII or BOM (e.g. UTF-8).
+AMiGA can only read tab-delimited text files which is the typical format for output by plate readers. These can be encoded in ASCII or BOM (e.g. UTF-8). If you have a comma-separated file, you must convert it to tab-delimited or tab-separated file instead.
 
 __Can AMiGA read a Microsoft Excel file?__
 
