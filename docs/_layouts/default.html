@@ -24,7 +24,7 @@
             <div class="row">
                 {% assign post_count = site.posts|size %}
                 {% if site.navigation != 0 and site.navigation == 1 or post_count > 0 %}
-                    <div id="navigation" class="col-sm-2">
+                    <div id="navigation" class="col-sm-12">
                         {% include navigation.html %}
                     </div>
 
@@ -68,9 +68,9 @@
                     sections = [],
                     lists = {},
                     headers = {};
-                
+
                 var locationObj = document.location.href;
-                
+
                 var navUl = document.querySelectorAll('#navigation ul')[0],
                     navLis = document.querySelectorAll('#navigation ul li');
 
@@ -90,7 +90,7 @@
                     if (locationObj && link && locationObj.endsWith(link.getAttribute('href'))) {
                         li.classList.add('active');
                     }
-                    
+
                     if (!lists[section]) {
                         lists[section] = [];
                     }
