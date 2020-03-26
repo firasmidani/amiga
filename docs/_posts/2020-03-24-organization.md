@@ -58,7 +58,7 @@ AMiGA can only read tab-delimited text files which is the typical format for out
 
 __Can AMiGA read a Microsoft Excel file?__
 
-No, please convert the file to tab-delimited text file. You
+No, please convert the file to tab-delimited text file.
 
 __Does AMiGA only process 96-well plates? Can it process 384-well plates? How about data files with an arbitrary number of wells/rows?__
 
