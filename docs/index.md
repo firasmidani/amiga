@@ -32,3 +32,15 @@ Swain et *al*. (2016<a></a>). *Nature Communications*. <a href="https://www.ncbi
 <br />
 Tonner et *al*. (2017<a></a>). *Genome Research*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27864351">https://www.ncbi.nlm.nih.gov/pubmed/27864351</a>
 <br />
+
+### Get Started
+
+Start by [installing](/amiga/doc/installation.html) `AMiGA`.
+
+```bash
+ruby bin/jekyll-page "Some Page Title" ref bash
+```
+```zsh
+ruby bin/jekyll-page "Some Page Title" ref zsh
+```
+<br />
