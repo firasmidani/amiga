@@ -29,7 +29,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 <br />
 
-![example data file](../assets/img/example_data_file.png){:width="300px"}
+![example data file](../assets/img/example_data_file.png){:width="500px"}
 <!--- ![amiga directory tree example](../assets/img/amiga_directory_tree_simple.png){:class="img-responsive"} --->
 
 <br />
