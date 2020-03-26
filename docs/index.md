@@ -11,7 +11,7 @@ It is a python-based program for high-throughput analysis of microbial growth da
 
 ### Why use AMiGA?
 
-Many microbial growth curves do not followed standard logistic or sigmoidal shapes. Gaussian Processes have recently been shown as a useful model for fitting these growth curves and inferring growth parameters (Swain et *al.* 2016; Tonner et *al.* 2017<a></a>). AMiGA is the first program to analyze microbial growth data using GP inference in a user-friendly fashion. In order to plot or analyze the data, users simply interact with AMiGA using the command line by pointing to the file of interest. User can pass additional arguments or file or define program-specific parameters for more sophisticated analysis.
+Many microbial growth curves do not follow standard logistic or sigmoidal shapes. Gaussian Processes have recently been shown as a useful model for fitting these growth curves and inferring growth parameters (Swain et *al.* 2016; Tonner et *al.* 2017<a></a>). AMiGA is the first program to analyze microbial growth data using GP inference in a user-friendly fashion. In order to plot or analyze the data, users simply interact with AMiGA using the command line by pointing to the file of interest. User can pass additional arguments or files or define program-specific parameters for more sophisticated analysis.
 <br /><br />
 
 ### What can AMiGA do for you?
@@ -21,7 +21,7 @@ It can do the following:
 - Summarize growth curves with basic metrics such as maximum optical density or fold-change relative to control well\(s<a></a>).
 - Infer growth curve kinetic parameters such as growth lag, maximum specific growth rate, doubling time, or area under the curve.
 - Detect diauxic shifts and identify the time at which these shifts occur.
-- Perform hypothesis-driven statistical testing of the differences in microbial growth under different experimental conditions.
+- Perform hypothesis-driven statistical testing of differences in microbial growth under different experimental conditions.
 <br /><br />
 
 #### References
@@ -31,16 +31,4 @@ Midani et *al*. (2020<a></a>). *in prep*
 Swain et *al*. (2016<a></a>). *Nature Communications*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27941811">https://www.ncbi.nlm.nih.gov/pubmed/27941811</a>
 <br />
 Tonner et *al*. (2017<a></a>). *Genome Research*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27864351">https://www.ncbi.nlm.nih.gov/pubmed/27864351</a>
-<br />
-
-### Get Started
-
-Start by [installing](/amiga/doc/installation.html) `AMiGA`.
-
-```bash
-ruby bin/jekyll-page "Some Page Title" ref bash
-```
-```zsh
-ruby bin/jekyll-page "Some Page Title" ref zsh
-```
 <br />
