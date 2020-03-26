@@ -51,18 +51,14 @@ where the isolate name can be composed of any alphanumeric characters, the first
 
 ### Frequently Asked Questions (FAQ)
 
-__Which file formats AMiGA read?__
+__Which file formats can AMiGA read?__
 
 AMiGA can only read tab-delimited text files which is the typical format for output by plate readers. These can be encoded in ASCII or BOM (e.g. UTF-8).
 
-__Can AMiGA read a Microsoft Excel files?__
+__Can AMiGA read a Microsoft Excel file?__
 
-No, please convert the file to tab-delimited text file format.
+No, please convert the file to tab-delimited text file. You
 
-__Must the input be a 96-well plate? Can it be a 384-well plate? How about just a couple of wells/rows or even a single well/row?__
+__Does AMiGA only process a 96-well plate? Can it process a 384-well plate? How about a data file with an arbitrary number of wells/rows?__
 
-No, the input does not have to conform to a 96-well format. It can describe results for any number of wells/rows.
-
-__Must the index column be well IDs? Can it be something else?__
-
-The index column (or row names) must be well locations (e.g. D13) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
+AMiGA can read and process data files with any arbitrary number of wells/rows, including 96-well and 384-well plates. It can even read a plate with a single well/row. However, the row names must be well locations where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
