@@ -1334,7 +1334,7 @@ def resetNameIndex(df,index_name,new_index=False):
         df.reset_index(drop=True,inplace=True)
         df.index.name = index_name
 
-    return mapping_df
+    return df
 
 
 def updateMappingControls(master_mapping,mapping_dict,to_do=False):
