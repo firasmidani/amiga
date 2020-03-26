@@ -1,8 +1,9 @@
 ---
 layout: page
-title: "Organization"
+title: "Preparing your data"
 category: doc
 date: 2020-03-24 19:33:36
+order: 1
 ---
 
 **Table of Contents**
