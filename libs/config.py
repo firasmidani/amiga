@@ -11,7 +11,7 @@ __email__ = "midani@bcm.edu"
 config = {}
 
 # default time interval between OD measurments is set to 600 seconds
-config['interval'] = 600
+config['interval'] = 600  # seconds only
 
 # default wavelength for OD measurements is et to 620 nm; str because it is used only for plot labeling
 config['nm'] = str(620)
