@@ -34,7 +34,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 <br />
 
-Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride default in the `config.py` file or by passing another `Interval` value as an argument. See PLACEHOLDER section for details.
+Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride default in the `amiga/config.py` file or by passing another `Interval` value as an argument. See PLACEHOLDER SECTION for more details.
 
 <br /><br />
 
@@ -44,7 +44,7 @@ Please use only alphanumeric characters in your file names.
 
 If you are analyzing Biolog Phenotype Microarray (PM) plates, you can name your data file in a specific way and ```AMiGA``` will automatically recognize it as a Biolog PM plate, identify the content in each well on your plate, and include these details in the summary of your growth curves. To do so, please use this nomenclature:
 
-\{isolate name\}_PM\{integer\}-\{integer\}
+`\{isolate name\}_PM\{integer\}-\{integer\}`
 
 where the isolate name can be composed of any alphanumeric characters, the first integer indicates the PM number (must be between and including 1 and 7), and the second integer indicates the replicate number. For example, `CD630_PM3-2.txt` corresponds to the second replicate of growing the isolate `CD630` on `PM3`.
 
