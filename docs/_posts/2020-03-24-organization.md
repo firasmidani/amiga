@@ -3,7 +3,7 @@ layout: page
 title: "Preparing your data"
 category: doc
 date: 2020-03-24 19:33:36
-order: 1
+order: 2
 ---
 
 **Table of Contents**
@@ -60,6 +60,6 @@ __Can AMiGA read a Microsoft Excel file?__
 
 No, please convert the file to tab-delimited text file. You
 
-__Does AMiGA only process a 96-well plate? Can it process a 384-well plate? How about a data file with an arbitrary number of wells/rows?__
+__Does AMiGA only process 96-well plates? Can it process 384-well plates? How about data files with an arbitrary number of wells/rows?__
 
-AMiGA can read and process data files with any arbitrary number of wells/rows, including 96-well and 384-well plates. It can even read a plate with a single well/row. However, the row names must be well locations where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
+AMiGA can read and process data files with any arbitrary number of wells/rows, including 96-well and 384-well plates. It can even read a plate with a single well/row. However, the row names must be well locations (e.g. A1, B1, ..., etc.) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
