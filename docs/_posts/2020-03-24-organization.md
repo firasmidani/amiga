@@ -40,7 +40,7 @@ Plate readers use different proprietary softwares that export data in slightly d
 
 ### Naming your plate reader data files
 
-Please use only alphanumeric characters in your file names.
+Please use mostly alphanumeric characters in your file names. It is okay to include simple characters such as underscores and dashes.
 
 If you are analyzing Biolog Phenotype Microarray (PM) plates, you can name your data file in a specific way and ```AMiGA``` will automatically recognize it as a Biolog PM plate, identify the content in each well on your plate, and include these details in the summary of your growth curves. To do so, please use this nomenclature:
 

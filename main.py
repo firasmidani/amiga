@@ -36,7 +36,7 @@ aio.validateDirectories(directory,verbose=args['verbose'])
 # communicate with user
 print(aio.tidyMessage('AMiGA is parsing command-line arguments and parameter files'))
 
-# interpret terminal command or text files for parameters` (dict)
+# interpret terminal command or text files for parameters (dict)
 params = aio.interpretParameters(files,args,verbose=args['verbose'])
 
 # parse meta.txt file if it exists (df,list)
