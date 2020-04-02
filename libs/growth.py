@@ -312,7 +312,7 @@ class GrowthPlate(object):
             r,c = key.loc[well,['Row','Column']] -1
             ax = axes[r,c]
             
-            # get colors based on fold-change and configuration parameters
+            # get colors based on fold-change and uration parameters
             color_l,color_f = aux.getPlotColors(key.loc[well,'Fold_Change'])
 
             # set window axis limits
@@ -363,7 +363,7 @@ class GrowthPlate(object):
             ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
-        fig.text(0.512,0.07,'Time (hours)',fontsize=15,
+        fig.text(0.512,0.07,'Time ({})'.format(aux.getTimeUnits('output')),fontsize=15,
             ha='center',va='bottom')
         fig.text(0.100,0.50,ylabel_text,fontsize=15,
             ha='right',va='center',rotation='vertical')

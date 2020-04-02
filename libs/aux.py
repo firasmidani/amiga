@@ -79,3 +79,12 @@ def getText(text):
 
     if text=='grid_plot_y_label':
         return config['grid_plot_y_label']
+
+
+def getTimeUnits(text):
+
+    if text=='input':
+        return config['time_input_unit']
+    elif text=='output':
+        return config['time_output_unit']
+

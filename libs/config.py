@@ -38,3 +38,7 @@ config['grid_plot_y_label'] = 'Optical Density (620 nm)'
 
 # diaxuic shift paramters
 config['diauxie'] = 0.333  # minimum ratio relative to maximum peak for each growth phase
+
+# time units
+config['time_input_unit'] = 'seconds'
+config['time_output_unit'] = 'hours'

@@ -193,7 +193,7 @@ class GP(object):
         Infers the doubling time using GP estimate of maximum specific growth rate.
 
         Returns:
-            self.td (float): doubling time (hours)
+            self.td (float): doubling time (time units for outupt is defined in config.py)
         '''
 
         if not self.gr:
@@ -204,7 +204,7 @@ class GP(object):
 
         
         r = self.gr[0]
-        td = (np.log(2.0)/r)*60.0
+        td = (np.log(2.0)/r)
 
         self.td = td
 
@@ -406,7 +406,7 @@ def computeLikelihood(df,variables,permute=False):
         maintains the true value counts. 
 
     Args:
-        df (pandas.DataFrame): N x p, where N is the number of individual observations (i.e.
+        df (pandas.DataFrame): N x p, where N is the nuimember of individual observations (i.e.
             specific time measurement in specific well in specific plate), p must be include parameters
             which will be used as independent variables in Gaussian Process Regression. These variables 
             can be either numerical or categorical. Later will be converted to enumerated type. Variables

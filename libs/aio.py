@@ -1451,7 +1451,7 @@ def prepRegressionPlate(data,mapping,subtract_control,thinning_step):
     '''
 
     plate = growth.GrowthPlate(data=data,key=mapping)
-    plate.convertTimeUnits(input='seconds',output='hours')
+    plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
     plate.logData()
     plate.subtractBaseline()
     plate.subtractControl(to_do=subtract_control,drop=True)
@@ -1682,7 +1682,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
         ax.fill_between(np.ravel(fit_x),fit_low,fit_upp,color=color,alpha=0.10)
  
     # plot aesthetics
-    ax.set_xlabel('Time (hours)',fontsize=20)
+    ax.set_xlabel('Time ({})'.format(aux.getTimeUnits('output')),fontsize=20)
     ax.set_ylabel('OD',fontsize=20)
 
     ax.legend(fontsize=20)
@@ -1739,7 +1739,7 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
 
         # create GrowthPlate object, perform basic summary
         plate = growth.GrowthPlate(data=data_df,key=mapping_df)
-        plate.convertTimeUnits(input='seconds',output='hours')
+        plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
         plate.computeBasicSummary()
         plate.computeFoldChange(subtract_baseline=True)
 
@@ -1794,7 +1794,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     plate = growth.GrowthPlate(data=data,key=mapping)
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
-    plate.convertTimeUnits(input='seconds',output='hours')
+    plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
 

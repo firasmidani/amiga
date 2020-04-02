@@ -34,7 +34,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 <br />
 
-Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride default in the `amiga/config.py` file or by passing another `Interval` value as an argument. See PLACEHOLDER SECTION for more details.
+Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride default in the `amiga/config.py` file or by passing another `Interval` value as an argument. See PLACEHOLDER SECTION for more details. The defaults also imply that must be in seconds. You can also replace the time unit default in `amiga/config.py`.
 
 <br /><br />
 
