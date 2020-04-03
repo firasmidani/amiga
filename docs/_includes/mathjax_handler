@@ -1,3 +1,4 @@
+<script type="text/x-mathjax-config">
 // http://docs.mathjax.org/en/latest/upgrading/v2.html
 MathJax = {
   tex: {
@@ -20,4 +21,5 @@ MathJax = {
     }
   }
 }
+</script>
 
