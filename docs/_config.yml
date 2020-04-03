@@ -44,3 +44,5 @@ exclude: ['bin', 'README.md']
 
 # Use the kramdown Markdown renderer
 markdown: kramdown
+kramdown:
+  input: GFM
