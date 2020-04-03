@@ -9,13 +9,8 @@ layout: default
 </div>
 
 {% if page.use_math %}
-    I AM INCLUDING MATHJAX_SUPPORT. BEEPEP BOO BOP.
     {% include mathjax_handler.html %}
     {% include mathjax_support.html %}
 {% endif %}
 
 {{ content }}
-
-{% if page.use_math %}
-    I AM HANDLING math/tex INSTANCES. BOOPITY BOPPITY.
-{% endif %}
