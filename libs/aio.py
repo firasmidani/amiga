@@ -1857,12 +1857,13 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
                 # add hypothesis testing results to object's key
                 bayes = pd.DataFrame(bayes,columns=['Substrate','log_BF','log_BF_upper','log_BF_lower'])
                 sub_plate.key = pd.merge(sub_plate.key,bayes,on='Substrate',how='left')
-                df = sub_plate.key
+                
 
             # format name and save
             df_path = assemblePath(directory['summary'],pid,'.txt')
 
             # save summary
+            df = sub_plate.key
             df.to_csv(df_path,sep='\t',header=True,index=True)
 
 def printDirectoryContents(directory,sort=True,tab=True):
