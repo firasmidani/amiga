@@ -10,6 +10,7 @@ layout: default
 
 {% if page.use_math %}
     I AM INCLUDING MATHJAX_SUPPORT. BEEPEP BOO BOP.
+    {% include mathjax_handler.html %}
     {% include mathjax_support.html %}
 {% endif %}
 
@@ -17,5 +18,4 @@ layout: default
 
 {% if page.use_math %}
     I AM HANDLING math/tex INSTANCES. BOOPITY BOPPITY.
-    {% include mathjax_handler.html %}
 {% endif %}
