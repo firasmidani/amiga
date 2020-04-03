@@ -4,6 +4,7 @@ title: "Preparing data"
 category: doc
 date: 2020-03-24 19:33:36
 order: 2
+use_math: true
 ---
 
 **Table of Contents**
