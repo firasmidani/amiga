@@ -8,5 +8,8 @@ layout: default
     </h2>
 </div>
 
+{% if page.use_math %}
+    {% include mathjax_support.html %}
+{% endif %}
 
 {{ content }}
