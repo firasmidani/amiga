@@ -14,3 +14,8 @@ layout: default
 {% endif %}
 
 {{ content }}
+
+{% if page.use_math %}
+    I AM HANDLING math/tex INSTANCES. BOOPITY BOPPITY.
+    {% include mathjax_handler.html %}
+{% endif %}
