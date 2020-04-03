@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Preparing your data"
+title: "Preparing data"
 category: doc
 date: 2020-03-24 19:33:36
 order: 2
