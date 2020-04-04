@@ -6,11 +6,10 @@ layout: default
     <h2>{{ page.title }}
         {% if page.subtitle %}<small>{{ page.subtitle }}</small>{% endif %}
     </h2>
+    {% if page.use_math %}
+        {% include mathjax_handler.html %}
+        {% include mathjax_support.html %}
+    {% endif %}
 </div>
-
-{% if page.use_math %}
-    {% include mathjax_handler.html %}
-    {% include mathjax_support.html %}
-{% endif %}
 
 {{ content }}
