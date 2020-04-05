@@ -21,14 +21,18 @@ MathJax = {
 
 <script>
 window.MathJax = {
-  loader: {
-    load: ['[tex]/amsmath']
-  },
   tex: {
     packages: {'[+]': ['amsmath']},
     tags: 'none',
     inlineMath: [ ['$','$'], ['\(','\)'] ],
-    displayMath: [ [ '$$','$$'] ]
+    displayMath: [ [ '$$','$$'] ],
+    processEscapes: true,
+  },
+  loader: {
+    load: ['[tex]/amsmath']
+  },
+  chtml: {
+    displayAlign: "left",
   }
 };
 </script>
