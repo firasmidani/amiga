@@ -1,5 +1,5 @@
 <script>
-window.MathJax = {
+MathJax = {
   tex: {
     tags: 'ams',
     inlineMath: [ ['$','$'], ['\\(','\\)'] ],
@@ -8,13 +8,7 @@ window.MathJax = {
   },
   chtml: {
     displayAlign: "left"
-  }
-};
-</script>
-
-
-<script>
-MathJax = {
+  },
   options: {
     renderActions: {
       // for mathjax 3, handle <script "math/tex"> blocks inserted by kramdown
