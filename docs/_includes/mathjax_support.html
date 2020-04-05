@@ -1,4 +1,19 @@
 <script>
+window.MathJax = {
+  tex: {
+    tags: 'ams',
+    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+    displayMath: [ [ '$$','$$'] ],
+    processEscapes: true
+  },
+  chtml: {
+    displayAlign: "left"
+  }
+};
+</script>
+
+
+<script>
 MathJax = {
   options: {
     renderActions: {
@@ -19,18 +34,5 @@ MathJax = {
 };
 </script>
 
-<script>
-window.MathJax = {
-  tex: {
-    tags: 'ams',
-    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
-    displayMath: [ [ '$$','$$'] ],
-    processEscapes: true
-  },
-  chtml: {
-    displayAlign: "left"
-  }
-};
-</script>
 
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script"></script>
