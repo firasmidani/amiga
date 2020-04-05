@@ -1,5 +1,11 @@
 <script>
 MathJax = {
+  tex: {
+    tags: "ams",
+    inlineMath: [ ['$','$'], ['\(','\)'] ],
+    displayMath [ [ '$$','$$'] ],
+    processEscapes: true
+  },
   options: {
     renderActions: {
       // for mathjax 3, handle <script "math/tex"> blocks inserted by kramdown
@@ -15,14 +21,6 @@ MathJax = {
         }
       }, '']
     }
-  }
-};
-window.MathJax = {
-  tex: {
-    tags: "ams",
-    inlineMath: [ ['$','$'], ['\(','\)'] ],
-    displayMath [ [ '$$','$$'] ],
-    processEscapes: true
   }
 };
 </script>
