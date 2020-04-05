@@ -21,13 +21,16 @@ MathJax = {
 
 <script>
 window.MathJax = {
+  loader: {
+    load: ['[tex]/amsmath']
+  },
   tex: {
+    packages: {'[+]': ['amsmath']},
     tags: "ams",
     inlineMath: [ ['$','$'], ['\(','\)'] ],
     displayMath: [ [ '$$','$$'] ],
     displayAlign: 
     processEscapes: true,
-    extensions: ["TeX/AMSmath.js"],
   }
 };
 </script>
