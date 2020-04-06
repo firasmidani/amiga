@@ -26,8 +26,6 @@ It can do the following:
 
 #### References
 
-Midani et *al*. (2020<a></a>). *in prep*
-<br />
 Swain et *al*. (2016<a></a>). *Nature Communications*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27941811">https://www.ncbi.nlm.nih.gov/pubmed/27941811</a>
 <br />
 Tonner et *al*. (2017<a></a>). *Genome Research*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27864351">https://www.ncbi.nlm.nih.gov/pubmed/27864351</a>
