@@ -11,7 +11,7 @@ __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
 
-from libs import agp,aio,aux
+from libs import agp,aio,misc
 
 import numpy as np
 import pandas as pd
@@ -104,8 +104,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+            controls = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
+            cases = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
 
             data_controls = data.loc[:,controls]
             data_cases = data.loc[:,cases]
@@ -164,8 +164,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = aux.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
+            controls = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
+            cases = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
 
             df_controls = df.loc[:,controls]
             df_cases = df.loc[:,cases]
@@ -262,7 +262,7 @@ class GrowthPlate(object):
         '''
         Creates a 8x12 grid plot (for 96-well plate) that shows the growth curves in each well.
             Plot aesthetics require several parameters that are saved in config.py and pulled using 
-            functions in aux.py. Plot will be saved as a PDF to location passed via argument. Index
+            functions in misc.py. Plot will be saved as a PDF to location passed via argument. Index
             column for object's key should be Well IDs but object's key should also have a Well column.
 
         Args:
@@ -313,7 +313,7 @@ class GrowthPlate(object):
             ax = axes[r,c]
             
             # get colors based on fold-change and uration parameters
-            color_l,color_f = aux.getPlotColors(key.loc[well,'Fold_Change'])
+            color_l,color_f = misc.getPlotColors(key.loc[well,'Fold_Change'])
 
             # set window axis limits
             ax.set_xlim([xmin,xmax])
@@ -341,12 +341,12 @@ class GrowthPlate(object):
             plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
 
             # add well identifier on top left of each sub-plot
-            well_color = aux.getTextColors('Well_ID')
+            well_color = misc.getTextColors('Well_ID')
             ax.text(0.,1.,key.loc[well,'Well'],color=well_color,
                 ha='left',va='top',transform=ax.transAxes)
 
             # add Max OD value on top right of each sub-plot
-            ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=aux.getTextColors('OD_Max'),
+            ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=misc.getTextColors('OD_Max'),
                 ha='right',va='top',transform=ax.transAxes)
 
        # show tick labels for bottom left sub-plot only
@@ -354,7 +354,7 @@ class GrowthPlate(object):
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
 
         # add x- and y-labels and title
-        ylabel_base = aux.getText('grid_plot_y_label')
+        ylabel_base = misc.getText('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
 
         if plot_derivative:
@@ -363,7 +363,7 @@ class GrowthPlate(object):
             ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
-        fig.text(0.512,0.07,'Time ({})'.format(aux.getTimeUnits('output')),fontsize=15,
+        fig.text(0.512,0.07,'Time ({})'.format(misc.getTimeUnits('output')),fontsize=15,
             ha='center',va='bottom')
         fig.text(0.100,0.50,ylabel_text,fontsize=15,
             ha='right',va='center',rotation='vertical')

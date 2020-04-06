@@ -44,7 +44,7 @@ import seaborn as sns
 from functools import reduce
 
 from libs import biolog_pm_layout as bpl
-from libs import agp,aux,growth
+from libs import agp,misc,growth
 
 from scipy.stats import percentileofscore
 
@@ -1227,7 +1227,7 @@ def trimMergeMapping(mapping_dict,verbose=False):
     master_mapping = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
 
     # trim mapping based on Subset and Flag columns
-    master_mapping = aux.subsetDf(master_mapping,{'Subset':[1],'Flag':[0]})
+    master_mapping = misc.subsetDf(master_mapping,{'Subset':[1],'Flag':[0]})
 
     # reset_index and set as Sample_ID
     master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)
@@ -1363,7 +1363,7 @@ def updateMappingControls(master_mapping,mapping_dict,to_do=False):
     for plate_group in plate_groups:
         pid,group = plate_group
         pid_mapping = mapping_dict[pid]
-        df_controls.append(aux.subsetDf(pid_mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}))
+        df_controls.append(misc.subsetDf(pid_mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}))
 
     # re-assemble the master mapping dataframe, including the propercontrols
     df_controls = pd.concat(df_controls)
@@ -1430,7 +1430,7 @@ def shouldYouSubtractControl(mapping,variable):
     # subtract control curves if none of the values correspond to a control
     subtract_control = False
     for value in unique_values:
-        sub_map = aux.subsetDf(mapping,{variable:[value]})
+        sub_map = misc.subsetDf(mapping,{variable:[value]})
         sub_map_controls_n = sub_map[sub_map.Control==1].shape[0]
         sub_map_total_n = sub_map.shape[0]
         if sub_map_controls_n == sub_map_total_n:
@@ -1451,7 +1451,7 @@ def prepRegressionPlate(data,mapping,subtract_control,thinning_step):
     '''
 
     plate = growth.GrowthPlate(data=data,key=mapping)
-    plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
+    plate.convertTimeUnits(input=misc.getTimeUnits('input'),output=misc.getTimeUnits('output'))
     plate.logData()
     plate.subtractBaseline()
     plate.subtractControl(to_do=subtract_control,drop=True)
@@ -1661,7 +1661,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
     for value,color in zip(values,colors):
 
         # extract value-specific data
-        long_df = aux.subsetDf(data,{variable:[value]})   # long format: time, od, sample_id, ...
+        long_df = misc.subsetDf(data,{variable:[value]})   # long format: time, od, sample_id, ...
         wide_df = pd.pivot(long_df,index='Time',columns='Sample_ID',values='OD')  # wide format: time x sample_id
 
         # fit GP model
@@ -1682,7 +1682,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
         ax.fill_between(np.ravel(fit_x),fit_low,fit_upp,color=color,alpha=0.10)
  
     # plot aesthetics
-    ax.set_xlabel('Time ({})'.format(aux.getTimeUnits('output')),fontsize=20)
+    ax.set_xlabel('Time ({})'.format(misc.getTimeUnits('output')),fontsize=20)
     ax.set_ylabel('OD',fontsize=20)
 
     ax.legend(fontsize=20)
@@ -1739,7 +1739,7 @@ def basicSummaryOnly(data,mapping,directory,args,verbose=False):
 
         # create GrowthPlate object, perform basic summary
         plate = growth.GrowthPlate(data=data_df,key=mapping_df)
-        plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
+        plate.convertTimeUnits(input=misc.getTimeUnits('input'),output=misc.getTimeUnits('output'))
         plate.computeBasicSummary()
         plate.computeFoldChange(subtract_baseline=True)
 
@@ -1794,7 +1794,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     plate = growth.GrowthPlate(data=data,key=mapping)
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=True)
-    plate.convertTimeUnits(input=aux.getTimeUnits('input'),output=aux.getTimeUnits('output'))
+    plate.convertTimeUnits(input=misc.getTimeUnits('input'),output=misc.getTimeUnits('output'))
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
 
