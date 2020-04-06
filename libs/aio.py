@@ -1802,7 +1802,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     if args['merge']:
 
         # format file name based on current time and save
-        file_name = 'summary_{}'.format(ts())
+        file_name = 'summary_{}'.format(timeStamp())
         file_path = assemblePath(directory['summary'],file_name,'.txt') 
 
         plate.model(diauxie=config['diauxie'])  # run model
