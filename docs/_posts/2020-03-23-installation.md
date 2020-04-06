@@ -92,7 +92,7 @@ Please follow these guides for creating virtual environments: a <a href="https:/
 3. Activate the environment. You will need to do this every time you are working with `AMiGA`.
 
     `C:\Users\firasmidani\virtual_environment\Scripts\activate`
-z
+
 <br />
 **Anaconda users**
 
