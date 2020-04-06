@@ -35,10 +35,4 @@ Tonner et *al*. (2017<a></a>). *Genome Research*. <a href="https://www.ncbi.nlm.
 
 Start by [installing](/amiga/doc/installation.html) `AMiGA`.
 
-```bash
-ruby bin/jekyll-page "Some Page Title" ref bash
-```
-```zsh
-ruby bin/jekyll-page "Some Page Title" ref zsh
-```
 <br />
