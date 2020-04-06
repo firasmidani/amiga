@@ -33,7 +33,7 @@ Same as above but you also  want to analyze these isolates when grown on a selec
 python main.py -i /Users/firasmidani/experiments -s 'Isolate:CD_treA,CD_treX;Substrate:alpha-D-glucose,D-fructose,D-trehalose'
 ```
 
-If you are selecting on more than a single variable, you must separated your selections with a semi-colon (';').
+If you are selecting on more than a single variable, you must separate your selections with a semi-colon (';').
 
 <br />
 
@@ -45,6 +45,8 @@ You have many files in your `data` folder and you pass meta-data to `AMiGA` usin
 python main.py -i /Users/firasmidani/experiments -s 'Isolate:CD_treA,CD_treX;Substrate:alpha-D-glucose,D-fructose,D-trehalose;Antibiotics:None,clindamycin'
 ```
 
+<br />
+
 **Example Four**
 
 In the subsetting argument, `AMiGA` will ignore whitespaces that flank delimiters (`,`,`:`,or `;`) so the below command should also work. It may be more aesthetically pleasing for some.
@@ -53,12 +55,14 @@ In the subsetting argument, `AMiGA` will ignore whitespaces that flank delimiter
 python main.py -i /Users/firasmidani/experiments -s 'Isolate : CD_treA , CD_treX ; Substrate : alpha-D-glucose , D-fructose , D-trehalose ; Antibiotics : None , clindamycin'
 ```
 
+<br />
+
 **Example Five**
 
-You can also specific wells that should not be analyze. This can only be applied if you point to well locations in specific plates.
+You can also specify wells that should not be analyzed. This can only be applied if you point to well locations in specific plates.
 
 ```bash
-python main.py -i /Users/firasmidani/experiments --f 'CD_treA.txt:G7,H12;ER1_PM2-1.txt:C3,C4,C5'
+python main.py -i /Users/firasmidani/experiments --f 'CD_treA.txt:G7,H12;ER1_PM2-1:C3,C4,C5'
 ```
 
-This is often useful if you noticed, by visual checks of plots, that certain wells did not show any growth or showed weird measurements (e.g. gas bubbles can cause sharp spikes in OD measurements).
+This is often useful if you noticed, by visual checking plots, that certain wells did not show any growth or showed odd measurements (e.g. gas bubbles can cause sharp spikes in OD measurements).
