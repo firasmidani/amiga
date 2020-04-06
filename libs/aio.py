@@ -129,7 +129,7 @@ def parseCommand(config):
     parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=20)
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
-    parser.add_argument('--only-plot-plate',action='store_true',default=False)
+    parser.add_argument('--only-basic-summary',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
     parser.add_argument('--perform-regression',action='store_true',default=False)
@@ -149,7 +149,7 @@ def parseCommand(config):
     args_dict['fdr'] = args.false_discovery_rate
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
-    args_dict['opp'] = args.only_plot_plate
+    args_dict['obs'] = args.only_basic_summary
     args_dict['sdd'] = args.save_derived_data
     args_dict['opd'] = args.only_print_defaults
     args_dict['bayes'] = args.perform_regression
@@ -1692,7 +1692,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
     plt.subplots_adjust(left=0.15) 
     plt.savefig('/Users/firasmidani/Downloads/20200318_hypo.pdf')
 
-def plotPlatesOnly(data,mapping,directory,args,verbose=False):
+def basicSummaryOnly(data,mapping,directory,args,verbose=False):
     '''
     If user only requested plotting, then for  each data file, perform a basic algebraic summary
         and plot data. Once completed, exit system. Otherwise, return None.
@@ -1712,7 +1712,7 @@ def plotPlatesOnly(data,mapping,directory,args,verbose=False):
         None: if only_plot_plate argument is False. 
     '''
 
-    if not args['opp']:  # if not only_plot_plaes
+    if not args['obs']:  # if not only_plot_plaes
         return None
 
     print(tidyMessage('AMiGA is summarizing and plotting data files'))

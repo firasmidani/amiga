@@ -55,7 +55,7 @@ print(aio.tidyMessage('AMiGA is parsing and reading mapping files'))
 mappings = aio.assembleMappings(data,directory['mapping'],files['meta'],verbose=args['verbose'])
 
 # plot plate(s), if it is the only request
-aio.plotPlatesOnly(data,mappings,directory,args,verbose=args['verbose'])
+aio.basicSummaryOnly(data,mappings,directory,args,verbose=args['verbose'])
 
 # communicate with user
 print(aio.tidyMessage('AMiGA is preparing data based on user input'))
