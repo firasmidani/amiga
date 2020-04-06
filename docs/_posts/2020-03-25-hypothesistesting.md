@@ -14,5 +14,7 @@ use_math: true
 **Example One**
 
 ```bash
-python main.py -i /home/outbreaks/erandomii/ER_PM1-1.txt -s 'Substrate:Negative Control,alpha-D-glucose' -h 'H0:Time;H1:Time+Substrate'
+python main.py -i /home/outbreaks/erandomii/ -s 'Isolate:ER1;PM:1;Substrate:Negative Control,alpha-D-glucose' -h 'H0:Time;H1:Time+Substrate'
 ```
+
+Here, we first reduced our data set only to the growth curves of the isolate `ER1` in `PM1` plates on negative control (i.e. no carbon) or alpha-D-glucose wells. We then test the null hypothesis that only time variable explains variation in OD against the alternative hypothesis that both time and substrate explain the variation in OD.
