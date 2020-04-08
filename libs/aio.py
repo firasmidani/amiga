@@ -131,6 +131,7 @@ def parseCommand(config):
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-basic-summary',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
+    parser.add_argument('--save-transformed-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
     parser.add_argument('--perform-regression',action='store_true',default=False)
     parser.add_argument('--dont-subtract-control',action='store_true',default=False)
@@ -151,6 +152,7 @@ def parseCommand(config):
     args_dict['pd'] = args.plot_derivative
     args_dict['obs'] = args.only_basic_summary
     args_dict['sdd'] = args.save_derived_data
+    args_dict['std'] = args.save_transformed_data
     args_dict['opd'] = args.only_print_defaults
     args_dict['bayes'] = args.perform_regression
     args_dict['sc'] = not args.dont_subtract_control
@@ -660,9 +662,9 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     df.columns = listTimePoints(interval=interval,numTimePoints=df.shape[1])
 
     # if index column is absent, create one 
-    #if index_col == None:
-    #    nrows = df.shape[0]
-    #    df.index = parseWellLayout(order_axis=0).index[0:nrows].values
+    if index_col == None:
+        nrows = df.shape[0]
+        df.index = parseWellLayout(order_axis=0).index[0:nrows].values
 
     # explicilty assign column names 
     df.T.index.name = 'Time'
@@ -1798,14 +1800,23 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     plate.logData()  # natural-log transform
     plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
 
+    ts = timeStamp()
+
+    if args['merge'] and args['std']:
+
+        file_name = 'transformed_{}'.format(ts)
+        file_path = assemblePath(directory['derived'],file_name,'.txt')
+
+        plate.time.join(plate.data).to_csv(file_path,sep='\t',header=True,index=True)
+
     # if merge-summary selected by user, then save a single text file for summary
     if args['merge']:
 
         # format file name based on current time and save
-        file_name = 'summary_{}'.format(timeStamp())
+        file_name = 'summary_{}'.format(ts)
         file_path = assemblePath(directory['summary'],file_name,'.txt') 
 
-        plate.model(diauxie=config['diauxie'])  # run model
+        plate.model(diauxie_thresh=config['diauxie'])  # run model
         plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save mdoel results
 
     else:
@@ -1813,25 +1824,39 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         # for each plate, get samples and save individual text file for plate-specific summaries
         for pid in plate.key.Plate_ID.unique():
 
+            smartPrint('Fitting {}'.format(pid),verbose)
+
             # grab plate-specific summary
             sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
-            sub_plate.model(args['plot'],diauxie=config['diauxie'])  # run model 
+            sub_plate.model(args['plot'],diauxie_thresh=config['diauxie'])  # run model 
 
             if args['plot']:  # plot OD and its GP estimate
 
                 # format name and save
-                fig_path = assemblePath(directory['summary'],pid,'.pdf')
-
+                file_name = '{}_fit'.format(pid)
+                fig_path = assemblePath(directory['figures'],file_name,'.pdf')
                 sub_plate.plot(fig_path,plot_fit=True)
-                sub_plate.pred.to_csv('{}.fit.txt'.format(fig_path),sep='\t',header=True,index=True)
-                sub_plate.derivative.to_csv('{}.derivative.txt'.format(fig_path),sep='\t',header=True,index=True) 
- 
+
+                file_name = '{}_fit'.format(pid)
+                file_path = assemblePath(directory['derived'],file_name,'.txt')
+                sub_plate.prediction.to_csv(file_path,sep='\t',header=True,index=True)
+
+                file_name = '{}_derivative'.format(pid)
+                file_path = assemblePath(directory['derived'],file_name,'.txt')
+                sub_plate.derivative_prediction.to_csv(file_path,sep='\t',header=True,index=True) 
+
             if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
 
                 # format name and save
                 fig_name = '{}_derivative'.format(pid)
-                fig_path = assemblePath(directory['summary'],pid,'.pdf')
-                sub_plate.plot(fig_path,plot_fit=True,plot_derivative=True)
+                fig_path = assemblePath(directory['figures'],fig_name,'.pdf')
+                sub_plate.plot(fig_path,plot_fit=False,plot_derivative=True)
+
+            if args['std']:
+
+                file_name = '{}_transformed'.format(pid)
+                file_path = assemblePath(directory['derived'],file_name,'.txt')
+                (sub_plate.time).join(sub_plate.data).to_csv(file_path,sep='\t',header=True,index=True)
 
             if args['bayes']:  # perform systematic testing of substrates against negative control
 

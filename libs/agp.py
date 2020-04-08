@@ -67,7 +67,7 @@ class GP(object):
         Computes the derivatives of the predicted latent function with respect to object's X.
 
         Returns:
-            self.derivative () 
+            self.derivative_prediction () 
         '''
 
         model = self.model
@@ -82,9 +82,9 @@ class GP(object):
         mult = [[((1./l)*(1-(1./l)*(y-z)**2))[0] for y in x] for z in x]
         cov = mult*cov
 
-        self.derivative = (mu,cov)
+        self.derivative_prediction = (mu,cov)
 
-        return self.derivative
+        return self.derivative_prediction
 
 
     def predict(self,x=None):
@@ -92,7 +92,7 @@ class GP(object):
         Infers GP estimate using optimized model. 
 
         Returns:
-            self.predict ()
+            self.prediction ()
         ''' 
 
         model = self.model
@@ -103,12 +103,12 @@ class GP(object):
         # mu: np.ndarray (x.shape[0],1), cov: np.ndarray (x.shape[0],x.shape[0])
         mu,cov = model.predict(x,full_cov=True)
 
-        self.predict = (mu,cov)
+        self.prediction = (mu,cov)
 
-        return self.predict
+        return self.prediction
 
 
-    def auc(self):
+    def estimate_auc(self):
         '''
         Infers the Area Under the Curve using GP estimate.
 
@@ -119,7 +119,7 @@ class GP(object):
         x = self.x.values
 
         # mu: np.ndarray (x.shape[0],1), cov: np.ndarray (x.shape[0],x.shape[0])
-        mu,cov = self.predict
+        mu,cov = self.prediction
 
         dt = np.mean(x[1:,0]-x[:-1,0])  # dt: int
         D = np.repeat(dt,mu.shape[0]).T  # D: np.ndarray (x.shape[0],)
@@ -132,7 +132,7 @@ class GP(object):
         return self.auc
 
 
-    def gr(self):
+    def estimate_gr(self):
         '''
         Infers the maximmum specific growth rate using GP estimate.
 
@@ -140,7 +140,7 @@ class GP(object):
             self.gr (float): maximum specific growth rate
         '''
 
-        mu,cov = self.derivative
+        mu,cov = self.derivative_prediction
         ind = np.where(mu==mu.max())[0]
 
         mu = mu[ind,0,0][0]
@@ -151,14 +151,14 @@ class GP(object):
         return self.gr
 
 
-    def dr(self):
+    def estimate_dr(self):
         '''Infers the maximum specific death rate using GP estimate.
 
         Returns:
             self.dr (float): maximum specific death rate
         '''
 
-        mu,cov = self.derivative
+        mu,cov = self.derivative_prediction
         ind = np.where(mu==mu.min())[0]
 
         mu = mu[ind,0,0][0]
@@ -169,7 +169,7 @@ class GP(object):
         return self.dr 
 
 
-    def k(self):
+    def estimate_k(self):
         '''
         Infers the carrying capacity using GP estimate.
 
@@ -177,7 +177,8 @@ class GP(object):
             self.k (float): carrying capacity
         '''
 
-        mu,cov = self.predict
+        mu,cov = self.prediction
+
         ind = np.where(mu==mu.max())[0]
 
         mu = mu[ind,0][0]
@@ -185,10 +186,12 @@ class GP(object):
 
         self.k = (mu,var,ind)
 
+        #print('estimating k',mu)
+
         return self.k
 
 
-    def td(self):
+    def estimate_td(self):
         '''
         Infers the doubling time using GP estimate of maximum specific growth rate.
 
@@ -211,7 +214,7 @@ class GP(object):
         return self.td
 
 
-    def lag(self,threshold=0.95):
+    def estimate_lag(self,threshold=0.95):
         '''
         Infers the lag time using GP estimate.
 
@@ -222,7 +225,7 @@ class GP(object):
             self.lag (float): lag time
         '''
 
-        (mu,var) = self.derivative
+        (mu,var) = self.derivative_prediction
         prob = np.array([norm.cdf(0,loc=m,scale=np.sqrt(v))[0] for m,v in zip(mu[:,:,0],var[:,0])])
 
         ind = 0
@@ -236,7 +239,7 @@ class GP(object):
         return self.lag
 
 
-    def diauxie(self,ratio_max=0.25,x_as_time=True):
+    def estimate_diauxie(self,ratio_max=0.25,x_as_time=True):
         '''
         Detects if diauxie occurs and determines the time at which growth phases are centered.
 
@@ -251,12 +254,14 @@ class GP(object):
 
         # point to data needed for function
         time = self.x.values
-        y_fit = np.ravel(self.predict[0])
-        y_derivative = np.ravel(self.derivative[0])
+        y_fit = np.ravel(self.prediction[0])
+        y_derivative = np.ravel(self.derivative_prediction[0])
 
         # find peak and vallies
         peaks,_ = callPeaks(y_derivative,0.2)
+
         valleys,_ = callPeaks(1-y_derivative,0.2)
+
         valleys = valleys + [0]  # useful below, if no valley left of peak, it will be instead zero
 
         # find heights
@@ -295,7 +300,7 @@ class GP(object):
         return self.diauxie, self.peaks
 
 
-    def describe(self,diauxie=0.25):
+    def describe(self,diauxie_thresh=0.25):
         '''
         Complete growth curve analysis that includes fitting data to a Gaussian Process, predicting best fit of data, 
         predicting best fit for derivative of data, and inferring growth curve kinetic parametrs.
@@ -314,13 +319,13 @@ class GP(object):
         self.predict()
         self.derivative()
 
-        params['auc'] = self.auc()[0]
-        params['k'] = self.k()[0]
-        params['gr'] = self.gr()[0]
-        params['dr'] = self.dr()[0]
-        params['td'] = self.td()
-        params['lag'] = self.lag()
-        params['diauxie'],params['peaks'] = self.diauxie(ratio_max=diauxie,x_as_time=True)
+        params['auc'] = self.estimate_auc()[0]
+        params['k'] = self.estimate_k()[0]
+        params['gr'] = self.estimate_gr()[0]
+        params['dr'] = self.estimate_dr()[0]
+        params['td'] = self.estimate_td()
+        params['lag'] = self.estimate_lag()
+        params['diauxie'],params['peaks'] = self.estimate_diauxie(ratio_max=diauxie_thresh,x_as_time=True)
 
         self.params = params
 
@@ -344,8 +349,8 @@ class GP(object):
         od_data = self.y
         od_data.columns = ['OD']
 
-        od_pred = pd.DataFrame(self.predict[0],columns=['Fit'])
-        od_derivative = pd.DataFrame(np.ravel(self.derivative[0]),columns=['Derivative'])
+        od_pred = pd.DataFrame(self.prediction[0],columns=['Fit'])
+        od_derivative = pd.DataFrame(np.ravel(self.derivative_prediction[0]),columns=['Derivative'])
 
         if sample_id is not None:
             sid = pd.DataFrame([sample_id]*time.shape[0],columns=['Sample_ID'])
@@ -373,8 +378,8 @@ class GP(object):
 
         time = self.x.values
         data = self.y.values
-        pred = self.predict[0]
-        derv = np.ravel(self.derivative[0])
+        pred = self.prediction[0]
+        derv = np.ravel(self.derivative_prediction[0])
 
         xmin = 0
         xmax = int(np.ceil(time[-1]))
@@ -397,6 +402,8 @@ class GP(object):
             return fig,ax
         else:
             return ax_user
+
+        plt.close()
 
 
 def computeLikelihood(df,variables,permute=False):
@@ -458,6 +465,11 @@ def callPeaks(x_data,ratio_max=0.2):
 
     # find all peaks
     peaks,_ = find_peaks(x_data)
+
+    # if none detected, find maximum and return it
+    if len(peaks)==0:
+        peaks = list(np.where(x_data==np.max(x_data))[0])
+        return peaks, None
 
     # find height of each peak where baseline is neigboring trough
     peak_heights = peak_prominences(x_data,peaks)[0]

@@ -54,7 +54,7 @@ class GrowthPlate(object):
         self.input_time = self.time.copy()
         self.input_data = self.data.copy()
 
-        self.mods = pd.DataFrame(columns=['logged'],index=['status'])
+        self.mods = pd.DataFrame(columns=['logged','floored','controlled'],index=['status'])
         self.mods = self.mods.apply(lambda x: False) 
 
         assert type(key) == pd.DataFrame, "key must be a pandas DataFrame"
@@ -119,6 +119,7 @@ class GrowthPlate(object):
                 data = data.drop(controls,axis=1)
 
         self.data = data
+        self.mods.controlled = True
 
 
     def thinMeasurements(self,step=11):
@@ -153,7 +154,8 @@ class GrowthPlate(object):
 
         # subtract first time point from each column (i.e. wells) 
         if subtract_baseline:
-            df = df.apply(lambda row: row - df.iloc[0,:],axis=1)
+            baseline = df.iloc[0,:]
+            df = df.apply(lambda row: row - baseline,axis=1)
 
         # find all unique groups
         plate_groups = mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
@@ -215,10 +217,11 @@ class GrowthPlate(object):
         Subtract the first value in each column from all values of the column.
 
         WARNING: if performed after natural-log-transformation of data, this is equivalent to 
-             scalign relative to OD at T0 (i.e. log[OD(t)] - log[OD(0)] = log[ OD(t) / OD(0) ] )
+             scaling relative to OD at T0 (i.e. log[OD(t)] - log[OD(0)] = log[ OD(t) / OD(0) ] )
         '''
 
-        self.data = self.data.apply(lambda x: x - self.data.iloc[0,:],axis=1)
+        baseline = self.data.iloc[0,:]
+        self.data = self.data.apply(lambda x: x - baseline,axis=1)
         self.mods.floored = True
 
 
@@ -279,15 +282,15 @@ class GrowthPlate(object):
 
         # make sure plate is 96-well version, otherwise skip plotting
         if not self.isSingleMultiWellPlate():
-            msg = 'USER ERROR: GrowthPlate() object is not a 96-well plate. '
-            msg += 'AMiGA can not plot it.'
+            msg = 'USER ERROR: GrowthPlate() object for {} is not a 96-well plate. '.format(self.key.Plate_ID[0])
+            msg += 'AMiGA can not plot it.\n'
             print(msg)
             return None
 
         self.addLocation()
 
         if plot_derivative: 
-            data = self.derivative
+            data = self.derivative_prediction
         elif plot_raw:
             data = self.input_data
         else:
@@ -330,8 +333,8 @@ class GrowthPlate(object):
 
             # add fit lines, if desired
             if plot_fit:
-                y_fit = self.pred.loc[:,well].values
-                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=4)
+                y_fit = self.prediction.loc[:,well].values
+                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=10)
 
             # show tick labels for bottom left subplot only, so by default no labels
             if plot_derivative:
@@ -351,7 +354,7 @@ class GrowthPlate(object):
 
        # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
-        plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
+        plt.setp(axes[7,0],yticks=[ymin,0,ymax],yticklabels=[ymin,0,ymax])
 
         # add x- and y-labels and title
         ylabel_base = misc.getText('grid_plot_y_label')
@@ -372,6 +375,8 @@ class GrowthPlate(object):
 
         if save_path!='': # if no file path passed, do not save 
             plt.savefig(save_path)
+
+        plt.close()
 
         return fig,axes
 
@@ -427,8 +432,6 @@ class GrowthPlate(object):
                 args_dict[dict_key] = [dict_value]
 
         sub_key = self.key
-        sub_key.to_csv('/Users/firasmidani/Downloads/20200310_sub_key.txt',sep='\t',header=True,index=True)
-        sub_key.isin({'Plate_ID':['S012_PM1-1']})
         sub_key = sub_key[sub_key.isin(args_dict).sum(1)==len(args_dict)]
         sub_mods = self.mods
 
@@ -459,7 +462,7 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-    def model(self,plot=False,diauxie=0.25):
+    def model(self,plot=False,diauxie_thresh=0.25):
         '''
         Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
 
@@ -468,7 +471,7 @@ class GrowthPlate(object):
             diauxie (float): ratio of peak height (relative to maximum) used to call if diauxie occured or not
 
         Actions:
-            modifies self.key, and may create self.pred and self.derivative objects
+            modifies self.key, and may create self.prediction and self.derivative_prediction objects
         '''
 
         data_ls, diauxie_ls = [], []
@@ -479,22 +482,27 @@ class GrowthPlate(object):
 
         for sample_id in self.key.index:
 
+            #print(self.key.loc[sample_id,['Well','Plate_ID']].values)
+
             # extract sample
             args_dict = self.key.loc[sample_id,['Well','Plate_ID']].to_dict()
             sample_growth = self.extractGrowthData(args_dict)
 
             # create GP object and analyze
             gp = agp.GP(sample_growth.time,sample_growth.data)
-            gpp = gp.describe(diauxie=diauxie)
+            gp.describe(diauxie_thresh=diauxie_thresh)
+            gp_params = gp.params
 
             # directly record select parameters in dataframe
-            df_params.loc[sample_id,ls_params] = [gpp[ii] for ii in ls_params]
+            df_params.loc[sample_id,ls_params] = [gp_params[ii] for ii in ls_params]
 
             # passively save to diauxic shift detection resutls, manipulation occurs below
-            diauxie_ls.append([sample_id,gpp['diauxie'],gpp['peaks']])
+            diauxie_ls.append([sample_id,gp_params['diauxie'],gp_params['peaks']])
 
             # passively save to data, manipulation occurs below (input OD, GP fit, & GP derivative)
             data_ls.append(gp.data(sample_id))
+            (gp.data(sample_id)).to_csv('/Users/firasmidani/Downloads/2020_04_07/{}.txt'.format(sample_id),
+                sep='\t',header=True,index=True)
 
         # maximum number of growth phases based on diauxic shift detection
         max_n_peaks = np.max([len(ii[2]) for ii in diauxie_ls])
@@ -518,8 +526,8 @@ class GrowthPlate(object):
             data_df = pd.concat(data_ls).reset_index(drop=True)
             pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')
             derivative_df = data_df.pivot(columns='Sample_ID',index='Time',values='Derivative')
-            self.pred = pred_df
-            self.derivative = derivative_df
+            self.prediction = pred_df
+            self.derivative_prediction = derivative_df
 
         return None
 
