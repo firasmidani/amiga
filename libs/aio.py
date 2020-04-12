@@ -130,6 +130,7 @@ def parseCommand(config):
     parser.add_argument('--merge-summary',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-basic-summary',action='store_true',default=False)
+    parser.add_argument('--save-all-data',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
     parser.add_argument('--save-fitted-data',action='store_true',default=False)
     parser.add_argument('--save-transformed-data',action='store_true',default=False)
@@ -152,12 +153,25 @@ def parseCommand(config):
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
     args_dict['obs'] = args.only_basic_summary
+    args_dict['sad'] = args.save_derived_data
     args_dict['sdd'] = args.save_derived_data
     args_dict['sfd'] = args.save_fitted_data
     args_dict['std'] = args.save_transformed_data
     args_dict['opd'] = args.only_print_defaults
     args_dict['psr'] = args.perform_substrate_regression
     args_dict['sc'] = not args.dont_subtract_control
+
+    # logical argument definitions
+
+    # if subsetting, then merge summary
+    if args_dict['subset']:
+        args_dict['merge'] = True
+
+    # if save-all-data passed, then
+    if args_dict['sad']:
+        args_dict['sdd'] = True
+        args_dict['sfd'] = True
+        args_dict['std'] = True
 
     # summarize command-line artguments and print
     if args_dict['verbose']:
