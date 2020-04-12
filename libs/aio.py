@@ -131,9 +131,10 @@ def parseCommand(config):
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-basic-summary',action='store_true',default=False)
     parser.add_argument('--save-derived-data',action='store_true',default=False)
+    parser.add_argument('--save-fitted-data',action='store_true',default=False)
     parser.add_argument('--save-transformed-data',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
-    parser.add_argument('--perform-regression',action='store_true',default=False)
+    parser.add_argument('--perform-substrate-regression',action='store_true',default=False)
     parser.add_argument('--dont-subtract-control',action='store_true',default=False)
 
     # pass arguments to local variables 
@@ -152,9 +153,10 @@ def parseCommand(config):
     args_dict['pd'] = args.plot_derivative
     args_dict['obs'] = args.only_basic_summary
     args_dict['sdd'] = args.save_derived_data
+    args_dict['sfd'] = args.save_fitted_data
     args_dict['std'] = args.save_transformed_data
     args_dict['opd'] = args.only_print_defaults
-    args_dict['bayes'] = args.perform_regression
+    args_dict['psr'] = args.perform_substrate_regression
     args_dict['sc'] = not args.dont_subtract_control
 
     # summarize command-line artguments and print
@@ -1044,7 +1046,7 @@ def assembleMappings(data,mapping_path,meta_path,verbose):
     list_mapping_files = [assemblePath(mapping_path,ii,'.txt') for ii in list_filebases]
 
     # read meta.txt and list all plates described by it
-    meta_df, meta_df_plates = checkMetaText(meta_path)   
+    meta_df, meta_df_plates = checkMetaText(meta_path,verbose=verbose)   
 
     # assemble mapping for one data file at a time
     for filebase,mapping_file_path in zip(list_filebases,list_mapping_files):
@@ -1566,7 +1568,7 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
 
 
-def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control=True,sys_exit=True,verbose=False):
+def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,subtract_control=True,sys_exit=True,verbose=False):
     '''
     Perform hypothesis testing using Gaussian Process regression, and computes Bayes Factor, only 
         if user passes a hypothesis.
@@ -1579,6 +1581,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control
             each is structured with number of wells or samples (n) x number of variables (p)
         params_dict (dictionary): must at least include 'hypo' key and its values
         args_dict (dictionary): must at least include 'nperm', 'nthin', and 'fdr' as keys and their values
+        directory_dict (dictionary): keys are folder names, values are their paths
         subtract_control (boolean): whether controm sample curves should be subtracted from treatment sample curves
         sys_exit (boolean): whether system should be exited before returning a value to parent caller
         verbose (boolean)
@@ -1626,7 +1629,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control
     upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
 
     # plot results
-    plotHypothesisTest(data,hypothesis,subtract_control)
+    plotHypothesisTest(data,hypothesis,subtract_control,directory_dict)
 
     # bid user farewell
     if sys_exit:
@@ -1637,7 +1640,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,subtract_control
     return log_BF,upper,lower
 
 
-def plotHypothesisTest(data,hypothesis,subtract_control):
+def plotHypothesisTest(data,hypothesis,subtract_control,directory):
     '''
     Visualizes the model tested by a specific hypothesis given the data.
 
@@ -1645,6 +1648,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
         data (pandas.DataFrmae): long format where each row is a sepcific measurement (well- and time-specific)
         hypothesis (dictionary): keys are 'H0' and 'H1', values are lists of variables (must be column headers in data)
         subtract_control (boolean): where control sample curves subtracted from treatment sample curves
+        directory (dictionary): keys are folder names, values are their paths
 
     Action:
         saves a plot as PDF file
@@ -1685,14 +1689,18 @@ def plotHypothesisTest(data,hypothesis,subtract_control):
  
     # plot aesthetics
     ax.set_xlabel('Time ({})'.format(misc.getTimeUnits('output')),fontsize=20)
-    ax.set_ylabel('OD',fontsize=20)
+    ax.set_ylabel(misc.getText('grid_plot_y_label'),fontsize=20)
 
     ax.legend(fontsize=20)
 
     [ii.set(fontsize=20) for ii in ax.get_xticklabels()+ax.get_yticklabels()]
    
+    fig_name = 'Hypothesis_Test_{}'.format(timeStamp())
+    fig_path = assemblePath(directory['figures'],fig_name,'.pdf')
+
     plt.subplots_adjust(left=0.15) 
-    plt.savefig('/Users/firasmidani/Downloads/20200318_hypo.pdf')
+    plt.savefig(fig_path)
+
 
 def basicSummaryOnly(data,mapping,directory,args,verbose=False):
     '''
@@ -1774,6 +1782,151 @@ def timeStamp():
     return ts
 
 
+def assembleFullName(folder,prefix,filename,suffix,extension):
+    '''
+    Assembles a file name using the arguments into a complete full path. 
+
+    Args:
+        folder (str): full path to file
+        prefix (str): prefix to filename (precedes underscore)
+        filename (str): filename without extension
+        suffix (str): suffix to filename (succedes underscore)
+        extension (str): file extension (e.g. txt,tsv,pdf)
+
+    Returns:
+        file_path (str): full path to generated file name
+    '''
+
+    file_name = '{}_{}_{}'.format(prefix,filename,suffix)
+    file_name = file_name.strip('_') # in case prefix is empty
+
+    file_path = assemblePath(folder,file_name,extension)
+
+    return file_path
+
+
+def prepDataForFitting(data,mapping,subtract_baseline=True):
+    '''
+    Packages data set into a grwoth.GrowthPlate() object and transforms data in preparation for GP fitting.
+
+    Args:
+        data (pandas.DataFrame): number of time points (t) x number of variables plus-one (p+1)
+            plus-one because Time is not an index but rather a column.
+        mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
+       
+    Returns:
+        plate (growth.GrwothPlate() object)
+    '''
+
+    # merge data-sets for easier analysis and perform basic summaries and manipulations
+    plate = growth.GrowthPlate(data=data,key=mapping)
+    plate.computeBasicSummary()
+    plate.computeFoldChange(subtract_baseline=subtract_baseline)
+    plate.convertTimeUnits(input=misc.getTimeUnits('input'),output=misc.getTimeUnits('output'))
+    plate.logData()  # natural-log transform
+    plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
+
+    return plate
+
+def saveInputData(to_do,plate,folder,prefix,filename,suffix,extension,input_time=False,input_data=False):
+    '''
+    Saves the content of plate (growth.GrowthPlate() object) as a tab-separated file.
+
+    Args: 
+        to_do (boolean): whether to save derived data or not
+        plate (growth.GrwothPlate() object)
+        folder (str): full path to file
+        prefix (str): prefix to filename (precedes underscore)
+        filename (str): filename without extension
+        suffix (str): suffix to filename (succedes underscore)
+        extension (str): file extension (e.g. txt,tsv,pdf)
+        input_time (boolean): whether to use input_time attribute or time attribution of plate object
+        input_data (boolean): whether to use input_data attribute or data attribution of plate object
+
+    Returns: 
+        None
+    '''
+
+    if not to_do:
+        return None
+
+    file_path = assembleFullName(folder,prefix,filename,suffix,extension)
+
+    if input_time:
+        time = plate.input_time
+    else:
+        time = plate.time
+
+    if input_data:
+        data = plate.input_data
+    else:
+        data = plate.data
+
+    time.join(data).to_csv(file_path,sep='\t',header=True,index=None)
+
+
+def mergedGrowthFitting(plate,directory,args,config,ts):
+    '''
+    Analyze all samples as a single grwoth.GrowthPlate() object and therefore record results into 
+        a single summary text file.
+
+    Args: 
+        plate (growth.GrwothPlate() object)
+        directory (dictionary): keys are folder names, values are their paths
+        args (dictionary): keys are arguments and value are user/default choices
+        config (dictionary): variables saved in config.py where key is variable and value is value
+        ts (str): time stamp (used for naming files)        
+
+    Returns:
+        None
+    '''
+
+    # saveing transformed data, if requested by user
+    saveInputData(args['std'],plate,directory['derived'],'transformed',ts,'','.txt',False,False)
+
+    # running model on transformed results and recording results
+    file_path = assembleFullName(directory['summary'],'summary',ts,'','.txt')
+    plate.model(diauxie_thresh=config['diauxie'])  # run model
+    plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save model results
+
+    return None
+
+
+def saveFitData(plate,args,directory,filename):
+    '''
+    Saves the GP model fits of plate (growth.GrowthPlate() object) as plots and/or tab-separated text files.
+     
+    Args:
+        plate (growth.GrwothPlate() object)
+        args (dictionary): keys are arguments and value are user/default choices
+        directory (dictionary): keys are folder names, values are their paths
+        filename (str): file name
+
+    Returns:
+        None
+    '''
+
+    if args['plot']:  # plot OD and its GP estimate
+
+        fig_path = assembleFullName(directory['figures'],'',filename,'fit','.pdf')
+        plate.plot(fig_path,plot_fit=True)
+
+    if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
+
+            fig_path = assembleFullName(directory['figures'],'',filename,'derivative','.pdf')
+            plate.plot(fig_path,plot_fit=False,plot_derivative=True)
+
+    if args['sfd']:
+
+        file_path = assembleFullName(directory['derived'],'',filename,'fit','.txt')
+        plate.prediction.to_csv(file_path,sep='\t',header=True,index=True)
+
+        file_path = assembleFullName(directory['derived'],'',filename,'derivative','.txt')
+        plate.derivative_prediction.to_csv(file_path,sep='\t',header=True,index=True) 
+
+    return None
+
+
 def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     '''
     Uses Gaussian Processes to fit growth curves and infer paramters of growth kinetics.  
@@ -1783,7 +1936,7 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
             plus-one because Time is not an index but rather a column.
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
         directory (dictionary): keys are folder names, values are their paths
-        params (dictionary): keys are arguments and value are user/default choices
+        args (dictionary): keys are arguments and value are user/default choices
         config (dictionary): variables saved in config.py where key is variable and value is value
         verbose (boolean)
 
@@ -1792,104 +1945,85 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         saves figures (PDFs) in figures folder in the parent directory.
     '''
 
-    # merge data-sets for easier analysis and perform basic summaries and manipulations
-    plate = growth.GrowthPlate(data=data,key=mapping)
-    plate.computeBasicSummary()
-    plate.computeFoldChange(subtract_baseline=True)
-    plate.convertTimeUnits(input=misc.getTimeUnits('input'),output=misc.getTimeUnits('output'))
-    plate.logData()  # natural-log transform
-    plate.subtractBaseline()  # subtract first T0 (or rather divide by first T0)
+    ts = timeStamp()  # time stamp, for naming unique files related to this operation
 
-    ts = timeStamp()
-
-    if args['merge'] and args['std']:
-
-        file_name = 'transformed_{}'.format(ts)
-        file_path = assemblePath(directory['derived'],file_name,'.txt')
-
-        plate.time.join(plate.data).to_csv(file_path,sep='\t',header=True,index=True)
+    plate = prepDataForFitting(data,mapping,subtract_baseline=True)
 
     # if merge-summary selected by user, then save a single text file for summary
     if args['merge']:
 
-        # format file name based on current time and save
-        file_name = 'summary_{}'.format(ts)
-        file_path = assemblePath(directory['summary'],file_name,'.txt') 
+        mergedGrowthFitting(plate,directory,args,config,ts)
 
-        plate.model(diauxie_thresh=config['diauxie'])  # run model
-        plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save mdoel results
+        return None
 
-    else:
+    # for each plate, get samples and save individual text file for plate-specific summaries
+    for pid in plate.key.Plate_ID.unique():
 
-        # for each plate, get samples and save individual text file for plate-specific summaries
-        for pid in plate.key.Plate_ID.unique():
+        smartPrint('Fitting {}'.format(pid),verbose)
 
-            smartPrint('Fitting {}'.format(pid),verbose)
+        # grab plate-specific summary
+        sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
+        sub_plate.model(args['plot'],diauxie_thresh=config['diauxie'])  # run model 
 
-            # grab plate-specific summary
-            sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
-            sub_plate.model(args['plot'],diauxie_thresh=config['diauxie'])  # run model 
+        # saveing transformed data, if requested by user
+        saveInputData(args['std'],sub_plate,directory['derived'],'',pid,'transformed','.txt',False,False)
 
-            if args['plot']:  # plot OD and its GP estimate
+        # saving model fits [od and d(od)/dt] as plots and/or text files
+        saveFitData(sub_plate,args,directory,pid)
 
-                # format name and save
-                file_name = '{}_fit'.format(pid)
-                fig_path = assemblePath(directory['figures'],file_name,'.pdf')
-                sub_plate.plot(fig_path,plot_fit=True)
+        # perform systematic GP regression on substrates against control, if requested by user
+        sub_plate = performSubstrateRegresssion(args['psr'],sub_plate,args,directory)
 
-                file_name = '{}_fit'.format(pid)
-                file_path = assemblePath(directory['derived'],file_name,'.txt')
-                sub_plate.prediction.to_csv(file_path,sep='\t',header=True,index=True)
+        # format name and save
+        df = sub_plate.key
+        df_path = assemblePath(directory['summary'],pid,'.txt')       
+        df.to_csv(df_path,sep='\t',header=True,index=True)
 
-                file_name = '{}_derivative'.format(pid)
-                file_path = assemblePath(directory['derived'],file_name,'.txt')
-                sub_plate.derivative_prediction.to_csv(file_path,sep='\t',header=True,index=True) 
+        #endfor
 
-            if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
+def performSubstrateRegresssion(to_do,plate,args,directory):
+    '''
+    Performs a hypothesis test for each substrate (i.e. comapres to negative control and
+        computes Bayes Factor; see testHypothesis for more details). 
 
-                # format name and save
-                fig_name = '{}_derivative'.format(pid)
-                fig_path = assemblePath(directory['figures'],fig_name,'.pdf')
-                sub_plate.plot(fig_path,plot_fit=False,plot_derivative=True)
+    Args:
+        to_do (boolean): whether to run internal code or not
+        plate (growth.GrwothPlate() object)
+        args (dictionary): keys are arguments and value are user/default choices
+        directory (dictionary): keys are folder names, values are their paths        
 
-            if args['std']:
+    Action:
+        returns plate (object) as is or updates with four additional column variables.
+    '''
 
-                file_name = '{}_transformed'.format(pid)
-                file_path = assemblePath(directory['derived'],file_name,'.txt')
-                (sub_plate.time).join(sub_plate.data).to_csv(file_path,sep='\t',header=True,index=True)
+    if not args['psr']:
+        return plate
 
-            if args['bayes']:  # perform systematic testing of substrates against negative control
+    bayes = []
 
-                bayes = []
+    for substrate in plate.key.Substrate.unique():
 
-                for substrate in sub_plate.key.Substrate.unique():
+        # initialize hypothesis test parameters
+        args_dict = {'Substrate':['Negative Control',substrate]}
+        hypo_param = {'hypo':{'H0':['Time'],'H1':['Time','Substrate']}}
 
-                    # initialize hypothesis test parameters
-                    args_dict = {'Substrate':['Negative Control',substrate]}
-                    hypo_param = {'hypo':{'H0':['Time'],'H1':['Time','Substrate']}}
+        # format data needed for hypothesis test
+        hypo_plate = plate.extractGrowthData(args_dict)
+        hypo_plate.subtractControl() 
+        hypo_data = hypo_plate.time.join(hypo_plate.data)
+        hypo_key = hypo_plate.key
 
-                    # format data needed for hypothesis test
-                    hypo_plate = sub_plate.extractGrowthData(args_dict)
-                    hypo_plate.subtractControl() 
-                    hypo_data = hypo_plate.time.join(hypo_plate.data)
-                    hypo_key = hypo_plate.key
+        # and boom goes the dynamite
+        print((pid,substrate))
+        bf,bf_upper,bf_lower = testHypothesis(hypo_data,hypo_key,hypo_param,args,directory,False,False,args['verbose'])
+        bayes.append((substrate,bf,bf_upper,bf_lower))
 
-                    # and boom goes the dynamite
-                    print((pid,substrate))
-                    bf,bf_upper,bf_lower = testHypothesis(hypo_data,hypo_key,hypo_param,args,False,args['verbose'])
-                    bayes.append((substrate,bf,bf_upper,bf_lower))
+    # add hypothesis testing results to object's key
+    bayes = pd.DataFrame(bayes,columns=['Substrate','log_BF','log_BF_upper','log_BF_lower'])
+    plate.key = pd.merge(plate.key,bayes,on='Substrate',how='left')
 
-                # add hypothesis testing results to object's key
-                bayes = pd.DataFrame(bayes,columns=['Substrate','log_BF','log_BF_upper','log_BF_lower'])
-                sub_plate.key = pd.merge(sub_plate.key,bayes,on='Substrate',how='left')
-                
+    return plate
 
-            # format name and save
-            df_path = assemblePath(directory['summary'],pid,'.txt')
-
-            # save summary
-            df = sub_plate.key
-            df.to_csv(df_path,sep='\t',header=True,index=True)
 
 def printDirectoryContents(directory,sort=True,tab=True):
     '''
