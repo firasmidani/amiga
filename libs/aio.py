@@ -137,6 +137,7 @@ def parseCommand(config):
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
     parser.add_argument('--perform-substrate-regression',action='store_true',default=False)
     parser.add_argument('--dont-subtract-control',action='store_true',default=False)
+    parser.add_argument('-o','--output',required=False)
 
     # pass arguments to local variables 
     args = parser.parse_args()
@@ -160,6 +161,7 @@ def parseCommand(config):
     args_dict['opd'] = args.only_print_defaults
     args_dict['psr'] = args.perform_substrate_regression
     args_dict['sc'] = not args.dont_subtract_control
+    args_dict['fout'] = args.output
 
     # logical argument definitions
 
@@ -1643,7 +1645,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
     upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
 
     # plot results
-    plotHypothesisTest(data,hypothesis,subtract_control,directory_dict)
+    plotHypothesisTest(data,hypothesis,subtract_control,directory_dict,args_dict)
 
     # bid user farewell
     if sys_exit:
@@ -1654,7 +1656,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
     return log_BF,upper,lower
 
 
-def plotHypothesisTest(data,hypothesis,subtract_control,directory):
+def plotHypothesisTest(data,hypothesis,subtract_control,directory,args_dict):
     '''
     Visualizes the model tested by a specific hypothesis given the data.
 
@@ -1663,6 +1665,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory):
         hypothesis (dictionary): keys are 'H0' and 'H1', values are lists of variables (must be column headers in data)
         subtract_control (boolean): where control sample curves subtracted from treatment sample curves
         directory (dictionary): keys are folder names, values are their paths
+        args_dict (dictionary): must at least include 'nperm', 'nthin', and 'fdr' as keys and their values
 
     Action:
         saves a plot as PDF file
@@ -1709,7 +1712,11 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory):
 
     [ii.set(fontsize=20) for ii in ax.get_xticklabels()+ax.get_yticklabels()]
    
-    fig_name = 'Hypothesis_Test_{}'.format(timeStamp())
+    if args_dict['fout']:
+        fig_name = args_dict['fout']
+    else:
+        fig_name = 'Hypothesis_Test_{}'.format(timeStamp())
+
     fig_path = assemblePath(directory['figures'],fig_name,'.pdf')
 
     plt.subplots_adjust(left=0.15) 
@@ -1959,7 +1966,11 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         saves figures (PDFs) in figures folder in the parent directory.
     '''
 
-    ts = timeStamp()  # time stamp, for naming unique files related to this operation
+    # if user did not pass file name for output, use time stamp
+    if args['fout']:
+        ts = args['fout']
+    else:
+        ts = timeStamp()  # time stamp, for naming unique files related to this operation
 
     plate = prepDataForFitting(data,mapping,subtract_baseline=True)
 
