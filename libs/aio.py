@@ -154,7 +154,7 @@ def parseCommand(config):
     args_dict['merge'] = args.merge_summary
     args_dict['pd'] = args.plot_derivative
     args_dict['obs'] = args.only_basic_summary
-    args_dict['sad'] = args.save_derived_data
+    args_dict['sad'] = args.save_all_data
     args_dict['sdd'] = args.save_derived_data
     args_dict['sfd'] = args.save_fitted_data
     args_dict['std'] = args.save_transformed_data
