@@ -38,3 +38,6 @@ config['grid_plot_y_label'] = 'Optical Density (620 nm)'
 
 # diaxuic shift paramters
 config['diauxie'] = 0.333  # minimum ratio relative to maximum peak for each growth phase
+
+# hypothesis testing plot colors
+config['hypo_colors']  = [(0.0,0.0,1.0),(1.0,0.0,0.0)]

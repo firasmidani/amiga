@@ -51,16 +51,6 @@ python main.py -i /Users/firasmidani/experiments -s 'Isolate:CD_treA,CD_treX;Sub
 
 **Example Four**
 
-In the subsetting argument, `AMiGA` will ignore whitespaces that flank delimiters (`,`,`:`,or `;`) so the below command should also work. It may be more aesthetically pleasing for some.
-
-```bash
-python main.py -i /Users/firasmidani/experiments -s 'Isolate : CD_treA , CD_treX ; Substrate : alpha-D-glucose , D-fructose , D-trehalose ; Antibiotics : None , clindamycin'
-```
-
-<br />
-
-**Example Five**
-
 You can also specify wells that should not be analyzed. This can only be applied if you point to well locations in specific plates.
 
 ```bash

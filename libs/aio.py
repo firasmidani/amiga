@@ -382,7 +382,7 @@ def mapDirectories(parent):
     directory['parent'] = parent
 
     # format file paths for sub-directories 
-    children = ['data','derived','mapping','summary','parameters','figures']
+    children = ['data','derived','mapping','summary','parameters','figures','models']
 
     for child in children:
 
@@ -1192,10 +1192,12 @@ def subsetWells(df_mapping_dict,criteria,hypothesis,verbose=False):
         remove_idx = mapping_df_str.index[remove_boolean]
         mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
 
-    smartPrint('The following criteria were used to subset data:\n',verbose)
-    smartPrint(tidyDictPrint(criteria),verbose)
+    msg = 'The following criteria were used to subset data:\n'
+    msg += tidyDictPrint(criteria)
 
-    return df_mapping_dict
+    smartPrint(msg,verbose)
+
+    return df_mapping_dict,msg
 
 
 def annotateMappings(mapping_dict,params_dict,verbose=False):
@@ -1217,7 +1219,7 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
 
     # tag wells that meet user-passed criteria for analysis
-    mapping_dict = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
+    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
 
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case
@@ -1475,6 +1477,7 @@ def prepRegressionPlate(data,mapping,subtract_control,thinning_step):
     plate.logData()
     plate.subtractBaseline()
     plate.subtractControl(to_do=subtract_control,drop=True)
+
     plate.thinMeasurements(thinning_step)
 
     return plate
@@ -1499,7 +1502,7 @@ def tidifyRegressionData(plate,save_path=None):
     data = data.merge(plate.key,on='Sample_ID')
 
     if save_path:
-        data.to_csv('/Users/firasmidani/Downloads/20200303_data.txt',sep='\t',header=True,index=True)
+        data.to_csv(save_path,sep='\t',header=True,index=True)
  
     return data
 
@@ -1570,18 +1573,15 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     # Percentile of actual log BF relative to null distribution
     log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
 
-    msg = 'Model Tested: {}\n'.format(hypothesis) 
+    msg = 'Model Tested: {}\n\n'.format(hypothesis) 
     msg += 'log Bayes Factor: {0:.3f} '.format(log_BF)
-    msg += '({0:.1f}-percentile in null distribution)\n'.format(log_BF_Pct)
+    msg += '({0:.1f}-percentile in null distribution)\n\n'.format(log_BF_Pct)
     msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {:.3f}\n'.format(FDR,M1_Pct_Cutoff)
     msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {:.3f}\n'.format(FDR,M0_Pct_Cutoff)
     smartPrint(msg,verbose)
 
-    print(M1_Pct_Cutoff)
-    print(M0_Pct_Cutoff)
-    print(log_BF_Pct)
 
-    return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct
+    return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct,msg
 
 
 def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,subtract_control=True,sys_exit=True,verbose=False):
@@ -1621,6 +1621,11 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
         msg = 'USER ERROR: No hypothesis has been passed to AMiGA via either command-line or text file.\n'
         return None
 
+    if args_dict['fout']:
+        file_name = '{}'.format(args_dict['fout'])
+    else:
+        file_name = 'Hypothesis_Test_{}'.format(timeStamp())
+
     variable = checkHypothesis(hypothesis)
 
     # annotate Subset and Flag columns in mapping files, then trim and merge into single dataframe
@@ -1638,11 +1643,34 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
 
     # package, format, and clean data input
     plate = prepRegressionPlate(master_data,master_mapping,subtract_control,nthin)
-    data = tidifyRegressionData(plate)
+
+    if args_dict['merge']:
  
+        # running model on transformed results and recording results
+        file_path_key = assembleFullName(directory_dict['models'],'',file_name,'key','.txt')
+        file_path_input = assembleFullName(directory_dict['models'],'',file_name,'input','.txt')
+        plate.key.to_csv(file_path_key,sep='\t',header=True,index=True)  # save model results
+        data = tidifyRegressionData(plate,save_path=file_path_input)
+
+    else:
+
+        data = tidifyRegressionData(plate)
+
     # compute log Bayes Factor and its null distribution 
     log_BF, dist_log_BF = executeRegression(data,hypothesis,nperm)
-    upper,lower,percentile = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
+
+    upper,lower,percentile,bayes_msg = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
+
+    msg = 'The following criteria were used to subset data:\n'
+    msg += tidyDictPrint(params_dict['subset'])
+    msg += '\n'
+    msg += bayes_msg
+
+    # save report of data
+    file_path = assembleFullName(directory_dict['models'],'',file_name,'output','.txt')
+    fid = open(file_path,'w')
+    fid.write(msg)
+    fid.close()
 
     # plot results
     plotHypothesisTest(data,hypothesis,subtract_control,directory_dict,args_dict)
@@ -1672,7 +1700,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory,args_dict):
     '''
 
     sns.set_style('whitegrid')
-    colors = [(1,0,0),(0,0,1)]
+    colors = misc.getValue('hypo_colors')
 
     fig,ax = plt.subplots(figsize=[8,6])
 
@@ -1687,26 +1715,25 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory,args_dict):
         long_df = misc.subsetDf(data,{variable:[value]})   # long format: time, od, sample_id, ...
         wide_df = pd.pivot(long_df,index='Time',columns='Sample_ID',values='OD')  # wide format: time x sample_id
 
+        # define x domain
+        fit_x = pd.DataFrame(wide_df.index).values;
+
         # fit GP model
         model = agp.GP(x=pd.DataFrame(long_df.Time),y=pd.DataFrame(long_df.OD))
-        model = model.fit()
+        model.fit(optimize=True)
 
-        # define plot values for GP fit
-        fit_x = pd.DataFrame(wide_df.index).values
-        fit_mu,fit_var = model.predict(fit_x)
-        fit_mu = np.ravel(fit_mu)
-        fit_var = np.ravel(fit_var)
-        fit_low = fit_mu - fit_var
-        fit_upp = fit_mu + fit_var
+        # get quantiles
+        low,mid,upp = model.predict_quantiles(fit_x,quantiles=(2.5,50,97.5))
+        low,mi,upp = [np.ravel(ii) for ii in [low,mid,upp]]
 
         # plot actual data, and GP fit
         ax.plot(wide_df,color=color,alpha=0.5,lw=1)
-        ax.plot(fit_x,fit_mu,color=color,alpha=1.0,lw=3,label=value)
-        ax.fill_between(np.ravel(fit_x),fit_low,fit_upp,color=color,alpha=0.10)
+        ax.plot(fit_x,mid,color=color,alpha=1.0,lw=3,label=value)
+        ax.fill_between(np.ravel(fit_x),low,upp,color=color,alpha=0.10)
  
     # plot aesthetics
     ax.set_xlabel('Time ({})'.format(misc.getTimeUnits('output')),fontsize=20)
-    ax.set_ylabel(misc.getText('grid_plot_y_label'),fontsize=20)
+    ax.set_ylabel(misc.getValue('grid_plot_y_label'),fontsize=20)
 
     ax.legend(fontsize=20)
 
@@ -1717,7 +1744,7 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory,args_dict):
     else:
         fig_name = 'Hypothesis_Test_{}'.format(timeStamp())
 
-    fig_path = assemblePath(directory['figures'],fig_name,'.pdf')
+    fig_path = assemblePath(directory['models'],fig_name,'.pdf')
 
     plt.subplots_adjust(left=0.15) 
     plt.savefig(fig_path)
@@ -2139,9 +2166,8 @@ def validateDirectories(directory,verbose=False):
     #
     #     value (4-tuples) where:    
     #     1. generic name of directory for communcating with user (str)
-    #     2. verbosity: whether to communicate with user or not (boolean)
-    #     3. initialization: whether to initialize directory or not (boolean)
-    #     4. force system exit: whether to exist system if error detected
+    #     2. initialization: whether to initialize directory or not (boolean)
+    #     3. force system exit: whether to exist system if error detected
 
     params = {
         'parent':('Input directory',False,True),
@@ -2149,7 +2175,8 @@ def validateDirectories(directory,verbose=False):
         'derived':('Derived data directory',True,False),
         'mapping':('Mapping directory',True,False),
         'summary':('Summary directory',True,False),
-        'figures':('Figures directory',True,False)
+        'figures':('Figures directory',True,False),
+        'models':('Models directory',True,False)
     }
 
     full_msg = ''

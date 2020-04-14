@@ -66,19 +66,15 @@ def getTextColors(text):
     elif text=='Well_ID':
         return config['fcn_well_id_color']
 
-def getText(text):
+def getValue(text):
     '''
     Pulls from config (dictionary) desired value based on argument (str).
 
     Args:
-        text (str): limited set of options accepted
-
-    Returns:
-        (str) that is used for labels in plots. 
+        text (str): limited set of options accepted 
     '''
 
-    if text=='grid_plot_y_label':
-        return config['grid_plot_y_label']
+    return config[text]
 
 
 def getTimeUnits(text):
@@ -87,4 +83,3 @@ def getTimeUnits(text):
         return config['time_input_unit']
     elif text=='output':
         return config['time_output_unit']
-

@@ -54,7 +54,7 @@ class GP(object):
         kern = GPy.kern.RBF(self.dim,ARD=True)
 
         # generate a GP model for regression and optimize by maximizing log-likelihood
-        self.model = GPy.models.GPRegression(self.x.values,self.y,kern)
+        self.model = GPy.models.GPRegression(self.x.values,self.y.values,kern)
 
         if optimize:
             self.model.optimize()
@@ -106,6 +106,30 @@ class GP(object):
         self.prediction = (mu,cov)
 
         return self.prediction
+
+
+    def predict_quantiles(self,x=None,quantiles=(2.5,50,97.5)):
+        '''
+        Get the predictive quantiles around the prediction at X.
+
+        Args:
+            x (numpy.ndarray) with size (X,1)
+
+        Returns:
+            self.quantiles (n-tuple) where each is a an numpy.ndarray with size (X,1)
+                The predictions correspond to the quantiles arguments.
+        ''' 
+
+        model = self.model
+
+        if x is None:
+            x = self.x.values
+
+        low,mid,high = model.predict_quantiles(x,quantiles=quantiles)
+
+        self.quantiles = (low,mid,high)
+
+        return self.quantiles
 
 
     def estimate_auc(self):
@@ -445,8 +469,8 @@ def computeLikelihood(df,variables,permute=False):
         x.loc[:,to_permute] = x.sample(n=x.shape[0]).loc[:,to_permute].values
 
     # build and optimize model, then return maximized log-likelihood
-    opt_model = GP(x,y).fit();  
-    LL = opt_model.log_likelihood()[0]
+    opt_model = GP(x,y).fit(optimize=True); 
+    LL = opt_model.log_likelihood()
 
     return LL
 
