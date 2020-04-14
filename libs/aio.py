@@ -1181,7 +1181,7 @@ def subsetWells(df_mapping_dict,criteria,hypothesis,verbose=False):
 
     if (len(criteria)==0):
         smartPrint('No subsetting was requested.\n',verbose)
-        return df_mapping_dict
+        return df_mapping_dict,None
 
     for plate_id,mapping_df in df_mapping_dict.items():
 
@@ -1533,7 +1533,7 @@ def executeRegression(data,hypothesis,nperm=0):
     null_distribution = []
     for rep in range(nperm):
         null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
-        null_distribution.append(null_value)
+        null_distribution.append(null_value-LL0)
 
     return log_BF, null_distribution 
 
@@ -1556,32 +1556,55 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
         log_BF_Pct (float): percentile of actual log Bayes Factor relative to log Bayes Factor null distribution
     '''
 
+    log_BF_Display = prettyNumberDisplay(log_BF)
+
     if dist_log_BF is None:
 
         msg = 'Model Tested: {}\n'.format(hypothesis) 
-        msg += 'log Bayes Factor: {0:.3f}\n'.format(log_BF)
+        msg += 'log Bayes Factor: {0:.3f}\n'.format(log_BF_Display)
         smartPrint(msg,verbose)
         
         return None, None, None
 
+    nperm = int(len(dist_log_BF)+1)
+
+    print(sorted(dist_log_BF))
+
     # The 20% percentile in null distribution, a log BF higher has FDR <=20% that H1 fits data better than H0
     M1_Pct_Cutoff = np.percentile(dist_log_BF,100-FDR)
+    M1_Display = prettyNumberDisplay(M1_Pct_Cutoff)
 
     # The 80% percentile in null distribution, a lo gBF lower has FDR <=20% that H0 fits data better than H1
     M0_Pct_Cutoff = np.percentile(dist_log_BF,FDR)
+    M0_Display = prettyNumberDisplay(M0_Pct_Cutoff)
 
     # Percentile of actual log BF relative to null distribution
     log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
-
-    msg = 'Model Tested: {}\n\n'.format(hypothesis) 
-    msg += 'log Bayes Factor: {0:.3f} '.format(log_BF)
-    msg += '({0:.1f}-percentile in null distribution)\n\n'.format(log_BF_Pct)
-    msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {:.3f}\n'.format(FDR,M1_Pct_Cutoff)
-    msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {:.3f}\n'.format(FDR,M0_Pct_Cutoff)
+    
+    msg = 'The following hypothesis was test on the data:\n{}\n\n'.format(hypothesis) 
+    msg += 'log Bayes Factor: {} '.format(log_BF_Display)
+    msg += '({0:.1f}-percentile in null distribution based on {1} permutations)\n\n'.format(log_BF_Pct,nperm)
+    msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {}\n'.format(FDR,M1_Display)
+    msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {}\n'.format(FDR,M0_Display)
     smartPrint(msg,verbose)
 
-
     return M1_Pct_Cutoff,M0_Pct_Cutoff,log_BF_Pct,msg
+
+
+def prettyNumberDisplay(num):
+    '''
+    Displays numebrs that are either large or small in scientific noation, otherwise does not.
+
+    Args:
+        num (float or int)
+    '''
+
+    if np.floor(np.abs(np.log10(np.abs(num)))) > 2:
+        return '{:.3}'.format(num)
+
+    else:
+        return '{:.3f}'.format(num)
+
 
 
 def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,subtract_control=True,sys_exit=True,verbose=False):
@@ -1643,6 +1666,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
 
     # package, format, and clean data input
     plate = prepRegressionPlate(master_data,master_mapping,subtract_control,nthin)
+    ntimepoints = plate.time.shape[0]
 
     if args_dict['merge']:
  
@@ -1650,6 +1674,7 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
         file_path_key = assembleFullName(directory_dict['models'],'',file_name,'key','.txt')
         file_path_input = assembleFullName(directory_dict['models'],'',file_name,'input','.txt')
         plate.key.to_csv(file_path_key,sep='\t',header=True,index=True)  # save model results
+ 
         data = tidifyRegressionData(plate,save_path=file_path_input)
 
     else:
@@ -1661,10 +1686,19 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
 
     upper,lower,percentile,bayes_msg = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
 
+    if subtract_control:
+        sc_msg = 'Samples were normalized to relevant control samples before modelling.'
+    else:
+        sc_msg = 'Samples were modelled without controlling for batch effects (i.e. normalizing to control samples).'
+
+    if nthin > 1:
+        nt_msg = 'Input was reduce to {} time points.'
+
     msg = 'The following criteria were used to subset data:\n'
     msg += tidyDictPrint(params_dict['subset'])
     msg += '\n'
     msg += bayes_msg
+    msg += '\nData Manipulation: Input was reduced to {} time points. {}'.format(ntimepoints,sc_msg)
 
     # save report of data
     file_path = assembleFullName(directory_dict['models'],'',file_name,'output','.txt')
@@ -1732,8 +1766,13 @@ def plotHypothesisTest(data,hypothesis,subtract_control,directory,args_dict):
         ax.fill_between(np.ravel(fit_x),low,upp,color=color,alpha=0.10)
  
     # plot aesthetics
+    if subtract_control:
+        ylabel = 'Normalized {}'.format(misc.getValue('grid_plot_y_label'))
+    else:
+        ylabel = misc.getValue('grid_plot_y_label')
+
     ax.set_xlabel('Time ({})'.format(misc.getTimeUnits('output')),fontsize=20)
-    ax.set_ylabel(misc.getValue('grid_plot_y_label'),fontsize=20)
+    ax.set_ylabel(ylabel,fontsize=20)
 
     ax.legend(fontsize=20)
 

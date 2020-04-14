@@ -357,7 +357,7 @@ class GrowthPlate(object):
         plt.setp(axes[7,0],yticks=[ymin,0,ymax],yticklabels=[ymin,0,ymax])
 
         # add x- and y-labels and title
-        ylabel_base = misc.getText('grid_plot_y_label')
+        ylabel_base = misc.getValue('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
 
         if plot_derivative:
