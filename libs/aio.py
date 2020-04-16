@@ -1515,7 +1515,7 @@ def executeRegression(data,hypothesis,nperm=0):
         data (pandas.DataFrame): each row is a single measurement (i.e. time point in a well), columns are variables
             and must include 'Time', 'OD'.
         hypothesis (dictionary): keys must be 'H0' and 'H1', values are lists of variables (must match data keys)
-        nperm (int): number of permutations to generate null distribution
+        nperm (int): number ofxec permutations to generate null distribution
 
     Returns:
         log_BF (float): log Bayes Factor = log (P(H1|D)/P(H0|D))
@@ -1523,16 +1523,17 @@ def executeRegression(data,hypothesis,nperm=0):
             was permuted for a certain number of times (based on nperm).
     '''
 
-    LL0 = agp.computeLikelihood(data,hypothesis['H0'])
-    LL1 = agp.computeLikelihood(data,hypothesis['H1'])
-    log_BF = LL1-LL0
+    LL0 = agp.computeLikelihood(data,hypothesis['H0']); print('LL0',LL0)
+    LL1 = agp.computeLikelihood(data,hypothesis['H1']); print('LL1',LL1)
+    log_BF = LL1-LL0; print(log_BF,LL1-LL0)
 
     if nperm==0:
         return log_BF, None
 
     null_distribution = []
     for rep in range(nperm):
-        null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True)
+        null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True);
+        print('null rep {} = {}'.format(rep,null_value))
         null_distribution.append(null_value-LL0)
 
     return log_BF, null_distribution 
@@ -1567,8 +1568,6 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
         return None, None, None
 
     nperm = int(len(dist_log_BF)+1)
-
-    print(sorted(dist_log_BF))
 
     # The 20% percentile in null distribution, a log BF higher has FDR <=20% that H1 fits data better than H0
     M1_Pct_Cutoff = np.percentile(dist_log_BF,100-FDR)

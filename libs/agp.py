@@ -465,13 +465,14 @@ def computeLikelihood(df,variables,permute=False):
 
     # permutation test, if requested
     if permute:
-        to_permute = [ii for ii in variables if ii!='Time']
-        x_shuffled = x.sample(n=x.shape[0]).loc[:,to_permute].values
+        to_permute = [ii for ii in variables if ii!='Time'][0]
+        x_shuffled = np.random.choice(x.loc[:,to_permute],size=x.shape[0],replace=False)
         x.loc[:,to_permute] = x_shuffled
 
     # build and optimize model, then return maximized log-likelihood
     opt_model = GP(x,y).fit(optimize=True);
     LL = opt_model.log_likelihood()
+    print('opt_model log_likelihood',opt_model.log_likelihood())
 
     return LL
 
