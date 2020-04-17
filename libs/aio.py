@@ -124,7 +124,7 @@ def parseCommand(config):
     parser.add_argument('-t','--interval',required=False)
     parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
-    parser.add_argument('-np','--number-permutations',action='store',type=int,default=10)
+    parser.add_argument('-np','--number-permutations',action='store',type=int,default=20)
     parser.add_argument('-nt','--time-points-skips',action='store',type=int,default=11)
     parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=20)
     parser.add_argument('--merge-summary',action='store_true',default=False)
@@ -355,7 +355,7 @@ def checkMetaText(filepath,verbose=False):
     # neatly prints meta.txt to terminal
     if exists:
         tab = tabulate.tabulate(df_meta,headers='keys',tablefmt='psql')
-        msg = '{:.<16}{}\n{}\n'.format('Meta-Data is',filepath,tab)
+        msg = '{:.<21}{}\n{}\n'.format('Meta-Data file is',filepath,tab)
         smartPrint(msg,verbose)
     else:
         smartPrint('No meta.txt file found\n',verbose)
@@ -1523,9 +1523,9 @@ def executeRegression(data,hypothesis,nperm=0):
             was permuted for a certain number of times (based on nperm).
     '''
 
-    LL0 = agp.computeLikelihood(data,hypothesis['H0']); print('LL0',LL0)
-    LL1 = agp.computeLikelihood(data,hypothesis['H1']); print('LL1',LL1)
-    log_BF = LL1-LL0; print(log_BF,LL1-LL0)
+    LL0 = agp.computeLikelihood(data,hypothesis['H0']);
+    LL1 = agp.computeLikelihood(data,hypothesis['H1']);
+    log_BF = LL1-LL0;
 
     if nperm==0:
         return log_BF, None
@@ -1533,7 +1533,6 @@ def executeRegression(data,hypothesis,nperm=0):
     null_distribution = []
     for rep in range(nperm):
         null_value = agp.computeLikelihood(data,hypothesis['H1'],permute=True);
-        print('null rep {} = {}'.format(rep,null_value))
         null_distribution.append(null_value-LL0)
 
     return log_BF, null_distribution 
@@ -1580,8 +1579,8 @@ def reportRegression(hypothesis,log_BF,dist_log_BF=None,FDR=20,verbose=False):
     # Percentile of actual log BF relative to null distribution
     log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
     
-    msg = 'The following hypothesis was test on the data:\n{}\n\n'.format(hypothesis) 
-    msg += 'log Bayes Factor: {} '.format(log_BF_Display)
+    msg = 'The following hypothesis was tested on the data:\n{}\n\n'.format(hypothesis) 
+    msg += 'log Bayes Factor = {} '.format(log_BF_Display)
     msg += '({0:.1f}-percentile in null distribution based on {1} permutations)\n\n'.format(log_BF_Pct,nperm)
     msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {}\n'.format(FDR,M1_Display)
     msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {}\n'.format(FDR,M0_Display)
@@ -1686,12 +1685,12 @@ def testHypothesis(data_dict,mapping_dict,params_dict,args_dict,directory_dict,s
     upper,lower,percentile,bayes_msg = reportRegression(hypothesis,log_BF,dist_log_BF,FDR=fdr,verbose=verbose)
 
     if subtract_control:
-        sc_msg = 'Samples were normalized to relevant control samples before modelling.'
+        sc_msg = 'Samples were normalized to their respective control samples before modelling.'
     else:
         sc_msg = 'Samples were modelled without controlling for batch effects (i.e. normalizing to control samples).'
 
     if nthin > 1:
-        nt_msg = 'Input was reduce to {} time points.'
+        nt_msg = 'Input was reduced to {} time points.'
 
     msg = 'The following criteria were used to subset data:\n'
     msg += tidyDictPrint(params_dict['subset'])

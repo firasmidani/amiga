@@ -51,7 +51,8 @@ class GP(object):
         '''
 
         # define radial basis function kernel
-        kern = GPy.kern.RBF(self.dim,ARD=True)
+        #kern = GPy.kern.RBF(self.dim,ARD=True)
+        kern = buildRbfKernel(self.x)
 
         # generate a GP model for regression and optimize by maximizing log-likelihood
         self.model = GPy.models.GPRegression(self.x.values,self.y.values,kern)
@@ -430,6 +431,26 @@ class GP(object):
         plt.close()
 
 
+def buildRbfKernel(x):
+
+    size = x.shape[1]
+    names = x.columns
+
+    ret = GPy.kern.RBF(1,active_dims=[0],name=names[0],ARD=True)
+    ksum = None
+
+    for ii in range(1,size):
+        if ksum is None:
+            ksum = GPy.kern.RBF(1,active_dims=[ii],name=names[ii],ARD=True)
+        else:
+            ksum += GPy.kern.RBF(1,active_dims=[ii],name=names[ii],ARD=True)
+
+    if ksum is None:
+        return ret
+
+    return ret*ksum
+
+
 def computeLikelihood(df,variables,permute=False):
     '''
     Computes log-likelihood of a Gaussian Process Regression inference. Permutation is performed 
@@ -472,7 +493,6 @@ def computeLikelihood(df,variables,permute=False):
     # build and optimize model, then return maximized log-likelihood
     opt_model = GP(x,y).fit(optimize=True);
     LL = opt_model.log_likelihood()
-    print('opt_model log_likelihood',opt_model.log_likelihood())
 
     return LL
 
