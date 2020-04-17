@@ -3,6 +3,7 @@ layout: page
 title: "Command Line Interface"
 category: doc
 date: 2020-04-16 21:42:08
+order: 10
 use_math: false
 ---
 
