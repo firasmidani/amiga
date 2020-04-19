@@ -61,7 +61,7 @@ Defines which wells should be excluded form the analysis. See [Data Subsetting](
 
 Defines which files to be included in the analysis. See [Data Subsetting](/amiga/doc/subsetting.html) for more details.
 
-**-h** or **\-\-hypothesis**
+**-y** or **\-\-hypothesis**
 
 Defines the hypothesis for GP regression model to be tested by AMiGA on the user-passed data. See [Hypothesis Testing](/amiga/doc/hypothesistesting.html) for more details.
 
