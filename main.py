@@ -39,9 +39,6 @@ print(aio.tidyMessage('AMiGA is parsing command-line arguments and parameter fil
 # interpret terminal command or text files for parameters (dict)
 params = aio.interpretParameters(files,args,verbose=args['verbose'])
 
-# parse meta.txt file if it exists (df,list)
-#df_meta,df_meta_plates = aio.checkMetaText(files['meta'],verbose=args['verbose'])
-
 # communicate with user
 print(aio.tidyMessage('AMiGA is parsing and cleaning data files'))
 

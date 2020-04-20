@@ -23,24 +23,29 @@ sns.set_style('whitegrid')
 
 class GP(object):
 
-    def __init__(self,x=None,y=None):
+    def __init__(self,x=None,y=None,key=None):
         '''
         Data structure for Gaussian Process regression and related parameter inference.
 
         Attributes:
             x (pands.DataFrame): independent variables (N x D), where N is the number of observations, and 
-                D is the number of dimensions (or variables)
-            y (pandas.DataFrame): dependent variables (N x 1), where N is the number of observatiosn, and 
-                the only column is the dependent or obesrved variable (often Optical Density or OD)
+                D is the number of dimensions (or variables).
+            y (pandas.DataFrame): dependent variables (N x 1), where N is the number of observations, and 
+                the only column is the dependent or obesrved variable (often Optical Density or OD).
+            key (pandas.DataFrame): pandas.DataFrame (1 x k), that describes k experimental variables about sample.
+
         '''
 
         self.x = x
         self.y = y
+        self.key = key
 
         self.dim = x.shape[1] # number of variables
 
         assert type(x) == pd.DataFrame, "x must be a pandas DataFrame"
         assert type(y) == pd.DataFrame, "y must be a pandas DataFrame"
+        assert type(y) == pd.DataFrame, "y must be a pandas DataFrame"
+
         
     def fit(self,optimize=True):
         '''
@@ -108,7 +113,6 @@ class GP(object):
 
         return self.prediction
 
-
     def predict_quantiles(self,x=None,quantiles=(2.5,50,97.5)):
         '''
         Get the predictive quantiles around the prediction at X.
@@ -155,6 +159,30 @@ class GP(object):
         self.auc = (mu,var) 
 
         return self.auc
+
+
+    def estimate_real_auc(self):
+        '''
+        Infers the Area Under the Curve using GP estimate.
+
+        Returns:
+            self.auc (float): area under the curve
+        '''
+
+        x = self.x.values
+
+        # mu: np.ndarray (x.shape[0],1), cov: np.ndarray (x.shape[0],x.shape[0])
+        mu,_ = self.prediction
+
+        baseline = self.key.OD_Baseline.values[0]
+        mu = convert_to_real_od(mu,baseline,floor=True)
+
+        dt = np.mean(x[1:,0]-x[:-1,0])  # dt: int
+        D = np.repeat(dt,len(mu)).T  # D: np.ndarray (x.shape[0],)
+
+        auc = np.dot(D,mu) # mu: int
+       
+        return auc
 
 
     def estimate_gr(self):
@@ -214,6 +242,25 @@ class GP(object):
         #print('estimating k',mu)
 
         return self.k
+
+    def estimate_real_k(self):
+        '''
+        Infers the carrying capacity using GP estimate.
+
+        Returns:
+            self.k (float): carrying capacity
+        '''
+
+        mu,_ = self.prediction
+
+        baseline = self.key.OD_Baseline.values[0]
+        mu = convert_to_real_od(mu,baseline,floor=True)
+
+        ind = np.where(mu==mu.max())[0]
+
+        k = mu[ind][0]
+
+        return k
 
 
     def estimate_td(self):
@@ -344,8 +391,8 @@ class GP(object):
         self.predict()
         self.derivative()
 
-        params['auc'] = self.estimate_auc()[0]
-        params['k'] = self.estimate_k()[0]
+        params['auc'] = self.estimate_real_auc() #self.estimate_auc()[0]
+        params['k'] = self.estimate_real_k() #self.estimate_k()[0]
         params['gr'] = self.estimate_gr()[0]
         params['dr'] = self.estimate_dr()[0]
         params['td'] = self.estimate_td()
@@ -368,13 +415,15 @@ class GP(object):
                 and possibly 'Sample_ID' (4-5).
         '''
 
+        baseline = self.key.OD_Baseline.values[0]
+
         time = self.x
         time.columns = ['Time']
 
-        od_data = self.y
+        od_data = convert_to_real_od(self.y,baseline=baseline,floor=True); 
         od_data.columns = ['OD']
-
-        od_pred = pd.DataFrame(self.prediction[0],columns=['Fit'])
+        
+        od_pred = pd.DataFrame(convert_to_real_od(self.prediction[0],baseline=baseline,floor=True),columns=['Fit'])
         od_derivative = pd.DataFrame(np.ravel(self.derivative_prediction[0]),columns=['Derivative'])
 
         if sample_id is not None:
@@ -429,6 +478,44 @@ class GP(object):
             return ax_user
 
         plt.close()
+
+
+def convert_to_real_od(data,baseline,floor=True):
+    '''
+    Converts data in transformed space to original space (actual OD, not arbitrary units).
+
+    Args:
+        baseline (float): should be baseline OD at first time point
+        floor (float): if you want to shift curves to start at zeero, pass an argument equivalent to OD(0)
+
+    Returns:
+        self.predicted_OD ()
+    '''
+
+    if isinstance(data,pd.DataFrame):
+
+        y_data = np.ravel(data.values)
+
+        y_real = [np.exp(yd+np.log(baseline)) for yd in y_data]
+
+        y_real = pd.DataFrame(y_real,columns=data.columns)
+
+    elif isinstance(data,np.ndarray) or isinstance(data,list):
+
+        y_data = np.ravel(data)
+
+        y_real = np.ravel([np.exp(yd+np.log(baseline)) for yd in y_data])
+
+
+    if floor and isinstance(data,pd.DataFrame):
+
+        y_real = y_real - y_real.iloc[0,:]
+
+    elif floor and (isinstance(data,np.ndarray) or isinstance(data,list)):
+
+        y_real = y_real - y_real[0]
+
+    return y_real
 
 
 def buildRbfKernel(x):

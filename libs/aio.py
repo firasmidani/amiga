@@ -1994,7 +1994,7 @@ def saveFitData(plate,args,directory,filename):
     if args['plot']:  # plot OD and its GP estimate
 
         fig_path = assembleFullName(directory['figures'],'',filename,'fit','.pdf')
-        plate.plot(fig_path,plot_fit=True)
+        plate.plot(fig_path,plot_fit=True,plot_derivative=False)
 
     if args['pd']:  # plot GP estimate of dOD/dt (i.e. derivative)
 

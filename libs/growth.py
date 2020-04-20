@@ -293,6 +293,8 @@ class GrowthPlate(object):
             data = self.derivative_prediction
         elif plot_raw:
             data = self.input_data
+        elif plot_fit:
+            data = self.floored_real_input
         else:
             data = self.data
 
@@ -304,6 +306,9 @@ class GrowthPlate(object):
         # define window axis limits
         ymax = np.ceil(data.max(1).max())
         ymin = np.floor(data.min(1).min())
+
+        if plot_fit:
+            ymin = 0
 
         xmin = 0
         xmax = time.values[-1]
@@ -333,7 +338,7 @@ class GrowthPlate(object):
 
             # add fit lines, if desired
             if plot_fit:
-                y_fit = self.prediction.loc[:,well].values
+                y_fit = self.floored_real_prediction.loc[:,well].values
                 ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=10)
 
             # show tick labels for bottom left subplot only, so by default no labels
@@ -489,7 +494,7 @@ class GrowthPlate(object):
             sample_growth = self.extractGrowthData(args_dict)
 
             # create GP object and analyze
-            gp = agp.GP(sample_growth.time,sample_growth.data)
+            gp = agp.GP(sample_growth.time,sample_growth.data,sample_growth.key)
             gp.describe(diauxie_thresh=diauxie_thresh)
             gp_params = gp.params
 
@@ -524,9 +529,11 @@ class GrowthPlate(object):
         # plotting needs raw OD & GP fit, and may need GP derivative, save all as obejct's attributes
         if plot:
             data_df = pd.concat(data_ls).reset_index(drop=True)
+            input_df = data_df.pivot(columns='Sample_ID',index='Time',values='OD')
             pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')
             derivative_df = data_df.pivot(columns='Sample_ID',index='Time',values='Derivative')
-            self.prediction = pred_df
+            self.floored_real_input = input_df
+            self.floored_real_prediction = pred_df
             self.derivative_prediction = derivative_df
 
         return None
