@@ -150,6 +150,11 @@ class GrowthPlate(object):
         '''
 
         mapping = self.key.copy()
+
+        # if mapping lacks group and control columns skip
+        if ('Group' not in mapping.keys()) or ('Control' not in mapping.keys()):
+            return None            
+
         df = self.input_data.copy()  # timepoints by wells, input data that remains unmodified
 
         # subtract first time point from each column (i.e. wells) 
@@ -168,6 +173,10 @@ class GrowthPlate(object):
             # grab lists of Sample_ID of wells corresponding to control and cases
             controls = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
             cases = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
+
+            # if group does not have a control, skip
+            if len(controls)==0:
+                continue
 
             df_controls = df.loc[:,controls]
             df_cases = df.loc[:,cases]
@@ -247,6 +256,7 @@ class GrowthPlate(object):
 
         if len(expc_wells.intersection(list_wells)) == 96:
             return True
+
 
     def saveKey(self,save_path):
         '''
@@ -359,7 +369,7 @@ class GrowthPlate(object):
 
        # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
-        plt.setp(axes[7,0],yticks=[ymin,0,ymax],yticklabels=[ymin,0,ymax])
+        plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
 
         # add x- and y-labels and title
         ylabel_base = misc.getValue('grid_plot_y_label')

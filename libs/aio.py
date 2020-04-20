@@ -128,6 +128,7 @@ def parseCommand(config):
     parser.add_argument('-nt','--time-points-skips',action='store',type=int,default=11)
     parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=20)
     parser.add_argument('--merge-summary',action='store_true',default=False)
+    parser.add_argument('--normalize-parameters',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--only-basic-summary',action='store_true',default=False)
     parser.add_argument('--save-all-data',action='store_true',default=False)
@@ -152,6 +153,7 @@ def parseCommand(config):
     args_dict['nthin'] = args.time_points_skips
     args_dict['fdr'] = args.false_discovery_rate
     args_dict['merge'] = args.merge_summary
+    args_dict['norm'] = args.normalize_parameters
     args_dict['pd'] = args.plot_derivative
     args_dict['obs'] = args.only_basic_summary
     args_dict['sad'] = args.save_all_data
@@ -2011,6 +2013,52 @@ def saveFitData(plate,args,directory,filename):
 
     return None
 
+def normalizeParameters(to_do,df):
+    '''
+    Normalizes growth parameters to control samples. 
+
+    Args:
+        to_do (boolean): whether to run internal code or not
+        df (pandas.DataFrame): rows are samples, columns are experimental variables. Must include
+            Plate_ID, Group, Control, auc, k, gr, dr, td, lag.
+
+    Returns:
+        df (pandas.DataFrame): input but with an additional 6 columns.
+    '''
+
+    if not to_do:
+        return df
+    
+    df_orig = df.copy()
+    df_orig_keys = df_orig.columns 
+    
+    params = ['auc','k','gr','dr','td','lag']
+    params_norm = ['norm_{}'.format(pp) for pp in params]
+    params_keep = ['Group','Control'] + params
+    
+    df = df.loc[:,['Plate_ID']+params_keep]
+    
+    for pid in df.Plate_ID.unique():
+        
+        df_plate = df[df.Plate_ID==pid].loc[:,params_keep]
+        
+        for group in df_plate.Group.unique():
+            
+            df_group = df_plate[df_plate.Group == group].astype(float)
+
+            df_group = df_group / df_group[df_group.Control==1].mean()
+                        
+            df.loc[df_group.index,params_keep] = df_group.loc[:,params_keep]
+            
+    df = df.loc[:,params]
+    df.columns = params_norm
+    
+    df = df_orig.join(df)
+
+    print(df.head())
+            
+    return df     
+
 
 def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
     '''
@@ -2063,8 +2111,11 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
         # perform systematic GP regression on substrates against control, if requested by user
         sub_plate = performSubstrateRegresssion(args['psr'],sub_plate,args,directory)
 
-        # format name and save
+        # normalize parameters, if requested
         df = sub_plate.key
+        df = normalizeParameters(args['norm'],df)
+
+        # format name and save
         df_path = assemblePath(directory['summary'],pid,'.txt')       
         df.to_csv(df_path,sep='\t',header=True,index=True)
 

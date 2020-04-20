@@ -89,6 +89,10 @@ Accepts an integer and defines the False Discovery Rate (FDR) threshold used in 
 
 Instead of plate-specific summary files, a single summary file will be reported in the `summary` folder.
 
+**\-\-normalize-parameters**
+
+A boolean argument that will normalize growth parameters of each well in a place relative to its group-specific control sample(s).
+
 **\-\-plot-derivative**
 
 A boolean argument that would save grid plots for 96-well plates of the estimated rate of change of OD in each well. Values above zero correspond to positive rate of change (i.e. growth or increase in OD) and values below zero correspond to negative rate of change (i.e. death or reduction in OD). See [Summarizing & Plotting Data](/amiga/doc/plotting.html) for more details on the colors in plots.
