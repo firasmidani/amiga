@@ -2054,8 +2054,6 @@ def normalizeParameters(to_do,df):
     df.columns = params_norm
     
     df = df_orig.join(df)
-
-    print(df.head())
             
     return df     
 
@@ -2100,7 +2098,8 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
 
         # grab plate-specific summary
         sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
-        sub_plate.model(args['plot'],diauxie_thresh=config['diauxie'])  # run model 
+        sub_plate.model(args['plot'],
+            dx_ratio_min=config['diauxie_peak_ratio'],dx_fc_min=config['diauxie_fc_min'])  # run model 
 
         # saveing transformed data, if requested by user
         saveInputData(args['std'],sub_plate,directory['derived'],'',pid,'transformed','.txt',False,False)

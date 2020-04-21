@@ -477,7 +477,7 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-    def model(self,plot=False,diauxie_thresh=0.25):
+    def model(self,plot=False,dx_ratio_min=0.25,dx_fc_min=1.5):
         '''
         Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
 
@@ -505,7 +505,7 @@ class GrowthPlate(object):
 
             # create GP object and analyze
             gp = agp.GP(sample_growth.time,sample_growth.data,sample_growth.key)
-            gp.describe(diauxie_thresh=diauxie_thresh)
+            gp.describe(dx_ratio_min=dx_ratio_min,dx_fc_min=dx_fc_min)
             gp_params = gp.params
 
             # directly record select parameters in dataframe

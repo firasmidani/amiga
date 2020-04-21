@@ -239,8 +239,6 @@ class GP(object):
 
         self.k = (mu,var,ind)
 
-        #print('estimating k',mu)
-
         return self.k
 
     def estimate_real_k(self):
@@ -311,18 +309,21 @@ class GP(object):
         return self.lag
 
 
-    def estimate_diauxie(self,ratio_max=0.25,x_as_time=True):
+    def estimate_diauxie(self,ratio_min=0.25,fc_min=1.5,x_as_time=True):
         '''
         Detects if diauxie occurs and determines the time at which growth phases are centered.
 
         Args:
-            ratio_max (float): only peaks with ratio of counter height relative to maximum peak are called.
+            ratio_min (float): only peaks with ratio of counter height relative to maximum peak are called.
             x_as_time (boolean): return x-values either as time-points (True) or simply numerical index (False).
 
         Returns:
             self.diauxie (int): binary {0,1}, whether diauxic shift detected for object or not.
             self.peaks (list of floats): time points at which peaks where detected.
         '''
+
+        # get fold-change from key, used to call diauxie
+        fold_change = self.key.Fold_Change.values[0]
 
         # point to data needed for function
         time = self.x.values
@@ -358,7 +359,7 @@ class GP(object):
         # only keep peaks with height that are at least a certain ratio relative to maximum peak
         peaks = []
         for x,y in zip(x_ind,y_ind):
-            if y > ratio_max:
+            if y > ratio_min:
                 peaks.append(x)
 
         # save either as indices or time-points
@@ -367,12 +368,12 @@ class GP(object):
         else:
             self.peaks = list(np.ravel(peaks))
 
-        self.diauxie = [1 if len(self.peaks)>1 else 0][0]
+        self.diauxie = [1 if (len(self.peaks)>1) and (fold_change>fc_min)  else 0][0]
 
         return self.diauxie, self.peaks
 
 
-    def describe(self,diauxie_thresh=0.25):
+    def describe(self,dx_ratio_min=0.25,dx_fc_min=1.5):
         '''
         Complete growth curve analysis that includes fitting data to a Gaussian Process, predicting best fit of data, 
         predicting best fit for derivative of data, and inferring growth curve kinetic parametrs.
@@ -397,7 +398,9 @@ class GP(object):
         params['dr'] = self.estimate_dr()[0]
         params['td'] = self.estimate_td()
         params['lag'] = self.estimate_lag()
-        params['diauxie'],params['peaks'] = self.estimate_diauxie(ratio_max=diauxie_thresh,x_as_time=True)
+
+        dx,dx_peaks = self.estimate_diauxie(ratio_min=dx_ratio_min,fc_min=dx_fc_min,x_as_time=True)
+        params['diauxie'],params['peaks'] = dx,dx_peaks
 
         self.params = params
 
@@ -584,13 +587,13 @@ def computeLikelihood(df,variables,permute=False):
     return LL
 
 
-def callPeaks(x_data,ratio_max=0.2):
+def callPeaks(x_data,ratio_min=0.2):
     '''
     Detects peaks in 1-dimensional data and calls them based on their height relative to primary peak
 
     Args:
         x_data (list or numpy.ndarray) of float values
-        ratio_max (float): minimum allowed ratio of secondary peak heights to maximum primary peak height
+        ratio_min (float): minimum allowed ratio of secondary peak heights to maximum primary peak height
     '''
 
     called_peaks = []
@@ -612,7 +615,7 @@ def callPeaks(x_data,ratio_max=0.2):
 
     # call rest of seconday peaks based on their ratio to maximum peak
     for pp,hh in zip(peaks,peak_heights):
-        if hh > ratio_max*max_height:
+        if hh > ratio_min*max_height:
             called_peaks.append(pp)
             called_heights.append(hh)
 

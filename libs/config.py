@@ -11,8 +11,9 @@ __email__ = "midani@bcm.edu"
 config = {}
 
 # default time interval between OD measurments is set to 600 seconds
-config['interval'] = 600  # seconds only
+config['interval'] = 600  # seconds only 
 
+# acceptable values are seconds, minutes, or hours
 config['time_input_unit'] = 'seconds'
 config['time_output_unit'] = 'hours'
 
@@ -37,7 +38,8 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 config['grid_plot_y_label'] = 'Optical Density (620 nm)'
 
 # diaxuic shift paramters
-config['diauxie'] = 0.333  # minimum ratio relative to maximum peak for each growth phase
+config['diauxie_peak_ratio'] = 0.20  # minimum ratio relative to maximum peak for each growth phase
+config['diauxie_fc_min'] = 1.5  # minimum Fold-Change value for diauxie shifts to be called
 
 # hypothesis testing plot colors
 config['hypo_colors']  = [(0.0,0.0,1.0),(1.0,0.0,0.0)]
