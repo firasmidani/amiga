@@ -13,17 +13,17 @@ To see the full list of arguments that `AMiGA` will accept, you can pass it the 
 python main.py --help
 ```
 
-which will reveal the followin g message
+which will reveal the following message
 
 ```bash
 usage: main.py [-h] -i INPUT [-f FLAG] [-s SUBSET] [-y HYPOTHESIS]
                [-t INTERVAL] [-p] [-v] [-np NUMBER_PERMUTATIONS]
                [-nt TIME_POINTS_SKIPS] [-fdr FALSE_DISCOVERY_RATE]
-               [--merge-summary] [--plot-derivative] [--only-basic-summary]
-               [--save-all-data] [--save-derived-data] [--save-fitted-data]
-               [--save-transformed-data] [--only-print-defaults]
-               [--perform-substrate-regression] [--dont-subtract-control]
-               [-o OUTPUT]
+               [--merge-summary] [--normalize-parameters] [--plot-derivative]
+               [--only-basic-summary] [--save-all-data] [--save-derived-data]
+               [--save-fitted-data] [--save-transformed-data]
+               [--only-print-defaults] [--perform-substrate-regression]
+               [--dont-subtract-control] [-o OUTPUT]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,6 +38,7 @@ optional arguments:
   -nt TIME_POINTS_SKIPS, --time-points-skips TIME_POINTS_SKIPS
   -fdr FALSE_DISCOVERY_RATE, --false-discovery-rate FALSE_DISCOVERY_RATE
   --merge-summary
+  --normalize-parameters
   --plot-derivative
   --only-basic-summary
   --save-all-data
