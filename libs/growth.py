@@ -516,8 +516,6 @@ class GrowthPlate(object):
 
             # passively save to data, manipulation occurs below (input OD, GP fit, & GP derivative)
             data_ls.append(gp.data(sample_id))
-            (gp.data(sample_id)).to_csv('/Users/firasmidani/Downloads/2020_04_07/{}.txt'.format(sample_id),
-                sep='\t',header=True,index=True)
 
         # maximum number of growth phases based on diauxic shift detection
         max_n_peaks = np.max([len(ii[2]) for ii in diauxie_ls])
