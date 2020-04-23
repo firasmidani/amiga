@@ -1973,7 +1973,7 @@ def mergedGrowthFitting(plate,directory,args,config,ts):
 
     # running model on transformed results and recording results
     file_path = assembleFullName(directory['summary'],'summary',ts,'','.txt')
-    plate.model(diauxie_thresh=config['diauxie'])  # run model
+    plate.model(False,dx_ratio_min=config['diauxie_peak_ratio'],dx_fc_min=config['diauxie_fc_min'])  # run model
     plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save model results
 
     return None
