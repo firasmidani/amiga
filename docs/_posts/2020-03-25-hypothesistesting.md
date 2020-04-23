@@ -62,10 +62,10 @@ This indicates that the log Bayes Factor is 750.772 and much higher than the 20%
 
 Recall, that
 
-$$\text{Bayes Factor} = \exp{\log \text{Bayes Factor}} = \exp{750.722} = 1.44$$
+$$\text{Bayes Factor} = \exp{\log \text{Bayes Factor}} = \exp{(750.722)} $$
 
 and
 
 $$\text{Bayes Factor} = \frac{P(H1|D)}{P(H0|D)}$$
 
-Therefore, the analysis suggest that alternative hypothesis that strain differences contributes to differences in growth is more supported than the null hypothesis that only time explains variations in optical density measurements. However, because the FDR is set to 20% and because the estimated models do not visually differ, you believe these minute differences detected by the GP regression are more likely explained by batch effects (i.e. random noise).
+Therefore, the analysis suggest that alternative hypothesis that strain differences contributes to differences in growth is more supported than the null hypothesis that only time explains variations in optical density measurements.
