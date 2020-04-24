@@ -127,4 +127,5 @@ Please follow these instructions to install all requirements. See `amiga/require
 - If you are using `Anaconda` and `GPy` installation fails or results in an error, you can try:
 
     `conda config --add channels conda-forge`
+    
     `conda install -c conda-forge gpy`
