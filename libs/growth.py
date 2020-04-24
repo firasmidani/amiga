@@ -477,12 +477,12 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-    def model(self,plot=False,dx_ratio_min=0.25,dx_fc_min=1.5):
+    def model(self,store=False,dx_ratio_min=0.25,dx_fc_min=1.5):
         '''
         Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
 
         Args:
-            plot (boolean): if True, certain data will be store as object's attributes
+            store (boolean): if True, certain data will be store as object's attributes
             diauxie (float): ratio of peak height (relative to maximum) used to call if diauxie occured or not
 
         Actions:
@@ -535,7 +535,7 @@ class GrowthPlate(object):
         self.key = self.key.join(diauxie_df) 
 
         # plotting needs raw OD & GP fit, and may need GP derivative, save all as obejct's attributes
-        if plot:
+        if store:
             data_df = pd.concat(data_ls).reset_index(drop=True)
             input_df = data_df.pivot(columns='Sample_ID',index='Time',values='OD')
             pred_df = data_df.pivot(columns='Sample_ID',index='Time',values='Fit')

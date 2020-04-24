@@ -122,8 +122,9 @@ Please follow these instructions to install all requirements. See `amiga/require
 
     `pip install -r requirements.txt`
 
-    `conda install -r requirements.txt`  only if you are using `Anaconda`.
+    `conda install -f requirements.txt`  only if you are using `Anaconda`.
 
 - If you are using `Anaconda` and `GPy` installation fails or results in an error, you can try:
 
+    `conda config --add channels conda-forge`
     `conda install -c conda-forge gpy`

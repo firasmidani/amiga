@@ -1968,13 +1968,25 @@ def mergedGrowthFitting(plate,directory,args,config,ts):
         None
     '''
 
+    if args['sfd'] or args['plot'] or args['pd']:
+        store = True
+
     # saveing transformed data, if requested by user
     saveInputData(args['std'],plate,directory['derived'],'transformed',ts,'','.txt',False,False)
 
     # running model on transformed results and recording results
+    plate.model(store,dx_ratio_min=config['diauxie_peak_ratio'],dx_fc_min=config['diauxie_fc_min'])  # run model
+
+    # saving model fits [od and d(od)/dt] as plots and/or text files
+    saveFitData(plate,args,directory,ts)
+
+    # normalize parameters, if requested
+    df = plate.key
+    df = normalizeParameters(args['norm'],df)
+
+    # format name and save
     file_path = assembleFullName(directory['summary'],'summary',ts,'','.txt')
-    plate.model(False,dx_ratio_min=config['diauxie_peak_ratio'],dx_fc_min=config['diauxie_fc_min'])  # run model
-    plate.key.to_csv(file_path,sep='\t',header=True,index=True)  # save model results
+    df.to_csv(file_path,sep='\t',header=True,index=True)  # save model results
 
     return None
 
@@ -2006,7 +2018,7 @@ def saveFitData(plate,args,directory,filename):
     if args['sfd']:
 
         file_path = assembleFullName(directory['derived'],'',filename,'fit','.txt')
-        plate.prediction.to_csv(file_path,sep='\t',header=True,index=True)
+        plate.floored_real_prediction.to_csv(file_path,sep='\t',header=True,index=True)
 
         file_path = assembleFullName(directory['derived'],'',filename,'derivative','.txt')
         plate.derivative_prediction.to_csv(file_path,sep='\t',header=True,index=True) 
@@ -2098,7 +2110,11 @@ def runGrowthFitting(data,mapping,directory,args,config,verbose=False):
 
         # grab plate-specific summary
         sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
-        sub_plate.model(args['plot'],
+
+        if args['sfd'] or args['plot'] or args['pd']:
+            store = True
+
+        sub_plate.model(store,
             dx_ratio_min=config['diauxie_peak_ratio'],dx_fc_min=config['diauxie_fc_min'])  # run model 
 
         # saveing transformed data, if requested by user
