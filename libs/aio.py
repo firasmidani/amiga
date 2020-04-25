@@ -626,6 +626,7 @@ def listTimePoints(interval,numTimePoints):
 
     return time_series
 
+
 def checkFileEncoding(filepath):
     '''
     Identifies the correct file encoding needed for python open() to read a text file. 
@@ -1337,7 +1338,7 @@ def trimInput(data_dict,mapping_dict,params_dict,verbose=False):
     return master_data,master_mapping
 
 
-def resetNameIndex(df,index_name,new_index=False):
+def resetNameIndex(df,index_name='',new_index=False):
     '''
     Resets and names index of a pandas.DataFrame.
 
