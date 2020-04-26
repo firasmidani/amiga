@@ -5,13 +5,23 @@ DESCRIPTION library for auxiliary functions, primarily for data structure manipu
 '''
 
 __author__ = "Firas Said Midani"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS
+# TABLE OF CONTENTS (7 functions)
+
+# subsetDf
+# resetNameIndex
+# timeStamp
+# getPlotColors
+# getTextColors
+# getValue
+# getTimeUnits
 
 import pandas as pd
+
+from datetime import datetime
 
 from libs.config import config
 
@@ -25,6 +35,44 @@ def subsetDf(df,criteria):
     '''
 
     return df[df.isin(criteria).sum(1)==len(criteria)]
+
+
+def resetNameIndex(df,index_name='',new_index=False):
+    '''
+    Resets and names index of a pandas.DataFrame.
+
+    Args:
+        df (pandas.DataFrame): index (row.names), for mapping dataframes, index should be Well IDs (e.g. A1).
+        index_name (str): name of index column, to be assigned.
+        new_index (boolean): create new index (row number) and drop current, otherwise keep index as column
+
+    Returns:
+        mapping_df (pandas.DataFrame): with an additional coulmn with the header 'Well'.
+    '''
+
+    if not new_index: 
+        df.index.name = index_name
+        df.reset_index(drop=False,inplace=True)
+
+    if new_index:
+        df.reset_index(drop=True,inplace=True)
+        df.index.name = index_name
+
+    return df
+
+
+def timeStamp():
+    '''
+    Reports the current time in a certain text format.
+
+    Returns:
+        ts (str)
+    '''
+
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    return ts
+
 
 def getPlotColors(fold_change):
     '''

@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-#
-#  package tree
-#
-#
-#  amiga
-#  |
-#  |--libs
-#  |  |--aio.py
-#     |--biolog_pm_layout.py
-#     |--config.py
 
-__all__ = ["agp.py","aio.py","aux.py","biolog_pm_layout.py","config.py","growth.py"]
+__author__ = "Firas Said Midani"
+__version__ = "0.2.0"
+__email__ = "midani@bcm.edu"
+
+# amiga/lib contents
+
+__all__ = ["analyze.py","biolog_pm_layout.py","config.py",
+           "detail.py","gp.py","growth.py","interface.py",
+	       "org.py","test.py","trim.py","utils.py"]

@@ -1,13 +1,14 @@
 #/usr/env/bin python
 
-# Firas Said Midani
-# Start date: 2018-10-09
-# Final date: 2018-10-09
+'''
+AMiGA variables that define the layout of Biolog PM Plates.
+'''
 
+__author__ = "Firas Said Midani"
+__version__  = "0.2.0"
+__email__ = "midani@bcm.edu"
 
-#### DISCLAIMER 
-
-#### ADOPTED FROM DR. JAMES COLLINS (BCM). See NewPlateReader2018.py
+#### ACKNOWELDGMENT: ADOPTED FROM DR. JAMES COLLINS (Lousiville). See NewPlateReader2018.py
 
 Carbon1 = ["Negative Control",
          "L-Arabanose",

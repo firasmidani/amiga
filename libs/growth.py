@@ -1,24 +1,41 @@
 #!/usr/bin/env python
 
 '''
-DESCRIPTION library for growth-centric objects.
+AMiGA library for the GrowthPlate class for storing and manipulting growth curve data.
 '''
 
 __author__ = "Firas Said Midani"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __email__ = "midani@bcm.edu"
 
 
 # TABLE OF CONTENTS
 
-from libs import agp,aio,misc
+# GrowthPlate (CLASS)
+#   __init__
+#   computeBasicSummary
+#   subtractControl
+#   thinMeasurements
+#   computeFoldChange
+#   convertTimeUnits
+#   logData
+#   subtractBaseline
+#   isSignleMultiWellPlate
+#   saveKey
+#   plot
+#   addLocation
+#   extractGrowthData
+#   copy
+#   model
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_style('whitegrid')
+from libs.gp import GP
+from libs.detail import parseWellLayout
+from libs.utils import subsetDf, getPlotColors, getTextColors, getValue, getTimeUnits
 
 class GrowthPlate(object):
 
@@ -104,8 +121,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+            controls = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
+            cases = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
 
             data_controls = data.loc[:,controls]
             data_cases = data.loc[:,cases]
@@ -171,8 +188,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = misc.subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
+            controls = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
+            cases = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[0]}).index.values
 
             # if group does not have a control, skip
             if len(controls)==0:
@@ -251,7 +268,7 @@ class GrowthPlate(object):
             return False
 
         # makes sure that all 96 well locations are described in key and thus data
-        expc_wells = set(aio.parseWellLayout().index.values)  # expected list of wells 
+        expc_wells = set(parseWellLayout().index.values)  # expected list of wells 
         list_wells = set(self.key.Well.values)  # actual list of wells
 
         if len(expc_wells.intersection(list_wells)) == 96:
@@ -289,6 +306,8 @@ class GrowthPlate(object):
         Action:
             if user passes save_path argument, plot will be saved as PDF in desired location 
         '''
+
+        sns.set_style('whitegrid')
 
         # make sure plate is 96-well version, otherwise skip plotting
         if not self.isSingleMultiWellPlate():
@@ -331,7 +350,7 @@ class GrowthPlate(object):
             ax = axes[r,c]
             
             # get colors based on fold-change and uration parameters
-            color_l,color_f = misc.getPlotColors(key.loc[well,'Fold_Change'])
+            color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
 
             # set window axis limits
             ax.set_xlim([xmin,xmax])
@@ -359,12 +378,12 @@ class GrowthPlate(object):
             plt.setp(ax,xticks=[xmin,xmax],xticklabels=[])
 
             # add well identifier on top left of each sub-plot
-            well_color = misc.getTextColors('Well_ID')
+            well_color = getTextColors('Well_ID')
             ax.text(0.,1.,key.loc[well,'Well'],color=well_color,
                 ha='left',va='top',transform=ax.transAxes)
 
             # add Max OD value on top right of each sub-plot
-            ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=misc.getTextColors('OD_Max'),
+            ax.text(1.,1.,"{0:.2g}".format(key.loc[well,'OD_Max']),color=getTextColors('OD_Max'),
                 ha='right',va='top',transform=ax.transAxes)
 
        # show tick labels for bottom left sub-plot only
@@ -372,7 +391,7 @@ class GrowthPlate(object):
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
 
         # add x- and y-labels and title
-        ylabel_base = misc.getValue('grid_plot_y_label')
+        ylabel_base = getValue('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
 
         if plot_derivative:
@@ -381,7 +400,7 @@ class GrowthPlate(object):
             ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
-        fig.text(0.512,0.07,'Time ({})'.format(misc.getTimeUnits('output')),fontsize=15,
+        fig.text(0.512,0.07,'Time ({})'.format(getTimeUnits('output')),fontsize=15,
             ha='center',va='bottom')
         fig.text(0.100,0.50,ylabel_text,fontsize=15,
             ha='right',va='center',rotation='vertical')
@@ -409,9 +428,9 @@ class GrowthPlate(object):
             return None
 
         if 'Well' in self.key.columns:
-            self.key = self.key.join(aio.parseWellLayout(),on='Well')
+            self.key = self.key.join(mapping.parseWellLayout(),on='Well')
         else:
-            self.key = self.key.join(aio.parseWellLayout().reset_index())
+            self.key = self.key.join(mapping.parseWellLayout().reset_index())
 
         row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'G':7,'H':8}
 
@@ -504,7 +523,7 @@ class GrowthPlate(object):
             sample_growth = self.extractGrowthData(args_dict)
 
             # create GP object and analyze
-            gp = agp.GP(sample_growth.time,sample_growth.data,sample_growth.key)
+            gp = GP(sample_growth.time,sample_growth.data,sample_growth.key)
             gp.describe(dx_ratio_min=dx_ratio_min,dx_fc_min=dx_fc_min)
             gp_params = gp.params
 

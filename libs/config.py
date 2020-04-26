@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
 '''
-DESCRIPTION configuration file for setting default parameters used by AMiGA
+AMiGA configuration file for setting and modifying default parameters used by AMiGA.
 '''
 
 __author__ = "Firas Said Midani"
-__version__  = "0.1.0"
+__version__  = "0.2.0"
 __email__ = "midani@bcm.edu"
+
+
+# NOTES
+#     colors are defined in (R,G,B,A) format where A is alpha and all values range from 0.0 to 1.0
+
 
 config = {}
 

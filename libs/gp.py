@@ -1,14 +1,37 @@
 #!/usr/bin/env python
 
 '''
-DESCRIPTION library for Gaussian Process inference of growth curves and their paramters.
+AMiGA library for the Gaussian Process class for modelling growth curves and inferring growth paramters.
 '''
 
 __author__ = "Firas Said Midani"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS
+
+# GP (CLASS)
+#   __init__
+#   fit
+#   derivative
+#   predict
+#   predict_quantiles
+#   estimate_auc
+#   estimate_real_auc
+#   estimeate_gr
+#   estimate_dr
+#   estimate_k
+#   estimate_real_k
+#   estimate_td
+#   estimate_lag
+#   estimate_diauxie
+#   describe
+#   data
+#   plot
+#
+# convert_to_real_od
+# buildRbfKernel
+# callPeaks
 
 import GPy
 import numpy as np
@@ -539,52 +562,6 @@ def buildRbfKernel(x):
         return ret
 
     return ret*ksum
-
-
-def computeLikelihood(df,variables,permute=False):
-    '''
-    Computes log-likelihood of a Gaussian Process Regression inference. Permutation is performed 
-        by shuffling the values in each variable (e.g. Substrate, PM, but not time or OD) which 
-        maintains the true value counts. 
-
-    Args:
-        df (pandas.DataFrame): N x p, where N is the nuimember of individual observations (i.e.
-            specific time measurement in specific well in specific plate), p must be include parameters
-            which will be used as independent variables in Gaussian Process Regression. These variables 
-            can be either numerical or categorical. Later will be converted to enumerated type. Variables
-            must also include both OD and Time column with values of float type.
-        variables (list of str): must be column headers in df argument.
-
-    Returns:
-        LL (float): log-likelihood
-    '''
-
-    # reduce dimensionality
-    df = df.loc[:,['OD']+variables]
-    df = df.sort_values('Time').reset_index(drop=True)  # I don't think that sorting matters, but why not
-
-    # all variables must be encoded as an enumerated type (i.e. int or float)
-    for variable in variables:
-        if (variable == 'Time'):
-            continue
-        else:
-            df.loc[:,variable] = pd.factorize(df.loc[:,variable])[0]
-
-    # define design matrix
-    y = pd.DataFrame(df.OD)
-    x = pd.DataFrame(df.drop('OD',axis=1))
-
-    # permutation test, if requested
-    if permute:
-        to_permute = [ii for ii in variables if ii!='Time'][0]
-        x_shuffled = np.random.choice(x.loc[:,to_permute],size=x.shape[0],replace=False)
-        x.loc[:,to_permute] = x_shuffled
-
-    # build and optimize model, then return maximized log-likelihood
-    opt_model = GP(x,y).fit(optimize=True);
-    LL = opt_model.log_likelihood()
-
-    return LL
 
 
 def callPeaks(x_data,ratio_min=0.2):
