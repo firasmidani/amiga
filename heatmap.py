@@ -65,7 +65,7 @@ def main():
 	df = group(df,args)
 	df = pivot(df,args)
 	df = reduceDf(df,args)
-	plot(df,args,directory)
+	#plot(df,args,directory)
 	clusterMap(df,args,directory)
 
 
@@ -152,14 +152,14 @@ def clusterMap(df,args,directory):
 	def dekwarg(ii):
 		key = ii.split(':')[0]
 		value = ii.split(':')[1]
-		if value.isnumeric():
+		if value.replace('.','',1).isdigit():
 			value = float(value)
 		return key,value
 
 	ny,nx = df.shape
 	figsize=[nx*2+6,ny*0.5+3]
 
-	kwargs = {'row_cluster':True,'col_cluster':False,'figsize':figsize}
+	kwargs = {'row_cluster':False,'col_cluster':False,'figsize':figsize}
 
 	if args['kwargs']:
 		h_kwargs = args['kwargs'].split(';')
@@ -199,7 +199,7 @@ def plot(df,args,directory):
 	def dekwarg(ii):
 		key = ii.split(':')[0]
 		value = ii.split(':')[1]
-		if value.isnumeric():
+		if value.replace('.','',1).isdigit():
 			value = float(value)
 		return key,value
 
