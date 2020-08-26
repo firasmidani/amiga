@@ -1,0 +1,17 @@
+Plate_ID	Species	Strain	Isolate	PM	Replicate
+ER1_PM1-1	E_randomii	USA_1995	ER1	1	1
+ER1_PM1-2	E_randomii	USA_1995	ER1	1	2
+ER1_PM2-1	E_randomii	USA_1995	ER1	2	1
+ER1_PM2-2	E_randomii	USA_1995	ER1	2	2
+ER2_PM1-1	E_randomii	USA_1995	ER2	1	1
+ER2_PM1-2	E_randomii	USA_1995	ER2	1	2
+ER2_PM2-1	E_randomii	USA_1995	ER2	2	1
+ER2_PM2-2	E_randomii	USA_1995	ER2	2	2
+ER3_PM1-1	E_randomii	MEX_2020	ER3	1	1
+ER3_PM1-2	E_randomii	MEX_2020	ER3	1	2
+ER3_PM2-1	E_randomii	MEX_2020	ER3	2	1
+ER3_PM2-2	E_randomii	MEX_2020	ER3	2	2
+ER4_PM1-1	E_randomii	MEX_2020	ER4	1	1
+ER4_PM1-2	E_randomii	MEX_2020	ER4	1	2
+ER4_PM2-1	E_randomii	MEX_2020	ER4	2	1
+ER4_PM2-2	E_randomii	MEX_2020	ER4	2	2
