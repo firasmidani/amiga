@@ -242,7 +242,7 @@ class GrowthModel(object):
         self.predict_y1()
         self.predict_y2()
 
-        if self.df: actual_input = self.df.OD.values[:,np.newaxis]
+        if self.df is not None: actual_input = self.df.OD.values[:,np.newaxis]
         else: actual_input = None
 
         if simple == False:

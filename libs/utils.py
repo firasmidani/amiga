@@ -25,6 +25,7 @@ __email__ = "midani@bcm.edu"
 # getHypoPlotParams
 # reverseDict
 
+import os
 import pandas as pd
 import string
 import random
@@ -82,8 +83,12 @@ def concatFileDfs(ls_files):
     Returns (pandas.DataFrame)
     '''
 
-    df = []
+    ls_files = [lf for lf in ls_files if os.path.exists(lf)]
 
+    if not ls_files: return pd.DataFrame() # if no files exist, return empty dataframe
+
+    df = []
+    
     for lf in ls_files: df.append(pd.read_csv(lf,sep='\t',header=0,index_col=0))
 
     return pd.concat(df,sort=False)
