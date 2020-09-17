@@ -37,7 +37,7 @@ from tabulate import tabulate
 from libs import biolog
 from libs.comm import smartPrint
 from libs.org import assembleFullName, assemblePath
-from libs.util import subsetDf
+from libs.utils import subsetDf
 
 
 def assembleMappings(data,mapping_path,meta_path,save=False,verbose=False):
