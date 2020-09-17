@@ -61,15 +61,15 @@ Substrate......['L-Lactic Acid']
 The following hypothesis was tested on the data:
 {'H0': ['Time'], 'H1': ['Time', 'Strain']}
 
-log Bayes Factor: 750.772 (0.0-percentile in null distribution based on 100 permutations)
+log Bayes Factor: 750.522 (0.0-percentile in null distribution based on 100 permutations)
 
-For P(H1|D) > P(H0|D) and FDR <= 20%, log BF must be > 0.179
-For P(H0|D) > P(H1|D) and FDR <= 20%, log BF must be < -4.34e-06
+For P(H1|D) > P(H0|D) and FDR <= 10%, log BF must be > 0.696
+For P(H0|D) > P(H1|D) and FDR <= 10%, log BF must be < -4.34e-06
 
 Data Manipulation: Input was reduced to 34 time points. Samples were normalized to relevant control samples before modelling.
 ```
 
-This indicates that the log Bayes Factor is 750.772 and much higher than the 20% FDR threshold of 0.179. You are every confident that Lactic Acid supports the growth of the MEX_2020 strain but not the USA_1995 strain.
+This indicates that the log Bayes Factor is 750.522 and much higher than the 10% FDR threshold of 0.696. You are every confident that Lactic Acid supports the growth of the MEX_2020 strain but not the USA_1995 strain.
 
 Recall, that
 

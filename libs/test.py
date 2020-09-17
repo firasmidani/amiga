@@ -773,12 +773,14 @@ class HypothesisTest(object):
             sc_msg = 'Samples were modeled without controlling for batch effects '
             sc_msg += '(i.e. normalizing to group/batch-specific control samples).'
 
+        nthin = len(np.unique(self.model.x[:,0]))
+
         msg = 'The following criteria were used to subset data:\n'
         msg += tidyDictPrint(self.params['subset'])
         msg += '\n'
         msg += self.msg
         msg += '\nData Manipulation: Input was reduced to '
-        msg += '{} time points. {}'.format(self.ntimepoints,sc_msg)
+        msg += '{} time points. {}'.format(nthin,sc_msg)
         self.msg = msg
 
         # compact report of results
