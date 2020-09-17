@@ -207,6 +207,8 @@ class HypothesisTest(object):
         
         mm = updateMappingControls(mm,mapping_dict,to_do=sc).dropna(1)
         
+        self.master_mapping = mm
+        self.subtract_control = sc
 
     def defineData(self,data_dict=None):
 
@@ -244,7 +246,6 @@ class HypothesisTest(object):
 
         self.plate = plate
         self.ntimepoints = plate.time.shape[0]
-
 
     def tidifyRegressionData(self):
         '''
@@ -675,8 +676,8 @@ class HypothesisTest(object):
             # if variable has only 2 values and if requested, plot delta OD
             if (len(list_values) != 2) or (not self.args['pdo']):
                 fig.delaxes(ax[1])
-                delta_od_sum_1 = None
-                delta_od_sum_2 = None
+                dos1 = None
+                dos2 = None
             else:
                 df,dos1,dos2 = computeFullDifference(x_full,variable,confidence,posterior,posterior_n,noise)
                 ax[1] = plotDeltaOD(ax[1],df,ylabel=True,xlabel=True,fontsize=fontsize)

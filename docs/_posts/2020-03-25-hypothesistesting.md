@@ -15,7 +15,7 @@ use_math: true
 **Example One**
 
 ```bash
-python amiga.py -i /home/outbreaks/erandomii/ -s Isolate:ER1;PM:1;Substrate:Negative Control,alpha-D-glucose -y H0:Time;H1:Time+Substrate
+python amiga.py -i /home/outbreaks/erandomii/ -s Isolate:ER1;PM:1;Substrate:Negative Control,alpha-D-glucose -y H0:Time;H1:Time+Substrate -tss 10
 ```
 
 Here, we first reduced our data set only to the growth curves of the isolate `ER1` in `PM1` plates on `Negative Control` (i.e. no carbon) and `alpha-D-glucose` wells. We then test the null hypothesis (`H0`) that only `Time` variable explains variation in OD against the alternative hypothesis (`H1`) that both `Time` and `Substrate` variables explain the variation in OD.
