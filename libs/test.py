@@ -554,6 +554,9 @@ class HypothesisTest(object):
         posterior = self.args['slf']
         noise = self.args['noise']
 
+        dos1 = None
+        dos2 = None
+
         if self.args['dp']: return None
 
         # only plot if certain conditions are met
@@ -814,7 +817,7 @@ def computeFullDifference(x_diff,variable,confidence,noise=False):
         x_diff (pandas.DataFrame): must include columns of Time, mu (mean of latent 
             function), Sigma (diagonal covariance of latent function)
         variable (str): variable of interest, must be a column name in x_diff
-        confidence (float [0.0,1.0]): confidence interval, e.g. 0.975 for 95%.
+        confidence (float [0.0,1.0]): confidence interval, e.g. 0.95 for 95%.
         n (int): number of samples from posterior distribution
         posterior (boolean), whether to sample from posterior distribution
         noise (boolean): whether to plot 95-pct credibel intervals including sample uncertainty
