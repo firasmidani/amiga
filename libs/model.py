@@ -11,7 +11,7 @@ __email__ = "midani@bcm.edu"
 
 # describeVariance
 # 
-# Mode (CLASS)
+# Model (CLASS)
 #   __init__
 #   permute
 #   fit

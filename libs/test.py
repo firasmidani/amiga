@@ -241,7 +241,6 @@ class HypothesisTest(object):
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
         plate.subtractControl(to_do=self.subtract_control,drop=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
-        #plate.thinMeasurements(thinning_step)
 
         self.plate = plate
         self.ntimepoints = plate.time.shape[0]
@@ -807,7 +806,7 @@ class HypothesisTest(object):
         fid.close()
 
 
-def computeFullDifference(x_diff,variable,confidence,posterior,n,noise=False):
+def computeFullDifference(x_diff,variable,confidence,noise=False):
     '''
     Computes the full difference between two latent function (modelling growth curves).
 
@@ -815,10 +814,10 @@ def computeFullDifference(x_diff,variable,confidence,posterior,n,noise=False):
         x_diff (pandas.DataFrame): must include columns of Time, mu (mean of latent 
             function), Sigma (diagonal covariance of latent function)
         variable (str): variable of interest, must be a column name in x_diff
-        confidence (float [0.0,1.0]): confidence interval, e.g. 0.95 for 95%.
+        confidence (float [0.0,1.0]): confidence interval, e.g. 0.975 for 95%.
         n (int): number of samples from posterior distribution
-        eirorposterior (boolean), whether to sample from posterior distribution
-        noise (boolean): whetehr to plot 95-pct credibel intervals including sample uncertainty
+        posterior (boolean), whether to sample from posterior distribution
+        noise (boolean): whether to plot 95-pct credibel intervals including sample uncertainty
 
     Returns:
         df (pandas.DataFrame)

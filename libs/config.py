@@ -4,7 +4,7 @@
 AMiGA configuration file for setting and modifying default parameters used by AMiGA.
 '''
 
-__author__ = "Firas Said Midani"
+__author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
