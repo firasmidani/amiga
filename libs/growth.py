@@ -93,8 +93,11 @@ class GrowthPlate(object):
         self.key = key.copy()
         self.gp_data = gp_data
 
-        self.mods = pd.DataFrame(columns=['logged','floored','controlled','raised'],index=['status'])
-        self.mods = self.mods.apply(lambda x: False) 
+        if mods is None:
+            self.mods = pd.DataFrame(columns=['logged','floored','controlled','raised'],index=['status'])
+            self.mods = self.mods.apply(lambda x: False) 
+        else:
+            self.mods = mods
 
         assert type(key) == pd.DataFrame, "key must be a pandas DataFrame"
         assert (self.data.shape[1]) == (self.key.shape[0]), "key must contain mapping data for all samples"
@@ -291,10 +294,8 @@ class GrowthPlate(object):
 
         if poly:
             p,ind = (3,5) #(polynomial degrees, num time points to use)
-            if groupby is None:
-                groups = {None:tuple(self.key.index)}
-            else:
-                groups = self.key.groupby(groupby).groups
+            if groupby is None:  groups = {None:tuple(self.key.index)}
+            else: groups = self.key.groupby(groupby).groups
 
             time = self.time.iloc[:ind].values.ravel()
 
@@ -307,7 +308,8 @@ class GrowthPlate(object):
         else:
             baseline = self.data.iloc[0,:]
             self.data = self.data.apply(lambda x: x - baseline,axis=1)
-            self.mods.floored = True
+
+        self.mods.floored = True
 
 
     def isSingleMultiWellPlate(self):
@@ -370,7 +372,7 @@ class GrowthPlate(object):
 
         time = self.time
 
-        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max']
+        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
         key = self.key.reindex(cols,axis='columns',)
         key = key.dropna(axis=1,how='all')
         if 'Sample_ID' in key.columns:
@@ -443,10 +445,14 @@ class GrowthPlate(object):
             ax.text(0.,1.,key.loc[well,'Well'],color=well_color,ha='left',va='top',transform=ax.transAxes)
 
             # add Max OD value on top right of each sub-plot
-            ax.text(1.,1.,"{0:.2f}".format(key.loc[well,'OD_Max']),
+            if self.mods.floored:
+                od_max = key.loc[well,'OD_Max'] - key.loc[well,'OD_Baseline']
+            else:
+                od_max = key.loc[well,'OD_Max']
+            ax.text(1.,1.,"{0:.2f}".format(od_max),
                 color=getTextColors('OD_Max'),ha='right',va='top',transform=ax.transAxes)
 
-       # show tick labels for bottom left sub-plot only
+        # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
 
