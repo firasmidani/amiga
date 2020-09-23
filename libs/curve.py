@@ -210,7 +210,7 @@ class GrowthCurve(object):
         dt = np.mean(self.x[1:,0]-self.x[:-1,0])  # time interval (int)
 
         mu_Log = self.y0 # get log or linear OD
-        mu_Lin = self.linear_output_raised # get log or linear OD
+        mu_Lin = self.linear_output # get log or linear OD
 
         D_Log = np.repeat(dt,mu_Log.shape[0]).T  # area under each interval (np.ndarray), size is (x.shape[0],)
         D_Lin = np.repeat(dt,mu_Lin.shape[0]).T  # area under each interval (np.ndarray), size is (x.shape[0],)
@@ -226,6 +226,7 @@ class GrowthCurve(object):
 
         self.K_log, self.t_K = maxValueArg(self.x,self.y0)
         self.K_lin, self.t_K = maxValueArg(self.x,self.linear_output)
+
 
     def MaxGrowthRate(self):
         '''

@@ -42,13 +42,15 @@ def describeVariance(df,time='X0',od='Y'):
 
     window = getValue('variance_smoothing_window')
     
+    df = df.sort_values('Time')
     df.reset_index(drop=True,inplace=True)
-    
+
     nX = len(df[time].drop_duplicates())
     nS = int(df.shape[0]/nX)
         
     sid =  pd.DataFrame(np.ravel([np.arange(nS)]*nX),columns=['SID'])
     df = df.join(sid)
+
     tmp = pd.pivot(df,index=time,columns='SID',values=od)
     if window < 1:  window = int(np.ceil(nX*window))
 
@@ -88,7 +90,6 @@ class GrowthModel(object):
             self.y = None
             self.df = None
             return None
-
 
         self.df = df.copy()
 

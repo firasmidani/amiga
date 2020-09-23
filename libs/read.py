@@ -166,7 +166,7 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     df.columns = listTimePoints(interval=interval,numTimePoints=df.shape[1])
 
     # if index column is absent, create one 
-    if index_col == None:
+    if index_col is None:
         nrows = df.shape[0]
         df.index = parseWellLayout(order_axis=0).index[0:nrows].values
 

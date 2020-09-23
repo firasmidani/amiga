@@ -134,13 +134,14 @@ def checkBiologSize(df,filename):
     If a Plate_ID or meta.txt suggest a file corresponds to a BIOLOG PM, double check
         that it is at least a 96-well plate. 
     '''
-
     if df.shape[1] != 97: # (96 wells + 1 time) = 97 columns
 
-        msg = 'The file "{}" is not a 96-well plate. '.format(filename)
-        msg += 'However, either the file name or its information in meta.txt '
+        msg = 'The file "{}" is not formatted as a 96-well plate. '.format(filename)
+        msg += 'Either the file name or its information in meta.txt '
         msg += 'suggsts that it is a BIOLOG PM plate. Please either correct the name '
-        msg += 'of the file or correct its meta-data. See documentation for more details.'
+        msg += 'of the file, the contents of the file, or correct its meta-data. '
+        msg += 'If your file is missing Well IDs, you will need to add them in the first column. '
+        msg += 'See documentation for more details.'
 
         sys.exit(msg)
 

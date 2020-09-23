@@ -114,8 +114,6 @@ def reduceDf(df,args):
 		
 		ls_df.append(df[df.apply(lambda x: outer(op(x,float(thresh))),axis=axis)])
 
-
-
 	df = pd.concat(ls_df,axis=0,sort=False)
 
 	return df
@@ -154,6 +152,8 @@ def clusterMap(df,args,directory):
 		value = ii.split(':')[1]
 		if value.replace('.','',1).isdigit():
 			value = float(value)
+		elif value in ['True','False']:
+			value = bool(value)
 		return key,value
 
 	ny,nx = df.shape
@@ -166,7 +166,7 @@ def clusterMap(df,args,directory):
 		h_kwargs = [dekwarg(ii) for ii in h_kwargs]
 		h_kwargs = {k:v for k,v in h_kwargs}
 		kwargs.update(h_kwargs)
-
+	
 	c = sns.clustermap(df,**kwargs)
 
 	kwargs = {'xlabel':'',
@@ -201,6 +201,8 @@ def plot(df,args,directory):
 		value = ii.split(':')[1]
 		if value.replace('.','',1).isdigit():
 			value = float(value)
+		elif value in ['True','False']:
+			value = bool(value)
 		return key,value
 
 	ny,nx = df.shape

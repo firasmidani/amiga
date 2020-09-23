@@ -415,7 +415,11 @@ class GrowthPlate(object):
             ax = axes[r,c]
             
             # get colors based on fold-change and uration parameters
-            color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
+            if 'Fold_Change' in key.keys():
+                color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
+            else:
+                color_l = getValue('fcn_line_color')
+                color_f = getValue('fcn_face_color')
 
             # set window axis limits
             ax.set_xlim([xmin,xmax])
@@ -469,7 +473,7 @@ class GrowthPlate(object):
         fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=15,ha='center',va='center')
 
         # if no file path passed, do not save 
-        if save_path!='':  plt.savefig(save_path)
+        if save_path!='':  plt.savefig(save_path, bbox_inches='tight')
 
         self.key.drop(['Row','Column'],axis=1,inplace=True)
 
