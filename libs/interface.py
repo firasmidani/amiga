@@ -69,7 +69,7 @@ def parseCommand(config):
     parser.add_argument('--save-gp-data',action='store_true',default=False)
     parser.add_argument('--save-mapping-tables',action='store_true',default=False)
     parser.add_argument('--only-print-defaults',action='store_true',default=False)
-    parser.add_argument('--dont-subtract-control',action='store_true',default=False)
+    parser.add_argument('--subtract-control',action='store_true',default=False)
     parser.add_argument('--dont-plot',action='store_true',default=False)
     parser.add_argument('--fix-noise',action='store_true',default=False)
     parser.add_argument('--sample-posterior',action='store_true',default=False)
@@ -98,7 +98,7 @@ def parseCommand(config):
     args_dict['sgd'] = args.save_gp_data
     args_dict['smt'] = args.save_mapping_tables
     args_dict['opd'] = args.only_print_defaults
-    args_dict['sc'] = not args.dont_subtract_control
+    args_dict['sc'] = args.subtract_control
     args_dict['dp'] = args.dont_plot
     args_dict['fout'] = args.output
     args_dict['pb'] = args.pool_by

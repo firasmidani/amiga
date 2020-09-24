@@ -25,7 +25,7 @@ usage: amiga.py [-h] -i INPUT [-o OUTPUT] [-f FLAG] [-s SUBSET]
                 [--normalize-by NORMALIZE_BY] [--plot-derivative]
                 [--plot-delta-od] [--only-basic-summary] [--save-cleaned-data]
                 [--save-gp-data] [--save-mapping-tables]
-                [--only-print-defaults] [--dont-subtract-control]
+                [--only-print-defaults] [--subtract-control]
                 [--dont-plot] [--fix-noise] [--sample-posterior]
                 [--include-gaussian-noise]
 
@@ -54,7 +54,7 @@ optional arguments:
   --save-gp-data
   --save-mapping-tables
   --only-print-defaults
-  --dont-subtract-control
+  --subtract-control
   --dont-plot
   --fix-noise
   --sample-posterior
@@ -156,7 +156,7 @@ A boolean argument that will ask force AMiGA to save all internally-generated or
 
 A boolean argument that will print to the command terminal the parameters defined in the `libs/config.py` file. You can replace these default parameters to suit your analysis.
 
-**\-\-dont-subtract-control**
+**\-\-subtract-control**
 
 A boolean argument on whether to condition samples on controls (i.e. subtract control growth curve from treatment growth curve) before testing for differences in growth using GP inference. See [Hypothesis Testing](/amiga/doc/hypothesistesting.html) for more details.
 

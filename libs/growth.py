@@ -27,6 +27,7 @@ __email__ = "midani@bcm.edu"
 #   copy
 #   model
 
+import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -147,6 +148,12 @@ class GrowthPlate(object):
             # grab lists of Sample_ID of wells corresponding to control and cases
             controls = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
             cases = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+
+            if len(controls)==0:
+                msg = '\nFATAL ERROR: User requested subtraction of control samples. However, '
+                msg+= 'samples belonging to group {} of plate {} lack '.format(group,pid) 
+                msg+= 'any corresponding control samples in the current working directory.\n'
+                sys.exit(msg)
 
             data_controls = data.loc[:,controls]
             data_cases = data.loc[:,cases]

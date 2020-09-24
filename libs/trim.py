@@ -159,6 +159,7 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
     #     reduce(fun,seq) applies a function (fun) recursively to all elements in list (seq)
     #     here, reduce will merge the first two dataFrames in data_dict.values(), then it
     #     will take this output and merge it with third dataFrame in list, and so on
+    
     try: 
         master_data = reduce(lambda ll,rr: pd.merge(ll,rr,on='Time',how='outer'),new_data_dict.values())
     except TypeError:
@@ -167,8 +168,9 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
         msg += "Keep in mind that AMiGA argument parser is case-sensitive.\n"
         sys.exit(msg)
 
+    master_data = master_data.dropna(axis=0)
     master_data = master_data.sort_values(['Time']).reset_index(drop=True)
-
+    
     return master_data
     
 

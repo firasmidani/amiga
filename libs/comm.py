@@ -57,6 +57,8 @@ def tidyDictPrint(input_dict):
         dynamically selected based on longest argument.
     '''
 
+    if len(input_dict)==0: return 'None' 
+
     # dynamically set width of padding based on maximum argument length
     args = input_dict.keys()
     max_len = float(len(max(args,key=len))) # length of longest argument
