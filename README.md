@@ -18,12 +18,17 @@ This project is covered under the [GPL-3 license](https://www.gnu.org/licenses/g
 
 See [CHANGELOG](https://github.com/firasmidani/amiga/blob/master/CHANGELOG.md) for more details of changes and updates. 
 
-|<div style="width:290px" style="text-align:left">Date</div>|Description|
-|:---|:---|
-|<div style="width:290px" style="text-align:left">2020-11-04</div>|Improvements to differential testing of growth.|
-|<div style="width:290px" style="text-align:left">2020-08-26</div>|Structural changes and more functions: e.g. heatmaps, time-dependent noise, pooling of replicates.|  
-|<div style="width:290px" style="text-align:left">2020-06-10</div>|Improvements to how AMiGA stores and exports model-predicted growth data and growth derivative.|
-|<div style="width:290px" style="text-align:left">2020-04-25</div>|The main driver script is now `amiga.py`. Please do not use `main.py`.|
+2020-11-04  
+Improvements to differential testing of growth.
+
+2020-08-26  
+Structural changes and more functions: e.g. heatmaps, time-dependent noise, pooling of replicates.
+
+2020-06-10  
+Improvements to how AMiGA stores and exports model-predicted growth data and growth derivative.
+
+2020-04-25  
+The main driver script is now `amiga.py`. Please do not use `main.py`.
             
 ## Bugs/Feature Requests
 
