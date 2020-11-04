@@ -4,7 +4,7 @@
 
 ## Documentation:
 
-See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and tutorials.
+See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and examples.
 
 ## Installation:
 
