@@ -23,7 +23,7 @@ See [CHANGELOG](https://github.com/firasmidani/amiga/blob/master/CHANGELOG.md) f
 |<div style="width:290px" style="text-align:left">2020-11-04</div>|Improvements to differential testing of growth.|
 |<div style="width:290px" style="text-align:left">2020-08-26</div>|Structural changes and more functions: e.g. heatmaps, time-dependent noise, pooling of replicates.|  
 |<div style="width:290px" style="text-align:left">2020-06-10</div>|Improvements to how AMiGA stores and exports model-predicted growth data and growth derivative.|
-|<div style="width:290px" style="text-align:left">020-04-25</div>|The main driver script is now `amiga.py`. Please do not use `main.py`.|
+|<div style="width:290px" style="text-align:left">2020-04-25</div>|The main driver script is now `amiga.py`. Please do not use `main.py`.|
             
 ## Bugs/Feature Requests
 
