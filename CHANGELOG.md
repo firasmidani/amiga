@@ -28,4 +28,4 @@ Regarding growth parameters:
 
 ## [1.0.0] - 2020-08-26
 
-Initial commit for [AMiGA](https://firasmidani.github.io/amiga) which is a major update to [Phenotypic-Characterization](https://firasmidani.github.io/phenotypic-characterization).
+Initial commit for [AMiGA](https://github.com/firasmidani/amiga) which is a major update to [Phenotypic-Characterization](https://github.com/firasmidani/phenotypic-characterization).
