@@ -157,12 +157,12 @@ class GrowthCurve(object):
                   'auc_log':self.auc_log,
                   'k_lin':self.K_lin,
                   'k_log':self.K_log,
-                  'x_k':self.t_K,
+                  't_k':self.t_K,
                   'gr':self.gr,
                   'dr':self.dr,
                   'td':self.td,
-                  'x_gr':self.t_gr,
-                  'x_dr':self.t_dr,
+                  't_gr':self.t_gr,
+                  't_dr':self.t_dr,
                   'death_lin':self.death_lin,
                   'death_log':self.death_log,
                   'lagC':self.lagC,
@@ -267,8 +267,8 @@ class GrowthCurve(object):
     		self.death_log = 0
     		self.death_lin = 0
     	else: 
-    		self.death_log = np.abs(self.y0[-1][0])/self.K_log
-    		self.death_lin = np.abs(self.linear_output[-1][0])/self.K_lin
+    		self.death_log = np.abs(self.y0[-1][0] - self.K_log)
+    		self.death_lin = np.abs(self.linear_output[-1][0] - self.K_lin)
 
 
     def LagTime(self):
@@ -371,7 +371,7 @@ class GrowthCurve(object):
 
     def sample(self):
         '''
-        Sample the posterio distirbution of the latent function and its derivative 
+        Sample the posterior distribution of the latent function and its derivative 
             n times, estimate growth parametes for each sample, then summarize with 
             mean and standard deviation. 
         '''

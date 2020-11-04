@@ -61,8 +61,6 @@ config['hypo_plot_y_label'] = 'OD'
 ### Model Parameters ###
 ###	---------------- ###
 
-# ard or kernel ?
-
 # for GP regression with input-dependent noise, select a variance smoothing window: 
 config['variance_smoothing_window'] = 6 # number of x-values, based on default paramters: 6 * 600 seconds = 1 hour
 
@@ -91,13 +89,13 @@ config['confidence'] = 0.95 # internally, quantile = 1 - (1-confidence)/2
 
 # diaxuic shift paramters
 config['diauxie_ratio_varb'] = 'K' # can be K (max OD) or r (max dOD/dt)
-config['diauxie_ratio_min'] = 0.10  # minimum ratio relative to maximum growth or growth rate for each growth phase
+config['diauxie_ratio_min'] = 0.20  # minimum ratio relative to maximum growth or growth rate for each growth phase
 config['diauxie_k_min'] = 0.10
  
 # parameters for reporting results (not implemented yet)
 config['report_parameters'] = ['auc_lin','auc_log','k_lin','k_log','death_lin','death_log',
 							   'gr','dr','td','lagC','lagP',
-                               'x_k','x_gr','x_dr','diauxie']
+                               't_k','t_gr','t_dr','diauxie']
 #config['report_parameters'] = ['auc_lin','k_lin','lagP','x_dr','diauxie']
 
 

@@ -71,6 +71,7 @@ class HypothesisTest(object):
         self.executeRegression()
         self.generatePredictions()
         self.savePredictions()
+        self.computeFullDifference()
         self.plotPredictions()
         self.reportRegression()
         self.exportReport()
@@ -126,9 +127,11 @@ class HypothesisTest(object):
         target = list(set(hypothesis['H1'])^(set(hypothesis['H0'])))
 
         if len(target) > 1:
-            msg = 'USER WARNING: Your null and alternaive hypotheses differ by more than one variables. '
-            msg += 'All of these distinct variables will be permuted for credible interval testing.\n'
-            smartPrint(msg,True)
+            msg = 'FATAL USER ERROR: Your null and alternaive hypotheses differ by more than one variables. '
+            msg += 'AMiGA can not test for differential growth between conditions that vary by more than one variable.\n'
+            sys.exit(msg)
+            #msg += 'All of these distinct variables will be permuted for credible interval testing.\n'
+            #smartPrint(msg,True)
 
         # make sure that Time is included in both hypotheses
         if ('Time' not in hypothesis['H0']):
@@ -197,6 +200,8 @@ class HypothesisTest(object):
                     mapping = pd.merge(mapping.reset_index(),df,on=pairs,how='left')
                     mapping = mapping.set_index('Sample_ID')
 
+        self.master_mapping = mapping
+
 
     def checkControlSamples(self,mapping_dict=None):
 
@@ -210,10 +215,12 @@ class HypothesisTest(object):
         self.master_mapping = mm
         self.subtract_control = sc
 
+
     def defineData(self,data_dict=None):
 
         # grab all data
         self.master_data = trimMergeData(data_dict,self.master_mapping,self.args['nskip'],self.verbose) # unnamed index: row number
+
 
     def prettyTabulateSamples(self):
 
@@ -263,7 +270,6 @@ class HypothesisTest(object):
             factor_dict (dictionary): maps unique values for variables to numerical integers
         '''
 
-        nthin = self.args['nthin']
         save_path = self.paths_dict['input']
 
         variables = self.variables
@@ -439,6 +445,8 @@ class HypothesisTest(object):
         model = self.model
         hypothesis = self.hypothesis
         factor_dict = self.factor_dict
+        variable = self.target[0]
+        confidence = getValue('confidence')  # confidence interval, e.g. 0.95
 
         posterior = self.args['slf']
         save_latent = self.args['sgd']
@@ -447,19 +455,14 @@ class HypothesisTest(object):
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']
 
-        # get user-defined parameters from config.py 
-        dx_ratio_min = getValue('diauxie_ratio_min')
-        dx_ratio_varb = getValue('diauxie_ratio_varb')
-        scale = getValue('params_scale')
-        posterior_n = getValue('n_posterior_samples')
-
         # define hypothesis paraameters
         model_input = hypothesis['H1']  #grab minimal input data for prediction
         x_full = self.x_full
         x_min = self.x_min
 
         diauxie_dict = {}
-        params_latent = initParamDf(x_min.index,0)
+        params_latent = initParamDf(x_min.index,complexity=0)
+        params_sample = initParamDf(x_min.index,complexity=1)
 
         for idx,row in x_min.iterrows():
 
@@ -474,8 +477,15 @@ class HypothesisTest(object):
             diauxie_dict[idx] = curve.params.pop('df_dx')
             params_latent.loc[idx,:] = curve.params
 
+            if posterior: params_sample.loc[idx,:] = curve.sample().posterior
+
+        # summarize diauxie results
         diauxie_df = mergeDiauxieDfs(diauxie_dict)
-        gp_params = x_min.join(params_latent)
+
+        if posterior: gp_params = params_sample.join(params_latent['diauxie'])
+        else: gp_params = params_latent
+
+        gp_params = x_min.join(gp_params)
         gp_params.index.name = 'Sample_ID'
         gp_params = gp_params.reset_index(drop=False)
         gp_params = pd.merge(gp_params,diauxie_df,on='Sample_ID')
@@ -488,25 +498,129 @@ class HypothesisTest(object):
             if key in gp_params.keys():
                 gp_params.loc[:,key] = gp_params.loc[:,key].replace(reverseDict(mapping))
 
-        params = initParamList(0)
+        #params = initParamList(0)
         diauxie = initDiauxieList()
+        params = initParamList(0) + initParamList(1)
+        params = list(set(params).intersection(set(gp_params.keys())))
 
         df_params = gp_params.drop(diauxie,axis=1).drop_duplicates()
         df_params = minimizeParameterReport(df_params)
         df_diauxie = gp_params[gp_params.diauxie==1].drop(params,axis=1)
         df_diauxie = minimizeDiauxieReport(df_diauxie)
 
+        if posterior:
+            df_params = prettyifyParameterReport(df_params,variable,confidence)
+            df_params = articulateParameters(df_params,axis=0)
+
         summ_path = assembleFullName(dir_path,'',file_name,'params','.txt')
         diux_path = assembleFullName(dir_path,'',file_name,'diauxie','.txt')
 
         #plate_cond.to_csv(file_path,sep='\t',header=True,index=True)
-        df_params.to_csv(summ_path,sep='\t',header=True,index=False)
+        df_params.to_csv(summ_path,sep='\t',header=True,index=posterior)
         if df_diauxie.shape[0]>0:
             df_diauxie.to_csv(diux_path,sep='\t',header=True,index=False)
 
         if save_latent:
             file_path = assembleFullName(dir_path,'',file_name,'output','.txt')
             x_out.to_csv(file_path,sep='\t',header=True,index=True)
+
+
+    def computeFullDifference(self):
+        '''
+        Computes the full difference between two latent function (modelling growth curves).
+
+        Args:
+            x_diff (pandas.DataFrame): must include columns of Time, mu (mean of latent 
+                function), Sigma (diagonal covariance of latent function)
+            variable (str): variable of interest, must be a column name in x_diff
+            confidence (float [0.0,1.0]): confidence interval, e.g. 0.95 for 95%.
+            n (int): number of samples from posterior distribution
+            posterior (boolean), whether to sample from posterior distribution
+            noise (boolean): whether to plot 95-pct credibel intervals including sample uncertainty
+
+        Returns:
+            df (pandas.DataFrame)
+            delta_od_sum (float): ||OD(t)||^2 which is defined as the sum of squares 
+                for the OD when the mean and its credible interval deviates from zero.
+        '''
+
+        x_diff = self.x_full
+        variable = self.target[0]
+        confidence = getValue('confidence')  # confidence interval, e.g. 0.95
+        confidence = 1-(1 - confidence)/2
+        noise = self.args['noise']
+        posterior_n = getValue('n_posterior_samples')
+        save_latent = self.args['sgd']
+        factor_dict = self.factor_dict
+
+        def buildTestMatrix(x_time):
+            '''
+            Build a test matrix to simlpify OD full difference computation.
+                See https://github.com/ptonner/gp_growth_phenotype/testStatistic.py 
+                This is used to compare two growth latent functions. The differeence between
+                first time points (measurements) are adjusted to zero. 
+            Args:
+                x_time (pandas.DataFrame or pandas.Series or numpy.ndarray), ndim > 1
+            Returns:
+                A (numpy.ndarray): N-1 x 2*N where N is length of time.
+            '''
+
+            # buildtestmatrix
+            n = x_time.shape[0]
+            A = np.zeros((n-1,2*n))
+            A[:,0] = 1
+            A[range(n-1),range(1,n)] = -1
+            A[:,n] = -1
+            A[range(n-1),n+np.arange(1,n)] = 1
+
+            return A
+
+        x_diff = x_diff.sort_values([variable,'Time']) # do you really need to sort by variable
+        x_time = x_diff.Time.drop_duplicates()
+
+        # define mean and covariance of data
+        mu = x_diff['mu'].values
+        if noise: Sigma = np.diag(x_diff['Sigma'] + x_diff['Noise'])
+        else: Sigma = np.diag(x_diff['Sigma'])
+
+        # define mean and covariance of functional diffeence
+        A = buildTestMatrix(x_time)
+        m = np.dot(A,mu)
+        c = np.dot(A,np.dot(Sigma,A.T))
+        mean,std = m,np.sqrt(np.diag(c))
+
+        # sample the curve for the difference between functions, from an MVN distribution
+        n = getValue('n_posterior_samples')
+        samples = np.random.multivariate_normal(m,c,n)
+        
+        # compute the sum of functional differences for all sampled curves
+        dos = [np.sqrt(np.sum([ii**2 for ii in s])) for s in samples]
+        dos_mu, dos_std = np.mean(dos), np.std(dos)
+        dos_actual = np.sqrt(np.sum([ii**2 for ii in m]))
+
+        # compute the confidence interval for the sum of functional differences
+        scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
+        ci = (dos_mu-scaler*dos_std, dos_mu+scaler*dos_std)
+
+        # compute credible intervals for the curve of the difference
+        y_avg = mean
+        y_low = y_avg-scaler*std#
+        y_upp = y_avg+scaler*std
+
+        # package results
+        t = x_time[1:].values
+        df = pd.DataFrame([t,y_avg,y_low,y_upp],index=['Time','Avg','Low','Upp']).T
+
+        self.functional_diff = df
+        self.delta_od_sum_mean = dos_mu
+        self.delta_od_sum_ci = ci
+ 
+        # save gp_data fit
+        dir_path = self.paths_dict['dir']
+        file_name = self.paths_dict['filename']      
+        if save_latent:
+            file_path = assembleFullName(dir_path,'',file_name,'func_diff','.txt')
+            df.to_csv(file_path,sep='\t',header=True,index=True)
 
 
     def plotPredictions(self):
@@ -534,7 +648,7 @@ class HypothesisTest(object):
         x_min = self.x_min
         factor_dict = self.factor_dict
         hypothesis = self.hypothesis
-        variables = self.target
+        variable = self.target[0]
         plate = self.plate
 
         subtract_control = self.subtract_control
@@ -552,23 +666,9 @@ class HypothesisTest(object):
         confidence = getValue('confidence')  # confidence interval, e.g. 0.95
         confidence = 1-(1 - confidence)/2
 
-        posterior = self.args['slf']
         noise = self.args['noise']
 
-        dos1 = None
-        dos2 = None
-
         if self.args['dp']: return None
-
-        # only plot if certain conditions are met
-        if len(variables) > 1:
-            msg = 'USER WARNING: The null and alternative hypotheses differed by more '
-            msg += 'than one variable. AMiGA is unable to plot a summary of the data '
-            msg += 'that visually discriminates growth curves based on more than one variable.\n'
-            smartPrint(msg,True)
-            return None
-        elif len(variables) == 1: variable = variables[0]
-        else: return None
 
         # grab mapping of integer codes in design matrix to actual variable labels
         varb_codes_map = reverseDict(factor_dict[variable])  # {codes:vlaues}
@@ -578,121 +678,42 @@ class HypothesisTest(object):
         sns.set_style('whitegrid')
         rcParams['font.family'] = 'sans-serif'
         rcParams['font.sans-serif'] = 'Arial'
+  
+        # initialize grid
+        fig,ax = plt.subplots(2,1,figsize=[5,10.5],sharex=False)
 
-        if len(cond_variables)>0:
+        # for each unique value of variable of interest, plot MVN prediction
+        list_values = varb_codes_map.items();
+        list_colors = colors[0:x_min.shape[0]]
 
-            if '*' in variable: # if target variable is an interaction term
-                x_min_copy = x_min.drop([variable],1)
-                x_full_copy = x_full.drop([variable],1)
-            else:
-                x_min_copy = x_min.copy()
-                x_full_copy = x_full.copy()
+        # plot MVN predictions
+        for v_map,color in zip(list_values,list_colors):
+            code,label = v_map
+            criteria_real = {variable:[label]}
+            criteria_mvn = {variable:code}
 
-            for cond_varb in cond_variables:
+            ax[0] = addRealPlotLine(ax[0],plate,criteria_real,color,plot_params)
+            ax[0] = addMVNPlotLine(ax[0],x_full,criteria_mvn,label,confidence,color,plot_params,noise)
+            ax[0].xaxis.set_major_locator(MultipleLocator(tick_spacing))
 
-                fig,ax = plt.subplots(2,2, figsize=[10.5,10.5],sharey=False,sharex=False)
+        # adjust labels and window limits
+        ax[0] = setAxesLabels(ax[0],subtract_control,plot_params)
 
-                # split data by non-conditioning variable 
-                splitby = [ii for ii in cond_variables if ii!=cond_varb]
-                if len(splitby)==0: splitby = variable
-                else: splitby = splitby[0]
+        # if variable has only 2 values and if requested, plot delta OD
+        if (len(list_values) != 2) or (not self.args['pdo']):
+            fig.delaxes(ax[1])
+            dos = None
+        else: 
+            ax[1] = plotDeltaOD(ax[1],self.functional_diff,ylabel=True,xlabel=True,fontsize=fontsize)
+            ax[1].xaxis.set_major_locator(MultipleLocator(tick_spacing))
+            ax[0].set_xlabel('')
 
-                cond_varb_values = x_full[cond_varb].unique()
-                cond_codes_map = reverseDict(factor_dict[cond_varb])
+        ax = dynamicWindowAdjustment(ax)
 
-                for cv,cond_value in enumerate(cond_varb_values):
-
-                    cond_label = cond_codes_map[cond_value]
-
-                    x_split_values = x_full_copy[splitby].unique()
-                    x_cond = subsetDf(x_full,{cond_varb:[cond_value]})
-
-                    for xsv in x_split_values:
-
-                        # what are unique vlaues of non-conditioned variable?
-                        color = colors[xsv]  # assign color
-                        label = reverseDict(factor_dict[splitby])[xsv]  # assign label
-
-                        criteria_real={cond_varb:[cond_label],splitby:[label]}
-                        criteria_mvn={cond_varb:[cond_value],splitby:[xsv]}
-
-                        ax[0,cv] = addRealPlotLine(ax[0,cv],plate,criteria_real,color,plot_params)
-                        ax[0,cv] = addMVNPlotLine(ax[0,cv],x_cond,criteria_mvn,label,confidence,color,plot_params,noise)
-                        ax[0,cv].set_title(cond_label,fontsize=fontsize)
-                        xmin,xmax = ax[0,cv].get_xlim()
-                        ax[0,cv].xaxis.set_major_locator(MultipleLocator(tick_spacing))
-
-                    # if conditional variable has only 2 values and if requested, plot delta OD
-                    if (self.args['pdo']):
-                        df,_ = computeFullDifference(x_cond,splitby,confidence,posterior,posterior_n,noise)
-                        ax[1,cv] = plotDeltaOD(ax[1,cv],df,ylabel=False,xlabel=True,fontsize=fontsize)
-                        ax[1,cv].xaxis.set_major_locator(MultipleLocator(tick_spacing))
-
-                # edit figure labels and window limits
-                ax[0,0] = setAxesLabels(ax[0,0],subtract_control,plot_params)
-                ax[0,0].set_xlabel('')
-                ax[1,0].set_ylabel(r'${\Delta}$(ln OD)',fontsize=fontsize)
-                ax = dynamicWindowAdjustment(ax)
-
-                # remove ticklabels except for first column of subplots
-                for ax_ii in list(ax[0,1:]) + list(ax[1,1:]): plt.setp(ax_ii,yticklabels=[])
-
-                # if conditional variable is not binary or user id not request delta-od, delete row
-                if (not self.args['pdo']):
-                    for ax_ii in ax[1,:]:
-                        fig.delaxes(ax_ii)
-                    for ax_ii in ax[0,:]:
-                        ax_ii.set_xlabel('Time ({})'.format(getTimeUnits('output')),fontsize=fontsize)
-
-                # final adjustment and save figure to pre-specified path
-                fig_path = assemblePath(directory,file_name,'_split_by_{}.pdf'.format(cond_varb))
-                plt.subplots_adjust(wspace=0.15,hspace=0.15)
-                savePlotWithLegends(ax[0,-1],fig_path,legend_loc,fontsize=fontsize)
-
-            return None
-
-        else:
-
-            # initialize grid
-            fig,ax = plt.subplots(2,1,figsize=[5,10.5],sharex=False)
-
-            # for each unique value of variable of interest, plot MVN prediction
-            list_values = varb_codes_map.items();
-            list_colors = colors[0:x_min.shape[0]]
-
-            # plot MVN predictions
-            for v_map,color in zip(list_values,list_colors):
-                code,label = v_map
-                criteria_real = {variable:[label]}
-                criteria_mvn = {variable:code}
-
-                ax[0] = addRealPlotLine(ax[0],plate,criteria_real,color,plot_params)
-                ax[0] = addMVNPlotLine(ax[0],x_full,criteria_mvn,label,confidence,color,plot_params,noise)
-                ax[0].xaxis.set_major_locator(MultipleLocator(tick_spacing))
-
-            # adjust labels and window limits
-            ax[0] = setAxesLabels(ax[0],subtract_control,plot_params)
-
-            # if variable has only 2 values and if requested, plot delta OD
-            if (len(list_values) != 2) or (not self.args['pdo']):
-                fig.delaxes(ax[1])
-                dos1 = None
-                dos2 = None
-            else:
-                df,dos1,dos2 = computeFullDifference(x_full,variable,confidence,posterior,posterior_n,noise)
-                ax[1] = plotDeltaOD(ax[1],df,ylabel=True,xlabel=True,fontsize=fontsize)
-                ax[1].xaxis.set_major_locator(MultipleLocator(tick_spacing))
-                ax[0].set_xlabel('')
-
-            ax = dynamicWindowAdjustment(ax)
-
-            ## if user did not pass file name for output, use time stamp
-            fig_path = assemblePath(directory,file_name,'.pdf')
-            plt.subplots_adjust(wspace=0.15,hspace=0.15)
-            savePlotWithLegends(ax[0],fig_path,legend_loc,fontsize=fontsize)
-
-        self.delta_sum_od = dos1
-        self.delta_sum_od_sig = dos2
+        ## if user did not pass file name for output, use time stamp
+        fig_path = assemblePath(directory,file_name,'.pdf')
+        plt.subplots_adjust(wspace=0.15,hspace=0.15)
+        savePlotWithLegends(ax[0],fig_path,legend_loc,fontsize=fontsize)
 
 
     def reportRegression(self):
@@ -721,12 +742,15 @@ class HypothesisTest(object):
         verbose = self.args['verbose']
 
         log_BF_Display = prettyNumberDisplay(log_BF)
+        dos_mean = prettyNumberDisplay(self.delta_od_sum_mean)
+        dos_low = prettyNumberDisplay(self.delta_od_sum_ci[0])
+        dos_upp = prettyNumberDisplay(self.delta_od_sum_ci[1])
 
         if dist_log_BF is None:
 
             msg = 'Model Tested: {}\n\n'.format(hypothesis) 
-            msg += 'log Bayes Factor: {}\n'.format(log_BF_Display)
-            smartPrint(msg,verbose)
+            msg += 'log Bayes Factor: {}\n\n'.format(log_BF_Display)
+            msg += 'Functional Difference [95% CI]: {} [{},{}]\n'.format(dos_mean,dos_low,dos_upp)
 
             self.msg = '\n{}'.format(msg)
             self.M1_Pct_Cutoff = None
@@ -753,6 +777,7 @@ class HypothesisTest(object):
         msg += '({0:.1f}-percentile in null distribution based on {1} permutations)\n\n'.format(log_BF_Pct,nperm)
         msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {}\n'.format(fdr,M1_Display)
         msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {}\n'.format(fdr,M0_Display)
+        msg += '\nThe functional difference [95% CI] is {} [{},{}]\n'.format(dos_mean,dos_low,dos_upp)
 
         self.M1_Pct_Cutoff = M1_Pct_Cutoff
         self.M0_Pct_Cutoff = M0_Pct_Cutoff
@@ -771,7 +796,7 @@ class HypothesisTest(object):
             sc_msg = 'Samples were normalized to their respective control samples before analysis.'
         else:
             sc_msg = 'Samples were modeled without controlling for batch effects '
-            sc_msg += '(i.e. normalizing to group/batch-specific control samples).'
+            sc_msg += '(i.e. subtracting the growth of group/batch-specific control samples).'
 
         nthin = len(np.unique(self.model.x[:,0]))
 
@@ -780,23 +805,23 @@ class HypothesisTest(object):
         msg += '\n'
         msg += self.msg
         msg += '\nData Manipulation: Input was reduced to '
-        msg += '{} time points. {}'.format(nthin,sc_msg)
+        msg += '{} equidistant time points. {}'.format(nthin,sc_msg)
         self.msg = msg
 
         # compact report of results
-        report_args = {'filename':self.paths_dict['filename'],
-                      'subtract_control':self.args['sc'],
-                      'subset':self.params['subset'],
-                      'hypothesis':self.params['hypo'],
+        report_args = {'Filename':self.paths_dict['filename'],
+                      'Subtract_Control':self.args['sc'],
+                      'Subset':self.params['subset'],
+                      'Hypothesis':self.params['hypo'],
                       'LL0':self.LL0,
                       'LL1':self.LL1,
-                      'log_BF':self.log_BF,
+                      'Log_BF':self.log_BF,
                       'FDR':self.args['fdr'],
-                      'upper':self.M1_Pct_Cutoff,
-                      'lower':self.M0_Pct_Cutoff,
-                      'perm_log_BF':self.log_BF_null_dist,
-                      'delta_od_sum':self.delta_sum_od,
-                      'delta_od_sum_sig':self.delta_sum_od_sig}
+                      'M1_FDR_cutoff':self.M1_Pct_Cutoff,
+                      'M0_FDR_cutoff':self.M0_Pct_Cutoff,
+                      'Permuted_log_BF':self.log_BF_null_dist,
+                      'Func_Diff_Mean':self.delta_od_sum_mean,
+                      'Func_Diff_CI':self.delta_od_sum_ci}
 
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']
@@ -810,84 +835,3 @@ class HypothesisTest(object):
         fid = open(file_path,'w')
         fid.write(self.msg)
         fid.close()
-
-
-def computeFullDifference(x_diff,variable,confidence,noise=False):
-    '''
-    Computes the full difference between two latent function (modelling growth curves).
-
-    Args:
-        x_diff (pandas.DataFrame): must include columns of Time, mu (mean of latent 
-            function), Sigma (diagonal covariance of latent function)
-        variable (str): variable of interest, must be a column name in x_diff
-        confidence (float [0.0,1.0]): confidence interval, e.g. 0.95 for 95%.
-        n (int): number of samples from posterior distribution
-        posterior (boolean), whether to sample from posterior distribution
-        noise (boolean): whether to plot 95-pct credibel intervals including sample uncertainty
-
-    Returns:
-        df (pandas.DataFrame)
-        delta_od_sum (float): ||OD(t)||^2 which is defined as the sum of squares 
-            for the OD when the mean and its credible interval deviates from zero.
-    '''
-
-    def buildTestMatrix(x_time):
-        '''
-        Build a test matrix to simlpify OD full difference computation.
-            See https://github.com/ptonner/gp_growth_phenotype/testStatistic.py 
-            This is used to compare two growth latent functions. The differeence between
-            first time points (measurements) are adjusted to zero. 
-        Args:
-            x_time (pandas.DataFrame or pandas.Series or numpy.ndarray), ndim > 1
-        Returns:
-            A (numpy.ndarray): N-1 x 2*N where N is length of time.
-        '''
-
-        # buildtestmatrix
-        n = x_time.shape[0]
-        A = np.zeros((n-1,2*n))
-        A[:,0] = 1
-        A[range(n-1),range(1,n)] = -1
-        A[:,n] = -1
-        A[range(n-1),n+np.arange(1,n)] = 1
-
-        return A
-
-    scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
-
-    x_diff = x_diff.sort_values([variable,'Time']) # do you really need to sort by variable
-    x_time = x_diff.Time.drop_duplicates()
-
-    # define mean and covariance of data
-    mu = x_diff['mu'].values
-    if noise: Sigma = np.diag(x_diff['Sigma'] + x_diff['Noise'])
-    else: Sigma = np.diag(x_diff['Sigma'])
-
-    # define mean and covariance of functional diffeence
-    A = buildTestMatrix(x_time)
-    m = np.dot(A,mu)
-    c = np.dot(A,np.dot(Sigma,A.T))
-    mean,std = m,np.sqrt(np.diag(c))
-
-    # compute credible intervals
-    y_avg = mean
-    y_low = y_avg-scaler*std#np.sqrt(np.diag(c))
-    y_upp = y_avg+scaler*std#np.sqrt(np.diag(c))
-
-    # package results
-    t = x_time[1:].values
-    df = pd.DataFrame([t,y_avg,y_low,y_upp],index=['Time','Avg','Low','Upp']).T
-
-    # compute ||OD(t)||^2: delta od summ across all time points
-    delta_od_sum_1 = np.sqrt(np.sum([ii**2 for ii in y_avg]))
-
-    # compute ||OD(t)||^2: only on time epoints where interval doez not overlap zeor 
-    od = []
-    for i,m,l,u in zip(t,y_avg,y_low,y_upp): 
-        if (m < 0) and (u < 0): od.append(m)
-        elif (m > 0) and (l > 0): od.append(m)
-
-    delta_od_sum_2 = np.sqrt(np.sum([ii**2 for ii in od]))
-
-    return df, delta_od_sum_1, delta_od_sum_2
-

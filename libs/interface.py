@@ -54,7 +54,7 @@ def parseCommand(config):
     parser.add_argument('-t','--interval',required=False)
     parser.add_argument('-p','--plot',action='store_true',default=False)
     parser.add_argument('-v','--verbose',action='store_true',default=False)
-    parser.add_argument('-np','--number-permutations',action='store',type=int,default=20)
+    parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
     parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
     parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
     parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
@@ -63,7 +63,7 @@ def parseCommand(config):
     parser.add_argument('--pool-by',required=False)
     parser.add_argument('--normalize-by',required=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
-    parser.add_argument('--plot-delta-od',action='store_true',default=False)
+    parser.add_argument('--plot-delta-od',action='store_true',default=True)
     parser.add_argument('--only-basic-summary',action='store_true',default=False)
     parser.add_argument('--save-cleaned-data',action='store_true',default=False)
     parser.add_argument('--save-gp-data',action='store_true',default=False)
