@@ -38,4 +38,4 @@ Please post issues [here](https://github.com/firasmidani/amiga/issues).
 
 Midani, Britton, Collins. AMiGA: software for automated analysis of microbial growth assays. *bioRxiv* (2020).
 
-To reproduce analysis and figures in the manuscript, see [Manuscript README](https://github.com/firasmidani/amiga/examples/manuscript/README.md). 
+To reproduce analysis and figures in the manuscript, see [Manuscript README](https://github.com/firasmidani/amiga/blob/master/examples/manuscript/README.md). 
