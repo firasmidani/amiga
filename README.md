@@ -4,7 +4,7 @@
 
 ## Documentation:
 
-See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and tutorials.
+See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and examples.
 
 ## Installation:
 
@@ -18,11 +18,18 @@ This project is covered under the [GPL-3 license](https://www.gnu.org/licenses/g
 
 See [CHANGELOG](https://github.com/firasmidani/amiga/blob/master/CHANGELOG.md) for more details of changes and updates. 
 
-2020/11/04 &mdash; Improvements to differential testing of growth.  
-2020/08/26 &mdash; Structural changes and more functions: e.g. heatmaps, time-dependent noise, pooling of replicates.  
-2020/06/10 &mdash; Improvements to how AMiGA stores and exports model-predicted growth data and growth derivative.  
-2020/04/25 &mdash; The main driver script is now `amiga.py`. Please do not use `main.py`.
+2020-11-04  
+Improvements to differential testing of growth.
 
+2020-08-26  
+Structural changes and more functions: e.g. heatmaps, time-dependent noise, pooling of replicates.
+
+2020-06-10  
+Improvements to how AMiGA stores and exports model-predicted growth data and growth derivative.
+
+2020-04-25  
+The main driver script is now `amiga.py`. Please do not use `main.py`.
+            
 ## Bugs/Feature Requests
 
 Please post issues [here](https://github.com/firasmidani/amiga/issues).
