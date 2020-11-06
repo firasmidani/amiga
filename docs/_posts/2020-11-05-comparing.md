@@ -7,7 +7,7 @@ use_math: false
 order: 13
 ---
 
-Users can directly compare growth parameters for two samples or two conditions using `compare.py`.
+Users can directly compare growth parameters for two samples or two conditions using `compare.py`. This assumes that you have already analyzed your samples with `AMiGA`. 
 
 <br/>
 
@@ -44,6 +44,10 @@ python $HOME/rab_fm/git/amiga/compare.py \
 	-s 'Substrate:D-Fructose,D-Trehalose;Isolate:CD2015;PM:1' \
 	--confidence 95
 ```
+- `-i` must point to the summary file genearted by AMiGA.
+- `-o` assigns a filename for the results, otherwise, the filename will be a unique time stamp.
+- `-s` susbetting arguments must reduce analysis to only two conditions, otherwise, this command will fail and result in an error.
+- `--confidence` allows you to change the magnitude of the confidence interval. The default is 95. 
 
 <br/>
 
@@ -72,4 +76,21 @@ This will generate the below which will be saved in the same directory as the in
 | Time at Carrying Capacity | 17.492      | 9.967      | [13.882,21.102]   | [9.408,10.526]    | TRUE       |
 | Doubling Time             | 1.732       | 1.148      | [1.419,2.046]     | [1.086,1.211]     | TRUE       |
 
+<br/>
+
 The above example is based only on two technical replicates for each condition, so the statistical power is pretty low, but the differences in growth dynamics are pretty clear. See Figure 2 of AMiGA manuscript for growth curves. 
+
+<br/>
+
+Let's say you want to compare two samples but their growth summary are in different files. You can manually create a new summary file with only the two samples (rows) that you are interested in anlayzing, then, passing this file to the `-i` argument. But you can also pass multiple `-i` arguments to `AMiGA`. The below will find the growth summary for CD2015 and CD1007 on fructose the compare them against each other.
+
+```bash
+python $HOME/rab_fm/git/amiga/compare.py \
+	-i /Users/firasmidani/experiment/summary/CD2015_summary.txt \
+	-i /Users/firasmidani/experiment/summary/CD1007_summary.txt \
+	-o CD2015_vs_CD1007_on_Fructose \
+	-s 'Substrate:D-Fructose;Isolate:CD2015,CD1007' \
+	--confidence 95
+```
+
+
