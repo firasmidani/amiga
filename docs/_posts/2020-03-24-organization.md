@@ -36,7 +36,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 <br />
 
-Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride the default value in the `amiga/config.py` file or by passing another `Interval` value as an argument. See [Command-line Interface](/amiga/doc/command-line-interface.html) for more details. The defaults must be in seconds but you can also replace the time unit default in `amiga/config.py`.
+Plate readers use different proprietary softwares that export data in slightly different formats. To avoid confusion due to different formats, `AMiGA` will ignore the time row and will not read it. Instead, it will detect the first line that starts with a well location (e.g. A1 or D13) and read all subsequent lines. Other lines in the text file will simply be ignored. `AMiGA` will instead rely on the `Interval` parameter to define the time points. By default this value is 600 seconds (or 10 minutes) but the user can over-ride the default value in the `amiga/config.py` file or by passing another `Interval` value as an argument. See [Command-line Interface](/amiga/doc/command-line-interface.html) for more details. The defaults must be in seconds but you can also replace the time unit default in `amiga/libs/config.py`.
 
 <br /><br />
 
@@ -65,3 +65,7 @@ No, please convert the file to tab-delimited text file.
 __Does AMiGA only process 96-well plates? Can it process 384-well plates? How about data files with an arbitrary number of wells/rows?__
 
 AMiGA can read and process data files with any arbitrary number of wells/rows, including 96-well and 384-well plates. It can even read a plate with a single well/row. However, the row names must be well locations (e.g. A1, B1, ..., etc.) where first character is an alphabetic letter that corresponds to a specific row in the plate and remaining characters are digits that corresponds to a specific column in the plate
+
+__Can AMiGA analyze CFU counts or fluorescence data instead of optical density?__
+
+AMiGA should be analyze any type of measurement over time, with a couple of caveats. First, AMiGA would need a minimum number of time points to properly fit growth curves (aim for at least eight time points). Second, optical density values typically range between 0 and 5. Fluorescence measurements are often measured in the thousands. Extreme values or dynamic ranges for measurements could result in numerical instability for GP regression. 

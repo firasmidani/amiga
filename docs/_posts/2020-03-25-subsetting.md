@@ -68,7 +68,7 @@ You can also specify wells that should not be analyzed. This can only be applied
 python amiga.py -i /Users/firasmidani/experiments --f CD_treA.txt:G7,H12;ER1_PM2-1:C3,C4,C5
 ```
 
-This is often useful if you noticed, by visual checking of figures, that certain wells did not show any growth or showed odd measurements (e.g. gas bubbles can cause sharp spikes in OD measurements).
+This is often useful if you noticed, by visually checking figures, that certain wells did not show any growth or showed odd measurements (e.g. gas bubbles can cause sharp spikes in OD measurements).
 
 <br />
 

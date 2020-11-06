@@ -45,7 +45,7 @@ def save(args,df):
 
 	df = articulateParameters(df,axis=0)
 
-	df.to_csv(args['fo'],sep='\t',header=False,index=True)
+	df.to_csv('{}.txt'.format(args['fo']),sep='\t',header=False,index=True)
 
 
 def read(args):

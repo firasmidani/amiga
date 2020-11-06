@@ -46,34 +46,53 @@ def parseCommand(config):
 
     # parse arguments 
     parser = argparse.ArgumentParser()
+
+    # defining input/output
     parser.add_argument('-i','--input',required=True)
     parser.add_argument('-o','--output',required=False)
+
+    # reducing data
     parser.add_argument('-f','--flag',required=False)
     parser.add_argument('-s','--subset',required=False)
-    parser.add_argument('-y','--hypothesis',required=False)
-    parser.add_argument('-t','--interval',required=False)
-    parser.add_argument('-p','--plot',action='store_true',default=False)
-    parser.add_argument('-v','--verbose',action='store_true',default=False)
-    parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
+
+    # selecting time points
     parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
     parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+    parser.add_argument('-t','--interval',required=False)
+
+    # hypothesis testing
+    parser.add_argument('-y','--hypothesis',required=False)
     parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
-    parser.add_argument('--merge-summary',action='store_true',default=False)
+    parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
+    parser.add_argument('--subtract-control',action='store_true',default=False)
+
+    # pooling and normalizations
     parser.add_argument('--normalize-parameters',action='store_true',default=False)
     parser.add_argument('--pool-by',required=False)
     parser.add_argument('--normalize-by',required=False)
+
+    # plotting
+    parser.add_argument('--plot',action='store_true',default=False)
     parser.add_argument('--plot-derivative',action='store_true',default=False)
     parser.add_argument('--plot-delta-od',action='store_true',default=True)
-    parser.add_argument('--only-basic-summary',action='store_true',default=False)
+    parser.add_argument('--dont-plot',action='store_true',default=False)
+
+    ## saving tables
     parser.add_argument('--save-cleaned-data',action='store_true',default=False)
     parser.add_argument('--save-gp-data',action='store_true',default=False)
     parser.add_argument('--save-mapping-tables',action='store_true',default=False)
-    parser.add_argument('--only-print-defaults',action='store_true',default=False)
-    parser.add_argument('--subtract-control',action='store_true',default=False)
-    parser.add_argument('--dont-plot',action='store_true',default=False)
+    parser.add_argument('--merge-summary',action='store_true',default=False)
+
+    ## model preferences
     parser.add_argument('--fix-noise',action='store_true',default=False)
     parser.add_argument('--sample-posterior',action='store_true',default=False)
     parser.add_argument('--include-gaussian-noise',action='store_true',default=False)
+
+    ## user communication
+    parser.add_argument('--only-basic-summary',action='store_true',default=False)
+    parser.add_argument('--only-print-defaults',action='store_true',default=False)
+    parser.add_argument('-v','--verbose',action='store_true',default=False)
+
 
     # pass arguments to local variables 
     args = parser.parse_args()
