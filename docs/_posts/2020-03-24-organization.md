@@ -68,4 +68,4 @@ AMiGA can read and process data files with any arbitrary number of wells/rows, i
 
 __Can AMiGA analyze CFU counts or fluorescence data instead of optical density?__
 
-AMiGA should be analyze any type of measurement over time, with a couple of caveats. First, AMiGA would need a minimum number of time points to properly fit growth curves (aim for at least eight time points). Second, optical density values typically range between 0 and 5. Fluorescence measurements are often measured in the thousands. Extreme values or dynamic ranges for measurements could result in numerical instability for GP regression. 
+AMiGA should be able to analyze any type of measurement over time, with a couple of caveats. First, AMiGA would need a minimum number of time points to properly fit growth curves (aim for at least eight time points). Second, optical density values typically range between 0 and 5. Fluorescence measurements are often measured in the thousands. Extreme values or dynamic ranges for measurements could result in numerical instability for GP regression. 
