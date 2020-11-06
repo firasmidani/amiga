@@ -24,7 +24,7 @@ An advantage of AMiGA is its application of a nonparameteric approch for modelli
 
 #### References
 
-Midani et *al*. (2020<a></A>). BioRxiv. <a href="TBD">TBD</a>
+Midani et *al*. (2020<a></A>). BioRxiv. <a href="https://biorxiv.org/cgi/content/short/2020.11.04.369140v1">https://biorxiv.org/cgi/content/short/2020.11.04.369140v1</a>
 <br />
 Swain et *al*. (2016<a></a>). *Nature Communications*. <a href="https://www.ncbi.nlm.nih.gov/pubmed/27941811">https://www.ncbi.nlm.nih.gov/pubmed/27941811</a>
 <br />

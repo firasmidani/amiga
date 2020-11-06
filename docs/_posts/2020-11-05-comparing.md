@@ -9,6 +9,8 @@ order: 13
 
 Users can directly compare growth parameters for two samples or two conditions using `compare.py`.
 
+<br/>
+
 To see the full list of arguments that `AMiGA` will accept, you can pass it the `-h` or `--help` argument.
 
 ```bash
@@ -31,6 +33,8 @@ optional arguments:
                         Must be between 80 and 100. Default is 95.
 ```
 
+<br/>
+
 For example, the following command will compare the growth of the CD2015 isolate in PM 1 on fructose and trehalose. It will generate the following table. 
 
 ```bash
@@ -40,6 +44,12 @@ python $HOME/rab_fm/git/amiga/compare.py \
 	-s 'Substrate:D-Fructose,D-Trehalose;Isolate:CD2015;PM:1' \
 	--confidence 95
 ```
+
+<br/>
+
+This will generate the below which will be saved in the same directory as the input file. 
+
+<br/>
 
 | Substrate                 | D-Trehalose | D-Fructose | D-Trehalose       | D-Fructose        |            |
 | ------------------------- | ----------- | ---------- | ----------------- | ----------------- | ---------- |
@@ -62,4 +72,4 @@ python $HOME/rab_fm/git/amiga/compare.py \
 | Time at Carrying Capacity | 17.492      | 9.967      | [13.882,21.102]   | [9.408,10.526]    | TRUE       |
 | Doubling Time             | 1.732       | 1.148      | [1.419,2.046]     | [1.086,1.211]     | TRUE       |
 
-The above example is based only on two technical replicates condition, so the statistical power is pretty low, but the differences in growth dynamics are pretty clear. See Figure 2 of AMiGA manuscript for growth curves. 
+The above example is based only on two technical replicates for each condition, so the statistical power is pretty low, but the differences in growth dynamics are pretty clear. See Figure 2 of AMiGA manuscript for growth curves. 
