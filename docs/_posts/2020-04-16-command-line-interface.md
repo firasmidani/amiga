@@ -61,6 +61,8 @@ optional arguments:
   --include-gaussian-noise
 ```
 
+<br/>
+
 **Selecting input/output**
 
 `-i` or `--input`
@@ -71,6 +73,8 @@ Accepts a string which is the path to a working directory or a specific data fil
 
 Accepts a string which defines the filename (no extension and no path) for your summary or data files. If AMiGA needs to merge results across multiple plates (due to the `--subset` or `--merge-summary` arguments) but no filename is passed here, AMiGA will instead give files a unique time stamp (e.g. 2020-08-26_09-09-59).
 
+<br/>
+
 **Reducing samples**
 
 `-f` or `--flag`
@@ -80,6 +84,8 @@ Defines which wells should be excluded form the analysis. See [Data Subsetting](
 `-s` or `--subset`
 
 Defines which files to be included in the analysis. See [Data Subsetting](/amiga/doc/subsetting.html) for more details.
+
+<br/>
 
 **Reducing time points**
 
@@ -94,6 +100,8 @@ Accepts an integer which is the number of time points to ignore in the beginnnin
 `-tss` or `--time-step-size`
 
 Accepts an integer which is used to define how many time points to include in the GP model. 1 indicates that each time point is included (i.e. T0, T1, T2, ...); 2 indicates that every other time point is included beginning with the first one (i.e. T0, T2, T4, ...); and so on. The default value is 1. Thinning of the data helps speed up the GP inference and reduction of the input to the GP model does not drastically alter overall growth curve shape as long as the input growth curve is smooth and does not exhibit acute spikes or dips. However, thinning of the data may alter estimates of growth parameters that describe fast dynamics (e.g. lag time and adaptation time) so verify that your analysis would not be affected by reducing time points before doing so. 
+
+<br/>
 
 **Hypothesis testing**
 
@@ -113,6 +121,8 @@ Accepts an integer and defines the False Discovery Rate (FDR) threshold used in 
 
 A boolean argument on whether to condition samples on controls (i.e. subtract control growth curve from treatment growth curve) before testing for differences in growth using GP inference. See [Hypothesis Testing](/amiga/doc/hypothesistesting.html) for more details.
 
+<br/>
+
 **Pooling and normalization**
 
 `--normalize-parameters`
@@ -127,6 +137,7 @@ Accepts comma-separated list of variables in mapping files that will be used to 
 
 Accepts comma-separated list of variables in mapping files that will be used to specify which wells are control samples. Only used for analysis with pooled replicates. See [Normalizing Parameters](/amiga/doc/normalizing.html) for more details.
 
+<br/>
 
 **Plotting**
 
@@ -145,6 +156,8 @@ A boolean argument that would compute and plot the functional OD difference betw
 `--dont-plot`
 
 If you would like to run a basic summary or growth fitting (i.e. **\-\-only-basic-summary**) of the data (no GP modelling) without plotting figures, you should pass this argument.
+
+<br/>
 
 **saving input/output**
 
@@ -171,6 +184,8 @@ A boolean argument that will save the different variants of the growth curve OD 
 
 A boolean argument that will ask force AMiGA to save all internally-generated or -parsed mapping files into `mapping` folder.
 
+<br/>
+
 **User communication**
 
 `--only-print-defaults`
@@ -180,6 +195,8 @@ A boolean argument that will print to the command terminal the parameters define
 `-v` or `--verbose`
 
 A boolean argument. If invoked, `AMiGA` will communicate via the command terminal with the user by sharing in real time more details about the input, data processing, and results. This is extremely helpful for troubleshooting. 
+
+<br/>
 
 **Setting analysis preferences**
 
