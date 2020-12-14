@@ -31,21 +31,40 @@ from libs.comm import smartPrint
 from libs.org import assemblePath
 
 
-def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,verbose=False):
+def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=False,verbose=False):
     '''
     Finds, reads, and formats all files in a directory to be AMiGA-compatible.
 
     Args:
-        filename (str or None): str indicates user is intersted in a single data file, None otherwise
-        directory (dictionary): keys are folder names, values are their paths
-        config (dictionary): variables saved in config.py where key is variable and value is value
-        save (boolean): 
-        interval_dict (dictionary)
+        filename (str or None): 
+            if str: path to a single data file to be read.
+            if None: user is interested in reading one or more data files (so user must pass directory argument).
+        directory (dictionary or str or None):
+            if dictionary: Keys are folder names, values are their paths. Keys must include 'data' and 'derived'
+                'data' sub-folder must exist and house one or more data files to be read. 
+            if str: path to folder that houses one ore more data files to be read.
+            if None: user is interested in reading a single data file (so user must pass filename argument).
+        interval (dictionary or numeric):
+            if numeric: must be int or float.
+            if dictionary: Keys are file names, values are their respective interval parameter. If a filename 
+                does not have a corresponding key in the dictionary, the 'config' dictionary must be in available
+                in the workspace as a local variable and it must have a key for 'interval' with the default parameter
+                as its value. 
+        save (boolean): will save AMiGA-formatted file in the 'derived' or input folder as a TSV file.
         verbose (boolean)
     '''
 
-    folderpath = directory['data']
-    copydirectory = directory['derived']
+    if (filename is None) and (directory is None): 
+        sys.exit('FATAL USER ERROR: User must pass either filename or directory argument')
+
+    # what is the data folder (folderpath) and where to save formatted data (copydirectory)? 
+    if isinstance(directory,dict):
+        folderpath = directory['data']
+        copydirectory = directory['derived']
+    elif isinstance(directory,str):
+        copydirectory = folderpath = directory
+    elif directory is None:
+        copydirectory = folderpath = os.path.dirname(filename)
 
     # user may have passed a specific file or a directory to the input argument
     if filename:
@@ -65,10 +84,21 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
         _, filebase, newfilepath = breakDownFilePath(filepath,copydirectory=copydirectory)
 
         # set the interval time
-        if isinstance(interval_dict,dict):
-            if filebase in interval_dict.keys(): plate_interval = interval_dict[filebase][0]
+        if isinstance(interval,(int,float)):
+            plate_interval = float(interval)
+        elif filebase in interval.keys():
+            plate_interval = interval[filebase]
         else:
-            plate_interval = config['interval']
+            try: plate_interval = config['interval']
+            except NameError:
+                msg = 'FATAL USER ERROR: User must pass an interval argument. '
+                msg += 'This can be either a number (float or int), dictionary '
+                msg += 'where each key is a filename and value is the interval, '
+                msg += "e.g. {'CD2015_PM1-1':600,'CD2048_PM1-1':900}), "
+                msg += 'or else readPlateReaderFolder() will search for local variable '
+                msg += '"config" (dictionay) which has a key for the interval and its '
+                msg += " value as a number (e.g. config['interval'] = 600)."
+                print(msg)
 
         # read and adjust file to format: time by wells where first column is time and rest are ODs
         df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)

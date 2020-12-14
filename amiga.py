@@ -44,11 +44,12 @@ print(tidyMessage('AMiGA is parsing command-line arguments and parameter files')
 # interpret terminal command or text files for parameters (dict)
 params,args = interpretParameters(files,args,verbose=args['verbose'])
 
+print('params[interval]',params['interval'])
 # communicate with user
 print(tidyMessage('AMiGA is parsing and cleaning data files'))
 
 # parse data files (dict)
-data = readPlateReaderFolder(filename,directory,config,interval_dict=args['interval'],save=args['scd'],verbose=args['verbose'])
+data = readPlateReaderFolder(filename,directory,interval=params['interval'],save=args['scd'],verbose=args['verbose'])
 
 # communicate with user
 print(tidyMessage('AMiGA is parsing and reading mapping files'))
