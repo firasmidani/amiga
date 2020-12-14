@@ -40,7 +40,7 @@ from libs.org import assembleFullName, assemblePath
 from libs.utils import subsetDf
 
 
-def assembleMappings(data,mapping_path,meta_path,save=False,verbose=False):
+def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
     '''
     Creates a master mapping file (or dictionary ?) for all data files in the input argument.
         For each data file, in this particular order, it will first (1) check if an individual
@@ -160,7 +160,10 @@ def checkMetaText(filepath,verbose=False):
 
     '''
 
-    exists = os.path.exists(filepath)
+    if filepath is None:
+        exists = False
+    else:
+        exists = os.path.exists(filepath)
 
     if not exists:
         df_meta = pd.DataFrame
