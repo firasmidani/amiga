@@ -27,7 +27,7 @@ from libs.comm import smartPrint, tidyDictPrint
 from libs.org import assembleFullName, assemblePath
 
 
-def trimInput(data_dict,mapping_dict,params_dict,nskip=0,verbose=False):
+def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
     '''
     Interprets parameters to reduce mapping and
      data files to match user-desired criteria.
@@ -46,6 +46,9 @@ def trimInput(data_dict,mapping_dict,params_dict,nskip=0,verbose=False):
         data (dictionary): values may have smaller size than at time of input
         mapping (dictionary): values may have smaller size than at time of input 
     '''
+
+    if params_dict is None:
+        params_dict = {'subset': {}, 'flag': {}, 'hypo': {}, 'interval': {}}
 
     # annotate Subset and Flag columns in mapping files
     mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
@@ -168,7 +171,6 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
         msg += "Keep in mind that AMiGA argument parser is case-sensitive.\n"
         sys.exit(msg)
 
-    master_data = master_data.dropna(axis=0)
     master_data = master_data.sort_values(['Time']).reset_index(drop=True)
     
     return master_data
