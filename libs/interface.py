@@ -306,14 +306,17 @@ def integerizeDictValues(dictionary):
         dictionary (dict)
 
     Returns:
-        dicionary (dict) where each value is a lis	t of integers
+        dicionary (dict) where each value is a list of integers
 
-    Example: input {'CD630_PM-1':str(500)} will return {'CD630_PM1-1':int(500)}
+    Example: input {'CD630_PM1-1':str(500)} will return {'CD630_PM1-1':int(500)}
     '''
 
     if dictionary is None: return None
 
-    dictionary = {key:[int(vv) for vv in value] for key,value in dictionary.items()}
+    for key,value in dictionary.items():
+
+        if isinstance(value,list): dictionary[key] = float(value[0])
+        else: dictionary[key] = float(value)
 
     return dictionary
 
