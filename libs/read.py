@@ -26,6 +26,7 @@ import pandas as pd
 
 from string import ascii_uppercase
 
+from libs.config import config
 from libs.detail import parseWellLayout
 from libs.comm import smartPrint
 from libs.org import assemblePath
@@ -46,16 +47,15 @@ def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=Fals
             if None: user is interested in reading a single data file (so user must pass filename argument).
         interval (dictionary or numeric):
             if numeric: must be int or float.
-            if dictionary: Keys are file names, values are their respective interval parameter. If a filename 
-                does not have a corresponding key in the dictionary, the 'config' dictionary must be in available
-                in the workspace as a local variable and it must have a key for 'interval' with the default parameter
-                as its value. 
+            if dictionary: Keys are file names, values are their respective interval parameter, e.g. 
+                {'CD2015_PM1-1':600,'CD2048_PM1-1':900}). If a filename does not have a corresponding key in the
+                dictionary, the default parameter for 'interval' in the 'config' dictionary will be used. 
         save (boolean): will save AMiGA-formatted file in the 'derived' or input folder as a TSV file.
         verbose (boolean)
     '''
 
     if (filename is None) and (directory is None): 
-        sys.exit('FATAL USER ERROR: User must pass either filename or directory argument')
+        sys.exit('FATAL USER ERROR: User must pass either a filename or a directory argument')
 
     # what is the data folder (folderpath) and where to save formatted data (copydirectory)? 
     if isinstance(directory,dict):
@@ -88,17 +88,8 @@ def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=Fals
             plate_interval = float(interval)
         elif filebase in interval.keys():
             plate_interval = interval[filebase]
-        else:
-            try: plate_interval = config['interval']
-            except NameError:
-                msg = 'FATAL USER ERROR: User must pass an interval argument. '
-                msg += 'This can be either a number (float or int), dictionary '
-                msg += 'where each key is a filename and value is the interval, '
-                msg += "e.g. {'CD2015_PM1-1':600,'CD2048_PM1-1':900}), "
-                msg += 'or else readPlateReaderFolder() will search for local variable '
-                msg += '"config" (dictionay) which has a key for the interval and its '
-                msg += " value as a number (e.g. config['interval'] = 600)."
-                print(msg)
+        else: 
+            plate_interval = config['interval']
 
         # read and adjust file to format: time by wells where first column is time and rest are ODs
         df = readPlateReaderData(filepath,plate_interval,copydirectory,save=save)
