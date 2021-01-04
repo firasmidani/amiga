@@ -44,7 +44,6 @@ print(tidyMessage('AMiGA is parsing command-line arguments and parameter files')
 # interpret terminal command or text files for parameters (dict)
 params,args = interpretParameters(files,args,verbose=args['verbose'])
 
-print('params[interval]',params['interval'])
 # communicate with user
 print(tidyMessage('AMiGA is parsing and cleaning data files'))
 

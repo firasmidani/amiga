@@ -24,7 +24,7 @@ config['time_input_unit'] = 'seconds'
 config['time_output_unit'] = 'hours'
 
 # default time interval between OD measurments is set to 600 seconds
-config['interval'] = 600  # units ared based on 'time_input_unit' above  
+config['interval'] = 850  # units ared based on 'time_input_unit' above  
 
 # Negative or Zero OD vlaues are raised to the following floor
 config['od_floor'] = 0.01

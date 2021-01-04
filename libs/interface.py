@@ -126,7 +126,6 @@ def parseCommand(config):
     args_dict['slf'] = args.sample_posterior
     args_dict['noise'] = args.include_gaussian_noise
 
-
     # logical argument definitions
 
     # if normalizing parameters passed,
