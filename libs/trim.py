@@ -17,6 +17,7 @@ __email__ = "midani@bcm.edu"
 # flagWells
 # subsetWells
 
+import copy
 import pandas as pd
 import sys
 
@@ -46,6 +47,9 @@ def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
         data (dictionary): values may have smaller size than at time of input
         mapping (dictionary): values may have smaller size than at time of input 
     '''
+
+    # a deep copy is needed to avoid altering mapping_dict globally
+    mapping_dict = copy.deepcopy(mapping_dict)
 
     if params_dict is None:
         params_dict = {'subset': {}, 'flag': {}, 'hypo': {}, 'interval': {}}
