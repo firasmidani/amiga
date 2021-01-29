@@ -114,6 +114,37 @@ def raise_non_pos(arr):
     return arr
 
 
+def handle_non_pos(arr):
+    '''
+    Handles zero or negative values in an array.
+
+    Args:
+        arr (list or np.array)
+
+    Returns:
+        arr (list)
+    '''
+
+    # find the lowest value
+    floor = min(arr)
+
+    # find the smallest absolute delta, i.e. OD(t+1) - OD(t)
+    delta = [abs(arr[n]-arr[n-1]) for n in range(1,len(arr))]
+    delta = min([ii for ii in delta if ii>0])
+
+    ## this cannot handle a curve that is just zeroes ##
+
+    if floor == 0:
+
+        arr = arr + delta 
+
+    elif floor < 0:
+
+        arr = arr + delta + abs(floor)  # we have to add delta, o.w. minimum becomes zero
+
+    return arr
+
+
 def resetNameIndex(df,index_name='',new_index=False):
     '''
     Resets and names index of a pandas.DataFrame.

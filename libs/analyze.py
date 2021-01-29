@@ -370,7 +370,7 @@ def prepDataForFitting(data,mapping,subtract_baseline=True):
     plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
     plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
     plate.logData()  # natural-log transform
-    plate.subtractBaseline(subtract_baseline,poly=True)  # subtract first T0 (or rather divide by first T0)
+    plate.subtractBaseline(subtract_baseline,poly=False)  # subtract first T0 (or rather divide by first T0)
 
     return plate
 

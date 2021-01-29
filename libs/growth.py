@@ -37,7 +37,7 @@ from libs.params import initParamDf, mergeDiauxieDfs
 from libs.model import GrowthModel
 from libs.comm import smartPrint, tidyDictPrint
 from libs.detail import parseWellLayout
-from libs.utils import subsetDf, raise_non_pos, getPlotColors, getTextColors, getValue, getTimeUnits
+from libs.utils import subsetDf, handle_non_pos, getPlotColors, getTextColors, getValue, getTimeUnits
 
 
 class GrowthPlate(object):
@@ -276,8 +276,11 @@ class GrowthPlate(object):
         '''
 
         # raise any negative or zero values to a pseudo-count or baseline OD. 
-        self.data = self.data.apply(lambda x: raise_non_pos(x))
+        self.data = self.data.apply(lambda x: handle_non_pos(x))
         self.mods.raised = True
+
+        # add OD_Offset to key
+        self.key.loc[:,'OD_Offset'] = self.data.iloc[0,:].values
 
 
     def logData(self):
@@ -330,7 +333,7 @@ class GrowthPlate(object):
         # must have only one Plate_ID associated with all samples
         if len(self.key.Plate_ID.unique()) != 1: return False	
 
-        # Well must be a column, values woudl be well locations (e.g. A1)
+        # Well must be a column, values would be well locations (e.g. A1)
         if 'Well' not in self.key.columns: return False
 
         # makes sure that all 96 well locations are described in key and thus data
@@ -375,8 +378,6 @@ class GrowthPlate(object):
 
         sns.set_style('whitegrid')
 
-        self.addLocation()
-
         time = self.time
 
         cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
@@ -391,6 +392,8 @@ class GrowthPlate(object):
             msg += 'AMiGA can not plot it.\n'
             print(msg)
             return None
+
+        self.addLocation()
 
         if plot_derivative: 
             base_y = self.gp_data.pivot(columns='Sample_ID',index='Time',values='GP_Derivative')
@@ -608,7 +611,7 @@ class GrowthPlate(object):
 
             # create GP object and analyze
             gm = GrowthModel(df=df,
-                             baseline=sample.key.OD_Baseline.values,
+                             baseline=sample.key.OD_Offset.values,
                              ARD=False,heteroscedastic=False,nthin=nthin)
 
             curve = gm.run(name=sample_id)

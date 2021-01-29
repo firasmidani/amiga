@@ -104,6 +104,7 @@ class GrowthModel(object):
             sub_df = subsetDf(df,row.to_dict())
             sub_df = describeVariance(sub_df,time='Time',od='OD')
             new_df.append(sub_df)
+
         new_df = pd.concat(new_df,axis=0)
         new_df = new_df.drop(['SID',foo],axis=1)
 

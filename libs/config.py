@@ -26,9 +26,6 @@ config['time_output_unit'] = 'hours'
 # default time interval between OD measurments is set to 600 seconds
 config['interval'] = 850  # units ared based on 'time_input_unit' above  
 
-# Negative or Zero OD vlaues are raised to the following floor
-config['od_floor'] = 0.01
-
 # whether to estimate OD at the first time point using a polynomial regression fit across replicates
 config['PolyFit'] = True
 
