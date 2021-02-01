@@ -24,6 +24,7 @@ __email__ = "midani@bcm.edu"
 import pandas as pd
 import numpy as np
 import tempfile
+import operator
 import sys
 import os
 
@@ -389,6 +390,9 @@ def normalizeParameters(args,df):
     '''
 
     if not args['norm'] or args['pool']: return df
+
+    if args['normmd'] == 'division': opr = operator.truediv
+    elif args['normmd'] == 'subtraction': opr = operator.sub
     
     df_orig = df.copy()
     df_orig_keys = df_orig.columns 
@@ -412,7 +416,7 @@ def normalizeParameters(args,df):
         for group in df_plate.Group.unique():
             
             df_group = df_plate[df_plate.Group == group].astype(float)
-            df_group = df_group / df_group[df_group.Control==1].mean() 
+            df_group = opr(df_group,df_group[df_group.Control==1].mean())
             df.loc[df_group.index,params_keep] = df_group.loc[:,params_keep]
             
     df = df.loc[:,params]
@@ -437,6 +441,9 @@ def normalizePooledParameters(args,df):
 
     if (not args['norm']) or (not args['pool']): return df   
 
+    if args['normmd'] == 'division': opr = operator.truediv
+    elif args['normmd'] == 'subtraction': opr = operator.sub
+    
     df_orig = df.copy()
     df_orig_keys = df_orig.columns 
 
@@ -461,7 +468,7 @@ def normalizePooledParameters(args,df):
 
         sub_df = subsetDf(df,row.to_dict()).set_index(['Sample_ID']+poolby)
         sub_ctrl = subsetDf(controls,row.to_dict()).set_index(['Sample_ID']+poolby)
-        norm_df.append((sub_df / sub_ctrl.values))#.reset_index())
+        norm_df.append(opr(sub_df,sub_ctrl.values))#.reset_index())
         
     norm_df = pd.concat(norm_df,0)
     norm_df.columns = params_norm

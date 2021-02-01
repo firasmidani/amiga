@@ -68,6 +68,7 @@ def parseCommand(config):
 
     # pooling and normalizations
     parser.add_argument('--normalize-parameters',action='store_true',default=False)
+    parser.add_argument('--normalize-method',action='store',default='subtraction',choices=['division','subtraction'])
     parser.add_argument('--pool-by',required=False)
     parser.add_argument('--normalize-by',required=False)
 
@@ -110,6 +111,7 @@ def parseCommand(config):
     args_dict['pool'] = [1 if args.pool_by is not None else 0][0]#: args.pool_replicates
     args_dict['merges'] = args.merge_summary
     args_dict['norm'] = args.normalize_parameters
+    args_dict['normmd'] = args.normalize_method
     args_dict['pd'] = args.plot_derivative
     args_dict['pdo'] = args.plot_delta_od
     args_dict['obs'] = args.only_basic_summary
