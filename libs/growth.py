@@ -380,12 +380,6 @@ class GrowthPlate(object):
 
         time = self.time
 
-        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
-        key = self.key.reindex(cols,axis='columns',)
-        key = key.dropna(axis=1,how='all')
-        if 'Sample_ID' in key.columns:
-            key = key.drop_duplicates().set_index('Sample_ID')
-        
         # make sure plate is 96-well version, otherwise skip plotting
         if not self.isSingleMultiWellPlate():
             msg = 'WARNING: GrowthPlate() object for {} is not a 96-well plate. '.format(self.key.Plate_ID.iloc[0])
@@ -394,6 +388,14 @@ class GrowthPlate(object):
             return None
 
         self.addLocation()
+
+        #key = self.key
+        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
+        key = self.key.reindex(cols,axis='columns',)
+        key = key.dropna(axis=1,how='all')
+        if 'Sample_ID' in key.columns:
+            key = key.drop_duplicates().set_index('Sample_ID')
+        
 
         if plot_derivative: 
             base_y = self.gp_data.pivot(columns='Sample_ID',index='Time',values='GP_Derivative')
