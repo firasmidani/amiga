@@ -151,7 +151,7 @@ def breakDownFilePath(filepath,copydirectory):
     '''
 
     filename = os.path.basename(filepath)
-    filebase = ''.join(filename.split('.')[:-1])
+    filebase = '.'.join(filename.split('.')[:-1])
     dirname = os.path.dirname(filepath)
 
     newfilepath = assemblePath(copydirectory,filebase,'.tsv')
