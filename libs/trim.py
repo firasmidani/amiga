@@ -52,7 +52,7 @@ def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
     mapping_dict = copy.deepcopy(mapping_dict)
 
     if params_dict is None:
-        params_dict = {'subset': {}, 'flag': {}, 'hypo': {}, 'interval': {}}
+        params_dict = {'subset': {}, 'flag': {}, 'hypothesis': {}, 'interval': {}}
 
     # annotate Subset and Flag columns in mapping files
     mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
@@ -83,7 +83,7 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
 
     # tag wells that meet user-passed criteria for analysis
-    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
+    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypothesis'],verbose=verbose)
 
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case

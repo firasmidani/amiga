@@ -210,7 +210,7 @@ def mapFiles(directory):
     files['meta'] = '{}{}{}.txt'.format(directory['mapping'],os.sep,'meta')
 
     # format paths for files in the 'parameter' sub-directory
-    children = ['flag','hypo','subset','interval']
+    children = ['flag','hypothesis','subset','interval']
 
     for child in children:
 

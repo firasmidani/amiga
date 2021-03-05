@@ -224,6 +224,7 @@ class GrowthCurve(object):
         Computes the maximum carrying capacity.
         '''    
 
+        #print(self.x)
         self.K_log, self.t_K = maxValueArg(self.x,self.y0)
         self.K_lin, self.t_K = maxValueArg(self.x,self.linear_output)
 

@@ -1,76 +1,298 @@
 #!/usr/bin/env python
 
 '''
-AMiGA wrapper: main driver script for Analysis of Microbial Growth Assays (AMiGA).
+AMiGA library for the AMiGA class for parsing command-line arguments. 
 '''
 
 __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-from libs.analyze import basicSummaryOnly, runGrowthFitting, runCombinedGrowthFitting
-from libs.comm import tidyMessage
+# TABLE OF CONTENTS (1 class with 8 sub-functions and 1 auxiliary function)
+
+# AMiGA (CLASS)
+#	__init__
+#   compare
+#   fit
+#   heatmap
+#   normalize
+#	print_defaults
+#   summarize
+#   test
+#
+# print_arguments
+
+import argparse
+import sys
+ 
+from libs.commands import Command
+from libs.comm import tidyMessage, tidyDictPrint
+from libs.compare import main as compare
 from libs.config import config
-from libs.detail import assembleMappings
-from libs.interface import parseCommand, interpretParameters
-from libs.org import isFileOrFolder, mapDirectories, mapFiles, validateDirectories
-from libs.read import readPlateReaderFolder
-from libs.test import HypothesisTest
-from libs.trim import trimInput
+from libs.heatmap import main as heatmap
+from libs.normalize import main as normalize
+from libs.thresholds import main as get_time
+
+# define long string variables
+
+usage_init = '''amiga.py <command> [<args>]
+
+The most commnly used git commands are:
+	compare    	Compare two growth curves
+	fit    		Fit growth curves
+	get_time	Get time at which growth reaches a certain value
+	heatmap		Plot a heatma p
+	normalize    	Normalize growth parameters
+	print_defaults	Show me the default values stored in libs/config.py
+	summarize	Perform basic summary and plot curves
+	test    	Test a specific hypothesis
+'''
+
+# define auxiliary functions
+
+def print_arguments(args):
+
+	msg = '\n'
+	msg += tidyMessage('User provided the following command-line arguments:')
+	msg += '\n'
+	msg += tidyDictPrint(vars(args))
+
+	print(msg)
 
 
-# parse terminal command for arguments
-args = parseCommand(config);
+class AMiGA(object):
+    '''
+    Class for interpreting the arguments passed by the user to AMiGA. If the verobse argument 
+        is set to True, sub-commands will also print a message summarizing the 
+        the user-passed command-line arguments.
+    '''
 
-# did the user provide a path that points to a file or directory?
-parent,filename = isFileOrFolder(args['fpath']) 
+    def __init__(self):
+    	parser = argparse.ArgumentParser(
+			usage=usage_init)
 
-# communicate with user
-print()
-print(tidyMessage('AMiGA is peeking inside the working directory'))
+    	parser.add_argument('command', help='Subcommand to run. See amiga.py --help for more details.')
 
-# define file paths for AMiGA-relevant folders (dict)
-directory = mapDirectories(parent)
+    	args = parser.parse_args(sys.argv[1:2])
 
-# define file paths for AMiGA-relevant files (dict)
-files = mapFiles(directory)
+    	getattr(self, args.command)()
 
-# validate working directory structure and contents (no output)
-validateDirectories(directory,verbose=args['verbose'])
 
-# communicate with user
-print(tidyMessage('AMiGA is parsing command-line arguments and parameter files'))
+    def compare(self):
 
-# interpret terminal command or text files for parameters (dict)
-params,args = interpretParameters(files,args,verbose=args['verbose'])
+    	parser = argparse.ArgumentParser(
+    		description='Compare two growth curves')
 
-# communicate with user
-print(tidyMessage('AMiGA is parsing and cleaning data files'))
+    	parser.add_argument('-i','--input',required=True,action='append')
+    	parser.add_argument('-o','--output',required=True)
+    	parser.add_argument('-s','--subset',required=True,action='append',
+    		help='See amiga.py --subset for formatting tips.')
+    	parser.add_argument('--confidence',required=False,type=float,default=95,
+    		help='Must be between 80 and 100. Default is 95.')
+    	parser.add_argument('--verbose',action='store_true',default=False)
 
-# parse data files (dict)
-data = readPlateReaderFolder(filename,directory,interval=params['interval'],save=args['scd'],verbose=args['verbose'])
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-# communicate with user
-print(tidyMessage('AMiGA is parsing and reading mapping files'))
+    	args = parser.parse_args(sys.argv[2:])
 
-# parse mapping files and mapping data (dict)
-mappings = assembleMappings(data,directory['mapping'],files['meta'],save=args['smt'],verbose=args['verbose'])
+    	if args.verbose: print_arguments(args)
 
-# plot and summarize plate(s), if it is the only request
-basicSummaryOnly(data,mappings,directory,args,verbose=args['verbose'])
+    	if (args.confidence < 80) | (args.confidence > 100):
+    		msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
+    		sys.exit(msg)
 
-# communicate with user
-print(tidyMessage('AMiGA is preparing or analyzing data based on user input'))
+    	compare(args)
 
-# run hypothesis testing, if requested
-HypothesisTest(mappings,data,params,args,directory)
+    def get_time(self):
 
-# trim mapping data based on user input
-data,mappings = trimInput(data,mappings,params,nskip=args['nskip'],verbose=args['verbose'])
+    	parser = argparse.ArgumentParser(
+    		description='Get time at which OD reaches a certain value')
 
-# communicate with user
-print(tidyMessage('AMiGA is fitting growth curves'))
+    	parser.add_argument('--gp-data',required=True)
+    	parser.add_argument('--summary',required=True)
+    	parser.add_argument('--threshold',required=True,type=float)
+    	parser.add_argument('--curve-format',required=False,default='OD_Growth_Fit',
+    		choices=['OD_Data','OD_Fit','GP_Input','GP_Output',
+    		'OD_Growth_Fit','OD_Growth_Data','GP_Derivative'])
 
-# run growth fitting 
-runGrowthFitting(data,mappings,directory,args,verbose=args['verbose'])
+    	# pass arguments to local variables
+    	args = parser.parse_args(sys.argv[2:])
 
+    	get_time(args)
+
+
+    def fit(self):
+
+    	parser = argparse.ArgumentParser(
+    		description='Fit growth curves')
+
+    	# defining input/output
+    	parser.add_argument('-i','--input',required=True)
+    	parser.add_argument('-o','--output',required=False)
+    	parser.add_argument('-f','--flag',required=False)
+    	parser.add_argument('-s','--subset',required=False)
+    	parser.add_argument('-t','--interval',required=False)
+    	parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
+    	parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+    	parser.add_argument('--keep-missing-time-points',action='store_true',default=False)
+    	parser.add_argument('--verbose',action='store_true',default=False)
+    	parser.add_argument('--plot',action='store_true',default=False)
+    	parser.add_argument('--plot-derivative',action='store_true',default=False)
+    	parser.add_argument('--pool-by',required=False)
+    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+    	parser.add_argument('--save-gp-data',action='store_true',default=False)
+    	parser.add_argument('--merge-summary',action='store_true',default=False)
+    	parser.add_argument('--fix-noise',action='store_true',default=False)
+    	parser.add_argument('--sample-posterior',action='store_true',default=False)
+
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+
+    	args = parser.parse_args(sys.argv[2:])
+
+    	if (args.fix_noise) and (not args.pool_by):
+    		msg = '\nWARNING: --fix-noise and is only applicable if user also '
+    		msg += 'requests pooling with the --pool-by argument.'
+    		print(msg)
+
+    	if (args.sample_posterior) and (not args.pool_by):
+    		msg = '\nWARNING: --sample-posterior is only applicable if user also '
+    		msg += 'requests pooling with the --pool-by argument.'
+    		print(msg)
+
+    	if args.subset: args.merges = True
+
+    	if args.verbose: print_arguments(args)
+
+    	# unnecessary args
+    	args.hypothesis = None
+
+    	Command(args).fit()
+
+
+    def heatmap(self):
+
+    	parser = argparse.ArgumentParser(
+    		description='Plot a heatmap')
+    	parser.add_argument('-i','--input',required=True)
+    	parser.add_argument('-o','--output',required=True)
+    	parser.add_argument('-s','--subset',required=False)
+    	parser.add_argument('-v','--value',required=True)
+    	parser.add_argument('-x','--x-variable',required=True)
+    	parser.add_argument('-y','--y-variable',required=True)
+    	parser.add_argument('-p','--operation',required=False)
+    	parser.add_argument('-f','--filter',required=False)
+    	parser.add_argument('-t','--title',required=False)
+    	parser.add_argument('--kwargs',required=False)
+    	parser.add_argument('--verbose',action='store_true',default=False)
+
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+
+    	args = parser.parse_args(sys.argv[2:])
+
+    	if args.verbose: print_arguments(args)
+
+    	heatmap(args)
+
+
+    def normalize(self):
+    	parser = argparse.ArgumentParser(
+    		description='Compare two growth curves')
+
+    	parser.add_argument('-i','--input',required=True)
+    	parser.add_argument('--over-write',action='store_true',default=False,
+    		help='over-write file otherwise a new copy is made with "_normalize" suffix')
+    	parser.add_argument('--verbose',action='store_true',default=False)
+    	parser.add_argument('--group-by',required=False)
+    	parser.add_argument('--control-by',required=False)
+    	parser.add_argument('--normalize-method',action='store',default='subtraction',
+    		choices=['division','subtraction'])
+
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+
+    	args = parser.parse_args(sys.argv[2:])
+
+    	if args.verbose: print_arguments(args)
+
+    	normalize(args)
+
+
+    def print_defaults(self):
+
+    	parser = argparse.ArgumentParser(
+    		description='Print in terminal default values stored in libs/config.py')
+
+    	msg = '\nDefault settings for select variables. '
+    	msg += 'You can adjust these values in "amiga/libs/config.py". \n\n'
+    	msg += tidyDictPrint(config)
+    	sys.exit(msg)
+
+
+    def summarize(self):
+    	parser = argparse.ArgumentParser(
+    		description='Perform a basic summary and plot curves')
+
+    	parser.add_argument('-i','--input',required=True)
+    	parser.add_argument('-o','--output',required=False)
+    	parser.add_argument('--dont-plot',action='store_true',default=False)
+    	parser.add_argument('--merge-summary',action='store_true',default=False)
+    	parser.add_argument('--verbose',action='store_true',default=False)
+    	parser.add_argument('-f','--flag',required=False)
+    	parser.add_argument('-s','--subset',required=False)
+    	parser.add_argument('-y','--hypothesis',required=False)
+    	parser.add_argument('-t','--interval',required=False)
+    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+
+    	args = parser.parse_args(sys.argv[2:])
+
+    	args.subset = None  ## subsetting is not implemented
+
+    	args.hypothesis = None
+
+    	if args.verbose: print_arguments(args)
+
+    	Command(args).summarize()
+
+
+    def test(self):
+    	parser = argparse.ArgumentParser(
+    		description='Test for differential growth between two conditions')
+
+    	# defining input/output
+    	parser.add_argument('-i','--input',required=True)
+    	parser.add_argument('-o','--output',required=False)
+    	parser.add_argument('-f','--flag',required=False)
+    	parser.add_argument('-s','--subset',required=False)
+    	parser.add_argument('-t','--interval',required=False)
+    	parser.add_argument('-y','--hypothesis',required=True)
+    	parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+    	parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
+    	parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
+    	parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
+    	parser.add_argument('--subtract-control',action='store_true',default=False)
+    	parser.add_argument('--verbose',action='store_true',default=False)
+    	parser.add_argument('--fix-noise',action='store_true',default=False)
+    	parser.add_argument('--include-gaussian-noise',action='store_true',default=False)
+    	parser.add_argument('--sample-posterior',action='store_true',default=False)
+    	parser.add_argument('--dont-plot',action='store_true',default=False)
+    	parser.add_argument('--dont-plot-delta-od',action='store_true',default=True)
+    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+    	parser.add_argument('--save-gp-data',action='store_true',default=False)
+    	parser.add_argument('--merge-summary',action='store_true',default=False)
+
+    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+
+    	args = parser.parse_args(sys.argv[2:])
+
+    	if args.verbose: print_arguments(args)
+
+    	Command(args).test()
+
+
+if __name__ == '__main__':
+
+	AMiGA()

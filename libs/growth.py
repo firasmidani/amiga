@@ -34,6 +34,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from libs.params import initParamDf, mergeDiauxieDfs
+from libs.plot import largeTickLabels
 from libs.model import GrowthModel
 from libs.comm import smartPrint, tidyDictPrint
 from libs.detail import parseWellLayout
@@ -377,6 +378,7 @@ class GrowthPlate(object):
         '''
 
         sns.set_style('whitegrid')
+        fontsize=15
 
         time = self.time
 
@@ -417,7 +419,7 @@ class GrowthPlate(object):
         if plot_fit: ymin = 0
 
         xmin = 0
-        xmax = time.values[-1]
+        xmax = np.ravel(time)[-1]
         xmax_up = int(np.ceil(xmax)) # round up to nearest integer
 
         for well in base_y.columns:
@@ -458,20 +460,21 @@ class GrowthPlate(object):
 
             # add well identifier on top left of each sub-plot
             well_color = getTextColors('Well_ID')
-            ax.text(0.,1.,key.loc[well,'Well'],color=well_color,ha='left',va='top',transform=ax.transAxes)
+            ax.text(0.,1.,key.loc[well,'Well'],fontsize=10,color=well_color,ha='left',va='top',transform=ax.transAxes)
 
             # add Max OD value on top right of each sub-plot
             if self.mods.floored:
                 od_max = key.loc[well,'OD_Max'] - key.loc[well,'OD_Baseline']
             else:
                 od_max = key.loc[well,'OD_Max']
-            ax.text(1.,1.,"{0:.2f}".format(od_max),
+            ax.text(1.,1.,"{0:.2f}".format(od_max),fontsize=10,
                 color=getTextColors('OD_Max'),ha='right',va='top',transform=ax.transAxes)
 
         # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
-
+        largeTickLabels(axes[7,0],fontsize=fontsize)
+        
         # add x- and y-labels and title
         ylabel_base = getValue('grid_plot_y_label')
         ylabel_mod = ['ln ' if self.mods.logged else ''][0]
@@ -480,9 +483,9 @@ class GrowthPlate(object):
         else: ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
-        fig.text(0.512,0.07,'Time ({})'.format(getTimeUnits('output')),fontsize=15,ha='center',va='bottom')
-        fig.text(0.100,0.50,ylabel_text,fontsize=15,ha='right',va='center',rotation='vertical')
-        fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=15,ha='center',va='center')
+        fig.text(0.512,0.07,'Time ({})'.format(getTimeUnits('output')),fontsize=fontsize,ha='center',va='bottom')
+        fig.text(0.100,0.50,ylabel_text,fontsize=fontsize,ha='right',va='center',rotation='vertical')
+        fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=fontsize,ha='center',va='center')
 
         # if no file path passed, do not save 
         if save_path!='':  plt.savefig(save_path, bbox_inches='tight')
@@ -512,9 +515,10 @@ class GrowthPlate(object):
             self.key = self.key.join(parseWellLayout().reset_index())
 
         row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'G':7,'H':8}
+        col_map = {ii:int(ii) for ii in self.key.Column.values}
 
         self.key.Row = self.key.Row.replace(row_map)
-        self.key.Column = self.key.Column.replace(int)
+        self.key.Column = self.key.Column.replace(col_map)
 
 
     def extractGrowthData(self,args_dict={},unmodified=False):

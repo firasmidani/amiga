@@ -40,9 +40,9 @@ from libs.read import findPlateReaderFiles
 from libs.utils import selectFileName, subsetDf
 
 
-def main():
+def main(args):
 
-	args = parseCommand()
+	args = parseCommand(args)
 	verbose = args['verbose']
 	#directory = assemblePath(args['fi'],'summary')
 	directory = args['fi']
@@ -67,6 +67,43 @@ def main():
 	df = reduceDf(df,args)
 	#plot(df,args,directory)
 	clusterMap(df,args,directory)
+
+
+def parseCommand(args):
+    '''
+    Interprets the arguments passed by the user to AMiGA. 
+
+    Note: Function is AMiGA-specific and should not be used verbatim for other apps.
+
+    Returns:
+        args (dict): a dictionary with keys as suggested variable names
+            and keys as the user-passed and argparse-interpreted arguments.
+    '''
+
+    args_dict= {};
+
+    # pass arguments to local variables 
+    args_dict['fi'] = args.input  # File path provided by user
+    args_dict['fo'] = args.output
+    args_dict['s'] = args.subset
+    args_dict['x'] = args.x_variable
+    args_dict['y'] = args.y_variable
+    args_dict['v'] = args.value
+    args_dict['p'] = args.operation
+    args_dict['f'] = args.filter
+    args_dict['t'] = args.title
+    args_dict['kwargs'] = args.kwargs
+    args_dict['verbose'] = args.verbose
+
+    # summarize command-line artguments and print
+    if args_dict['verbose']:
+        msg = '\n'
+        msg += tidyMessage('User provided the following command-line arguments:')
+        msg += '\n' 
+        msg += tidyDictPrint(args_dict)
+        print(msg)
+
+    return args_dict
 
 
 def read(ls_fpaths):
@@ -150,7 +187,9 @@ def clusterMap(df,args,directory):
 	def dekwarg(ii):
 		key = ii.split(':')[0]
 		value = ii.split(':')[1]
-		if value.replace('.','',1).isdigit():
+		for r in (('.',''),('-','')):
+			adj_value = value.replace(*r)
+		if adj_value.isdigit():
 			value = float(value)
 		elif value in ['True','False']:
 			value = bool(value)
@@ -238,59 +277,3 @@ def plot(df,args,directory):
 	fpath = assembleFullName(directory,'',args['fo'],'','.pdf')
 	plt.savefig(fpath,bbox_inches='tight')
 
-
-def parseCommand():
-    '''
-    Interprets the arguments passed by the user to AMiGA. 
-
-    Note: Function is AMiGA-specific and should not be used verbatim for other apps.
-
-    Returns:
-        args (dict): a dictionary with keys as suggested variable names
-            and keys as the user-passed and argparse-interpreted arguments.
-    '''
-
-    args_dict= {};
-
-    # parse arguments 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input',required=True)
-    parser.add_argument('-o','--output',required=True)
-    parser.add_argument('-s','--subset',required=False)
-    parser.add_argument('-v','--value',required=True)
-    parser.add_argument('-x','--x-variable',required=True)
-    parser.add_argument('-y','--y-variable',required=True)
-    parser.add_argument('-p','--operation',required=False)
-    parser.add_argument('-f','--filter',required=False)
-    parser.add_argument('-t','--title',required=False)
-    parser.add_argument('--kwargs',required=False)
-    parser.add_argument('--verbose',action='store_true',default=False)
-
-    # pass arguments to local variables 
-    args = parser.parse_args()
-    args_dict['fi'] = args.input  # File path provided by user
-    args_dict['fo'] = args.output
-    args_dict['s'] = args.subset
-    args_dict['x'] = args.x_variable
-    args_dict['y'] = args.y_variable
-    args_dict['v'] = args.value
-    args_dict['p'] = args.operation
-    args_dict['f'] = args.filter
-    args_dict['t'] = args.title
-    args_dict['kwargs'] = args.kwargs
-    args_dict['verbose'] = args.verbose
-
-    # summarize command-line artguments and print
-    if args_dict['verbose']:
-        msg = '\n'
-        msg += tidyMessage('User provided the following command-line arguments:')
-        msg += '\n' 
-        msg += tidyDictPrint(args_dict)
-        print(msg)
-
-    return args_dict
-
-
-if __name__ == "__main__":
-
-	main()

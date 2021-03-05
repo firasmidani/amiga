@@ -49,11 +49,11 @@ class HypothesisTest(object):
 
         # define attibutes
         self.args = args_dict
-        self.params = params_dict # need keys 'hypo' and 'subset' 
+        self.params = params_dict # need keys 'hypothesis' and 'subset' 
         self.directory = directory_dict
-        self.hypothesis = params_dict['hypo']
-        self.subtract_control = self.args['sc']
-        self.verbose = self.args['verbose']
+        self.hypothesis = params_dict['hypothesis']
+        self.subtract_control = self.args.subtract_control
+        self.verbose = self.args.verbose
 
         # only proceed if hypothesis is valid
         if self.checkHypothesis(): return None
@@ -86,7 +86,7 @@ class HypothesisTest(object):
         '''
 
         # if user did not pass file name for output, use time stamp
-        file_name = selectFileName(self.args['fout'])
+        file_name = selectFileName(self.args.output)
         dir_path = assemblePath(self.directory['models'],file_name,'')
         if not os.path.exists(dir_path): os.mkdir(dir_path)      
 
@@ -219,7 +219,7 @@ class HypothesisTest(object):
     def defineData(self,data_dict=None):
 
         # grab all data
-        self.master_data = trimMergeData(data_dict,self.master_mapping,self.args['nskip'],self.verbose) # unnamed index: row number
+        self.master_data = trimMergeData(data_dict,self.master_mapping,self.args.skip_first_n,self.verbose) # unnamed index: row number
 
 
     def prettyTabulateSamples(self):
@@ -246,6 +246,7 @@ class HypothesisTest(object):
 
         plate = GrowthPlate(self.master_data,self.master_mapping)
         plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
+        plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
         plate.logData()
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
         plate.subtractControl(to_do=self.subtract_control,drop=True)
@@ -253,6 +254,7 @@ class HypothesisTest(object):
 
         self.plate = plate
         self.ntimepoints = plate.time.shape[0]
+
 
     def tidifyRegressionData(self):
         '''
@@ -282,6 +284,14 @@ class HypothesisTest(object):
         data = (self.plate.time).join(self.plate.data)
         data = pd.melt(data,id_vars='Time',var_name='Sample_ID',value_name='OD')
         data = data.merge(self.plate.key,on='Sample_ID')
+
+        # Handle missing data by dropping them (ie, replicates missing select time points)
+        missing = np.unique(np.where(data.iloc[:,1:].isna())[0])
+        missing = data.iloc[missing,].Time.values
+
+        tmp = data.sort_values(['Time']).loc[:,['Time','OD']]
+        drop_idx = tmp[tmp.isna().any(1)].index
+        data = data.drop(labels=drop_idx,axis=0)
 
         if save_path: data.to_csv(save_path,sep='\t',header=True,index=True)
 
@@ -334,9 +344,9 @@ class HypothesisTest(object):
 
         verbose = self.verbose
         hypothesis = self.hypothesis
-        fix_noise = self.args['fn']
-        nperm = self.args['nperm']
-        nthin = self.args['nthin']
+        fix_noise = self.args.fix_noise
+        nperm = self.args.number_permutations
+        nthin = self.args.time_step_size
 
         data = self.data
 
@@ -386,7 +396,7 @@ class HypothesisTest(object):
         data = self.data
         model = self.model
         model_input = self.hypothesis['H1']
-        fix_noise = self.args['fn']
+        fix_noise = self.args.fix_noise
 
         # first, generates a dataframe where each row is a unique permutations of non-time  variables
         x = data.loc[:,model_input].drop(['Time'],axis=1)
@@ -448,9 +458,9 @@ class HypothesisTest(object):
         variable = self.target[0]
         confidence = getValue('confidence')  # confidence interval, e.g. 0.95
 
-        posterior = self.args['slf']
-        save_latent = self.args['sgd']
-        fix_noise = self.args['fn']
+        posterior = self.args.sample_posterior
+        save_latent = self.args.save_gp_data
+        fix_noise = self.args.fix_noise
 
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']
@@ -548,9 +558,9 @@ class HypothesisTest(object):
         variable = self.target[0]
         confidence = getValue('confidence')  # confidence interval, e.g. 0.95
         confidence = 1-(1 - confidence)/2
-        noise = self.args['noise']
+        noise = self.args.include_gaussian_noise
         posterior_n = getValue('n_posterior_samples')
-        save_latent = self.args['sgd']
+        save_latent = self.args.save_gp_data
         factor_dict = self.factor_dict
 
         def buildTestMatrix(x_time):
@@ -666,9 +676,9 @@ class HypothesisTest(object):
         confidence = getValue('confidence')  # confidence interval, e.g. 0.95
         confidence = 1-(1 - confidence)/2
 
-        noise = self.args['noise']
+        noise = self.args.include_gaussian_noise
 
-        if self.args['dp']: return None
+        if self.args.dont_plot: return None
 
         # grab mapping of integer codes in design matrix to actual variable labels
         varb_codes_map = reverseDict(factor_dict[variable])  # {codes:vlaues}
@@ -700,7 +710,7 @@ class HypothesisTest(object):
         ax[0] = setAxesLabels(ax[0],subtract_control,plot_params)
 
         # if variable has only 2 values and if requested, plot delta OD
-        if (len(list_values) != 2) or (not self.args['pdo']):
+        if (len(list_values) != 2) or (self.args.dont_plot_delta_od):
             fig.delaxes(ax[1])
             dos = None
         else: 
@@ -738,8 +748,8 @@ class HypothesisTest(object):
         hypothesis = self.hypothesis
         log_BF = self.log_BF
         dist_log_BF = self.log_BF_null_dist
-        fdr = self.args['fdr']
-        verbose = self.args['verbose']
+        fdr = self.args.false_discovery_rate
+        verbose = self.args.verbose
 
         log_BF_Display = prettyNumberDisplay(log_BF)
         dos_mean = prettyNumberDisplay(self.delta_od_sum_mean)
@@ -756,6 +766,8 @@ class HypothesisTest(object):
             self.M1_Pct_Cutoff = None
             self.M0_Pct_Cutoff = None
             self.log_BF_Pct = None
+
+            smartPrint(msg,verbose)
 
             return None 
 
@@ -792,7 +804,7 @@ class HypothesisTest(object):
         def oneLineRport(**kwargs):
             return pd.DataFrame(columns=[0],index=list(kwargs.keys()),data=list(kwargs.values())).T
 
-        if self.args['sc']:
+        if self.args.subtract_control:
             sc_msg = 'Samples were normalized to their respective control samples before analysis.'
         else:
             sc_msg = 'Samples were modeled without controlling for batch effects '
@@ -810,13 +822,13 @@ class HypothesisTest(object):
 
         # compact report of results
         report_args = {'Filename':self.paths_dict['filename'],
-                      'Subtract_Control':self.args['sc'],
+                      'Subtract_Control':self.args.subtract_control,
                       'Subset':self.params['subset'],
-                      'Hypothesis':self.params['hypo'],
+                      'Hypothesis':self.params['hypothesis'],
                       'LL0':self.LL0,
                       'LL1':self.LL1,
                       'Log_BF':self.log_BF,
-                      'FDR':self.args['fdr'],
+                      'FDR':self.args.false_discovery_rate,
                       'M1_FDR_cutoff':self.M1_Pct_Cutoff,
                       'M0_FDR_cutoff':self.M0_Pct_Cutoff,
                       'Permuted_log_BF':self.log_BF_null_dist,
