@@ -35,6 +35,19 @@ from datetime import datetime
 from libs.config import config
 
 
+def flattenList(ls): 
+    '''Flatten a list of lists
+
+    Args:
+        ls (list): multi-dimensional
+
+    Returns: 
+        1-dimensional list
+        '''
+
+    return [item for sublist in ls for item in sublist]
+
+
 def randomString(n=6):
     '''
     Generate a random string of size n.
