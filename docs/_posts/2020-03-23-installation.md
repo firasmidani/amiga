@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Installation"
+title: "Install AMiGA"
 category: doc
 date: 2020-03-23 16:39:13
 order: 1
@@ -14,24 +14,24 @@ use_math: true
 {:toc}
 <br />
 
-**Note:** `AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal,  I have added detailed instructions on how to install `AMiGA` under different computing conditions.
-<br />
+`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. To make `AMiGA` accessible for users with no experience in using `Python` or a command terminal, here I have added detailed instructions on how to install `AMiGA` under different computing conditions.
 
-### [Required] Download repository or code
+<br />
+#### Download repository or code [Required] 
 
 You can do either of the following
 <br />
 - Clone via the command terminal: `git clone https://github.com/firasmidani/amiga.git`
-- Download manually: go to <a href="https://github.com/firasmidani/amiga">AMiGA</a>, click the green button <span style="color:#ffffff;background-color:#2ab748">&nbsp;Code&nbsp;</span> on top right corner, then click <span style="color:#075bd0;">Download ZIP</span>.
+- Download manually: go to <a href="https://github.com/firasmidani/amiga">AMiGA</a>, click the green button <span style="color:#ffffff;background-color:#2ab748">&nbsp;Code&nbsp;</span> on top right corner, then click **Download ZIP**.
 
 Please extract or download the ZIP folder in a location that you can easily access. You will have to point `Python` to this folder whenever you want to run `AMiGA`. You can altenatively create an alias that always points to the `amiga.py` file. 
 <br /><br />
 
-### [Required] `Python`
+#### Python [Required] 
 
-`Python` is a programming language that is commonly used for scientific computing.
+`Python` is a programming language commonly used for scientific computing.
 
-* If you are a Max or Unix user, your machine will have `Python` pre-installed.
+* If you are a Max or Unix user, your machine should have `Python` pre-installed.
 * If you are a Windows user and have not previously worked with `Python`, I recommend a `Python` distribution such as `Anaconda`. See this useful [guide](https://fangohr.github.io/blog/installation-of-python-spyder-numpy-sympy-scipy-pytest-matplotlib-via-anaconda.html) on installing Python.
 
 `AMIGA` was written in `Python 3` and should be compatible with `Python>=2.7`.
@@ -58,7 +58,7 @@ Your machine may have multiple installations of `Python`. You should use the sam
     `python --version`
 <br /><br />
 
-### [Optional] `Python` virtual environment
+#### Python virtual environment [Optional] 
 
 I highly recommend that you set-up a virtual `Python` environment for running `AMiGA` whether you are a new or experienced user of `Python`.  A virtual environment is a self-contained directory that will contain a copy of your `Python` installation, plus a limited number of additional packages that you select. You can create a virtual environment customized for `AMiGA` with the only packages that it needs. The main advantages are (1) you will know that your environment meets the requirements of `AMiGA` and (2) that it would not contradict the requirements of other programs that use your main `Python` installation.
 
@@ -107,13 +107,16 @@ Please follow these guides for creating virtual environments: a <a href="https:/
 
 <br />
 
-### [Required] `Python` package requirements
+#### Python package requirements [Required] 
 
 Please follow these instructions to install all requirements. See `amiga/requirements.txt` for a full list of dependencies.
 
 - If you plan to run `AMiGA` in a virtual environment, you need to activate the environment first.
 
-    `source /Users/firasmidani/virtual_environment/bin/activate`  example for MacOS or Unix users
+    `source /Users/firasmidani/virtual_environment/bin/activate`  for MacOS or Unix users
+
+    `C:\Users\firasmidani\virtual_environment\Scripts\activate` for Windows
+
 
 - Change your directory to `AMiGA` which you cloned or downloaded from Github.
 
@@ -134,3 +137,47 @@ Please follow these instructions to install all requirements. See `amiga/require
     `conda config --add channels conda-forge`
 
     `conda install -c conda-forge PACKAGE_NAME`
+
+<br />
+#### Terminal alias [Optional] 
+
+Instead of pointing the terminal to the `AMiGA` code for every command, we can create a short alias to be used in the command terminal. You can create an alias by adding the following command to the `~/.zshrc` file if you are using `zsh` terminal or to `~/.bash_profile` if you are using the `bash` terminal. If you are unsure which one you are using, try `echo $SHELL` in you terminal. Make sure to edit the path to match the location of your `amiga.py` file. 
+
+```alias amiga="python /Users/firasmidani/rab_fm/git/amiga/amiga.py"```
+
+These environmental variables files are executed by your machine upon login. Because you are already logged-in, you will need to execute them again before the alias takes effect. 
+
+`source ~/.zshrc` o `source ~/.bash_profile`
+
+The alias essentially associates the word `amiga` with running `python` on the `amiga.py` file in the `AMiGA` directory. So now instead of calling the longer command in the terminal
+
+```python /Users/firasmidani/rab_fm/git/amiga/amiga.py --help```
+
+You can simply call
+
+`amiga`
+
+which would accordingly print the help message for `AMiGA`.
+
+```bash
+usage: amiga.py <command> [<args>]
+
+The most commnly used amiga.py commands are:
+    summarize       Perform basic summary and plot curves
+    fit             Fit growth curves
+    normalize       Normalize growth parameters of fitted curves
+    compare         Compare summary statistics for two growth curves
+    test            Test a specific hypothesis
+    heatmap         Plot a heatmap
+    get_time        Get time at which growth reaches a certain value
+    print_defaults  Shows the default values stored in libs/config.py
+
+See `amiga.py <command> --help` for information on a specific command.
+For full documentation, see https://firasmidani.github.io/amiga
+
+positional arguments:
+  command     Subcommand to run. See amiga.py --help for more details.
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
