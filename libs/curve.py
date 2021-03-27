@@ -213,7 +213,7 @@ class GrowthCurve(object):
         mu_Lin = self.linear_output # get log or linear OD
 
         D_Log = np.repeat(dt,mu_Log.shape[0]).T  # area under each interval (np.ndarray), size is (x.shape[0],)
-        D_Lin = np.repeat(dt,mu_Lin.shape[0]).T  # area under each interval (np.ndarray), size is (x.shape[0],)
+        D_Lin = np.repeat(dt,mu_Lin.shape[0]).T  # area under each interval (np.ndarray), size is (x.shape[0],)        
 
         self.auc_lin = np.dot(D_Lin,mu_Lin)[0] # cumulative sum of areas
         self.auc_log = np.dot(D_Log,mu_Log)[0] # cumulative sum of areas
@@ -304,7 +304,7 @@ class GrowthCurve(object):
 
         # PROBABILISTIC MODE
 
-        confidence = getValue('confidence')
+        confidence = getValue('confidence_adapt_time')
 
         prob = np.array([norm.cdf(0,m,np.sqrt(v)) for m,v in zip(y1[:,0],np.diag(cov1))])
 
