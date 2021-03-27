@@ -24,7 +24,7 @@ config['time_input_unit'] = 'seconds'
 config['time_output_unit'] = 'hours'
 
 # default time interval between OD measurments is set to 600 seconds
-config['interval'] = 1800  # units ared based on 'time_input_unit' above  
+config['interval'] = 600  # units ared based on 'time_input_unit' above  
 
 # whether to estimate OD at the first time point using a polynomial regression fit across replicates
 config['PolyFit'] = False
@@ -73,7 +73,6 @@ config['hypo_colors']  = [(0.11,0.62,0.47),(0.85,0.37,0.01),(0.46,0.44,0.70),
 						  #seagreen, orange, purple, pink, olive, gold, brown, gray
 
 config['HypoPlotParams'] = {'overlay_actual_data':True,
-							'plot_linear_od':False,
 							'fontsize':15,
 							'tick_spacing':5,
 							'legend':'inside'}
@@ -83,6 +82,10 @@ config['confidence'] = 0.95 # internally, quantile = 1 - (1-confidence)/2
 ###	----------------- ###
 ### GROWTH PARAMETERS ###
 ###	----------------- ###
+
+# adaptationtime
+config['confidence_adapt_time'] = 0.95
+
 
 # diaxuic shift paramters
 config['diauxie_ratio_varb'] = 'K' # can be K (max OD) or r (max dOD/dt)
