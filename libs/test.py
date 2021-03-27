@@ -456,7 +456,7 @@ class HypothesisTest(object):
         hypothesis = self.hypothesis
         factor_dict = self.factor_dict
         variable = self.target[0]
-        confidence = getValue('confidence')  # confidence interval, e.g. 0.95
+        confidence = self.args.confidence  # confidence interval, e.g. 0.95
 
         posterior = self.args.sample_posterior
         save_latent = self.args.save_gp_data
@@ -518,6 +518,15 @@ class HypothesisTest(object):
         df_diauxie = gp_params[gp_params.diauxie==1].drop(params,axis=1)
         df_diauxie = minimizeDiauxieReport(df_diauxie)
 
+        # because pooling, drop linear AUC, K, and Death 
+        to_remove = ['death_lin','k_lin','auc_lin']
+        
+        to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
+        df_params.drop(to_remove,axis=1,inplace=True)
+
+        to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
+        df_diauxie.drop(to_remove,axis=1,inplace=True)
+    
         if posterior:
             df_params = prettyifyParameterReport(df_params,variable,confidence)
             df_params = articulateParameters(df_params,axis=0)
@@ -556,7 +565,7 @@ class HypothesisTest(object):
 
         x_diff = self.x_full
         variable = self.target[0]
-        confidence = getValue('confidence')  # confidence interval, e.g. 0.95
+        confidence = self.args.confidence  # confidence interval, e.g. 0.95
         confidence = 1-(1 - confidence)/2
         noise = self.args.include_gaussian_noise
         posterior_n = getValue('n_posterior_samples')
@@ -673,7 +682,7 @@ class HypothesisTest(object):
 
         posterior_n = getValue('n_posterior_samples')
         colors = getValue('hypo_colors')  # list of colors
-        confidence = getValue('confidence')  # confidence interval, e.g. 0.95
+        confidence = self.args.confidence  # confidence interval, e.g. 0.95
         confidence = 1-(1 - confidence)/2
 
         noise = self.args.include_gaussian_noise
