@@ -60,11 +60,17 @@ def setAxesLabels(ax,subtract_control,plot_params,fontsize=20):
     Returns:
         ax (matplotlib.axes._subplots.AxesSubplot) 
     '''
+    import matplotlib as mpl
+    mpl.rcParams["mathtext.default"] = 'regular'
+    mpl.rcParams["font.family"] = 'sans-serif'
+    mpl.rcParams["font.sans-serif"] = 'Arial'
+    # mpl.rcParams["text.usetex"] = True
 
-    if plot_params['plot_linear_od']:
-        base = getValue('hypo_plot_y_label')
-    else:
-        base = 'ln {}'.format(getValue('hypo_plot_y_label'))
+    #if plot_params['plot_linear_od']:
+    #    base = getValue('hypo_plot_y_label')
+    #    base = r'$\frac{{{}}}{{{}}}$'.format(base+'(t)',base+'(0)')
+    #else:
+    base = 'ln {}'.format(getValue('hypo_plot_y_label'))
 
     # plot aesthetics
     if subtract_control:
@@ -174,19 +180,19 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
     y_upp = x.mu+scaler*np.sqrt(Sigma)
 
     # convert from log2 to linear OD
-    if plot_params['plot_linear_od']:
-        y_avg = np.exp(y_avg)
-        y_low = np.exp(y_low)
-        y_upp = np.exp(y_upp)
+    # if plot_params['plot_linear_od']:
+    #     y_avg = np.exp(y_avg)
+    #     y_low = np.exp(y_low)
+    #     y_upp = np.exp(y_upp)
 
     ax.plot(xtime,y_avg,color=color,label=label,alpha=0.9,lw=3.0,zorder=10)
     ax.fill_between(x=xtime,y1=y_low,y2=y_upp,color=color,alpha=0.10,zorder=5)
     ax = largeTickLabels(ax,fontsize=plot_params['fontsize']) 
 
-    if plot_params['plot_linear_od']:
-        ax.axhline(y=1,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
-    else:
-        ax.axhline(y=0,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
+    #if plot_params['plot_linear_od']:
+    #    ax.axhline(y=1,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
+    #else:
+    ax.axhline(y=0,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
 
     return ax
 
@@ -216,8 +222,8 @@ def addRealPlotLine(ax,plate,criteria,color,plot_params):
         time = plate.time.copy()
         data = plate.data.copy()
 
-        if plot_params['plot_linear_od']:
-            data = data.apply(np.exp).copy()
+        #if plot_params['plot_linear_od']:
+        #    data = data.apply(np.exp).copy()
 
         wide_df = time.join(data)
 
