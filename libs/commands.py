@@ -18,6 +18,7 @@ from libs.read import readPlateReaderFolder
 from libs.test import HypothesisTest
 from libs.trim import trimInput
 
+
 class Command(object):
 
     def __init__(self,args,config=config):
