@@ -142,15 +142,23 @@ def compare(args,df,varbs):
 
 		return cis
 
-
-	def detSigdiff(a,b):
+	def detSigDiff(a,b):
 		'''
-		Detemines if there is a significant difference between two variabls, 
+		Detemines if there is a significant difference between two variables, 
 		based on whether confidence intervals overlap or not
+
+		Args:
+			a (2-array): lower and upper bounds of first confidence interval
+			b (2-array): lower and upper bounds of second confidence intervals
+
+		Returns:
+			(boolean): True (intervals do not overlap) or False (intervals overlap)
 		'''
-		overlap = max(0,min(a[1],b[1])-max(a[0],b[0])) ## calculate overlap
-		if overlap == 0: return True ## no overlap, so significant
-		else: return False # overlap, so not significant
+
+		a = [float(ii) for ii in a]
+		b = [float(ii) for ii in b]
+
+		return not ((a[0] <= b[1]) and (b[0] <= a[1]))
 
 	confidence = (100 - (100 - args.confidence)/2) / 100 
 
