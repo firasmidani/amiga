@@ -200,6 +200,9 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
     df = df.iloc[np.where(~df.T.isna().all(0))[0],:]
 
+    # strip leading zeros in row or well IDs
+    df.index = [ii[0] + ii[1:].lstrip('0') for ii in df.index]
+
     try:
         df = df.astype(float)
     except:
