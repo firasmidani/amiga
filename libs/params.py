@@ -194,7 +194,7 @@ def prettyifyParameterReport(df,target,confidence=0.975):
 
         return cis
 
-    def detSigdiff(a,b):
+    def detSigDiff(a,b):
         '''
         Detemines if there is a significant difference between two variables, 
             based on whether confidence intervals overlap or not
@@ -206,9 +206,10 @@ def prettyifyParameterReport(df,target,confidence=0.975):
         Returns:
             (boolean): True (intervals do not overlap) or False (intervals overlap)
         '''
-        overlap = max(0,min(a[1],b[1])-max(a[0],b[0])) ## calculate overlap
-        if overlap == 0: return True ## no overlap, so significant
-        else: return False # overlap, so not significant
+
+        a = [float(ii) for ii in a]
+        b = [float(ii) for ii in b]
+        return not ((a[0] <= b[1]) and (b[0] <= a[1]))
 
 
     confidence = 1-(1 - confidence)/2
@@ -233,7 +234,7 @@ def prettyifyParameterReport(df,target,confidence=0.975):
             mus = df.loc[:,'mean({})'.format(p)].values
             stds = df.loc[:,'std({})'.format(p)].values
             cis = getConfInts(mus,stds,confidence)
-            olap = detSigdiff(eval(cis[0]),eval(cis[1]))
+            olap = detSigDiff(eval(cis[0]),eval(cis[1]))
 
             df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]
             df_cis.loc[p,:] = cis + [olap]
