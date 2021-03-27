@@ -11,12 +11,12 @@ __email__ = "midani@bcm.edu"
 # TABLE OF CONTENTS (1 class with 8 sub-functions and 1 auxiliary function)
 
 # AMiGA (CLASS)
-#	__init__
+#   __init__
 #   compare
 #   fit
 #   heatmap
 #   normalize
-#	print_defaults
+#   print_defaults
 #   summarize
 #   test
 #
@@ -37,27 +37,30 @@ from libs.thresholds import main as get_time
 
 usage_init = '''amiga.py <command> [<args>]
 
-The most commnly used git commands are:
-	compare    	Compare two growth curves
-	fit    		Fit growth curves
-	get_time	Get time at which growth reaches a certain value
-	heatmap		Plot a heatma p
-	normalize    	Normalize growth parameters
-	print_defaults	Show me the default values stored in libs/config.py
-	summarize	Perform basic summary and plot curves
-	test    	Test a specific hypothesis
+The most commnly used amiga.py commands are:
+    summarize   Perform basic summary and plot curves
+    fit         Fit growth curves
+    normalize       Normalize growth parameters of fitted curves
+    compare     Compare summary statistics for two growth curves
+    test        Test a specific hypothesis
+    heatmap     Plot a heatmap
+    get_time    Get time at which growth reaches a certain value
+    print_defaults  Shows the default values stored in libs/config.py
+
+See `amiga.py <command> --help` for information on a specific command.
+For full documentation, see https://firasmidani.github.io/amiga
 '''
 
 # define auxiliary functions
 
 def print_arguments(args):
 
-	msg = '\n'
-	msg += tidyMessage('User provided the following command-line arguments:')
-	msg += '\n'
-	msg += tidyDictPrint(vars(args))
+    msg = '\n'
+    msg += tidyMessage('User provided the following command-line arguments:')
+    msg += '\n'
+    msg += tidyDictPrint(vars(args))
 
-	print(msg)
+    print(msg)
 
 
 class AMiGA(object):
@@ -68,231 +71,257 @@ class AMiGA(object):
     '''
 
     def __init__(self):
-    	parser = argparse.ArgumentParser(
-			usage=usage_init)
+        parser = argparse.ArgumentParser(
+            usage=usage_init)
+        parser.add_argument('command', help='Subcommand to run. See amiga.py --help for more details.')
 
-    	parser.add_argument('command', help='Subcommand to run. See amiga.py --help for more details.')
+        if len(sys.argv)==1 and (sys.argv[0]=='amiga.py'):
+            parser.print_help()
+            exit(1)
+        
+        args = parser.parse_args(sys.argv[1:2])
 
-    	args = parser.parse_args(sys.argv[1:2])
-
-    	getattr(self, args.command)()
+        if not hasattr(self,args.command):
+            parser.print_help()
+            exit(1)
+        
+        getattr(self, args.command)()
 
 
     def compare(self):
 
-    	parser = argparse.ArgumentParser(
-    		description='Compare two growth curves')
+        parser = argparse.ArgumentParser(
+            description='Compare two growth curves')
 
-    	parser.add_argument('-i','--input',required=True,action='append')
-    	parser.add_argument('-o','--output',required=True)
-    	parser.add_argument('-s','--subset',required=True,action='append',
-    		help='See amiga.py --subset for formatting tips.')
-    	parser.add_argument('--confidence',required=False,type=float,default=95,
-    		help='Must be between 80 and 100. Default is 95.')
-    	parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('-i','--input',required=True,action='append')
+        parser.add_argument('-o','--output',required=True)
+        parser.add_argument('-s','--subset',required=True,action='append')
+        parser.add_argument('--confidence',required=False,type=float,default=95,
+            help='Must be between 80 and 100. Default is 95.')
+        parser.add_argument('--verbose',action='store_true',default=False)
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	if (args.confidence < 80) | (args.confidence > 100):
-    		msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
-    		sys.exit(msg)
+        if (args.confidence < 80) | (args.confidence > 100):
+            msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
+            sys.exit(msg)
 
-    	compare(args)
+        compare(args)
 
     def get_time(self):
 
-    	parser = argparse.ArgumentParser(
-    		description='Get time at which OD reaches a certain value')
+        parser = argparse.ArgumentParser(
+            description='Get time at which OD reaches a certain value')
 
-    	parser.add_argument('--gp-data',required=True)
-    	parser.add_argument('--summary',required=True)
-    	parser.add_argument('--threshold',required=True,type=float)
-    	parser.add_argument('--curve-format',required=False,default='OD_Growth_Fit',
-    		choices=['OD_Data','OD_Fit','GP_Input','GP_Output',
-    		'OD_Growth_Fit','OD_Growth_Data','GP_Derivative'])
+        parser.add_argument('--gp-data',required=True)
+        parser.add_argument('--summary',required=True)
+        parser.add_argument('--threshold',required=True,type=float)
+        parser.add_argument('--curve-format',required=False,default='OD_Growth_Fit',
+            choices=['OD_Data','OD_Fit','GP_Input','GP_Output',
+            'OD_Growth_Fit','OD_Growth_Data','GP_Derivative'])
 
-    	# pass arguments to local variables
-    	args = parser.parse_args(sys.argv[2:])
+        # pass arguments to local variables
+        args = parser.parse_args(sys.argv[2:])
 
-    	get_time(args)
+        get_time(args)
 
 
     def fit(self):
 
-    	parser = argparse.ArgumentParser(
-    		description='Fit growth curves')
+        parser = argparse.ArgumentParser(
+            description='Fit growth curves')
 
-    	# defining input/output
-    	parser.add_argument('-i','--input',required=True)
-    	parser.add_argument('-o','--output',required=False)
-    	parser.add_argument('-f','--flag',required=False)
-    	parser.add_argument('-s','--subset',required=False)
-    	parser.add_argument('-t','--interval',required=False)
-    	parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
-    	parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
-    	parser.add_argument('--keep-missing-time-points',action='store_true',default=False)
-    	parser.add_argument('--verbose',action='store_true',default=False)
-    	parser.add_argument('--plot',action='store_true',default=False)
-    	parser.add_argument('--plot-derivative',action='store_true',default=False)
-    	parser.add_argument('--pool-by',required=False)
-    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
-    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
-    	parser.add_argument('--save-gp-data',action='store_true',default=False)
-    	parser.add_argument('--merge-summary',action='store_true',default=False)
-    	parser.add_argument('--fix-noise',action='store_true',default=False)
-    	parser.add_argument('--sample-posterior',action='store_true',default=False)
+        # defining input/output
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('-o','--output',required=False)
+        parser.add_argument('-f','--flag',required=False)
+        parser.add_argument('-s','--subset',required=False)
+        parser.add_argument('-t','--interval',required=False)
+        parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
+        parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+        parser.add_argument('--keep-missing-time-points',action='store_true',default=False)
+        parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('--plot',action='store_true',default=False)
+        parser.add_argument('--plot-derivative',action='store_true',default=False)
+        parser.add_argument('--pool-by',required=False)
+        parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+        parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+        parser.add_argument('--save-gp-data',action='store_true',default=False)
+        parser.add_argument('--merge-summary',action='store_true',default=False)
+        parser.add_argument('--fix-noise',action='store_true',default=False)
+        parser.add_argument('--sample-posterior',action='store_true',default=False)
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	if (args.fix_noise) and (not args.pool_by):
-    		msg = '\nWARNING: --fix-noise and is only applicable if user also '
-    		msg += 'requests pooling with the --pool-by argument.'
-    		print(msg)
+        if (args.fix_noise) and (not args.pool_by):
+            msg = '\nWARNING: --fix-noise and is only applicable if user also '
+            msg += 'requests pooling with the --pool-by argument.'
+            print(msg)
 
-    	if (args.sample_posterior) and (not args.pool_by):
-    		msg = '\nWARNING: --sample-posterior is only applicable if user also '
-    		msg += 'requests pooling with the --pool-by argument.'
-    		print(msg)
+        if (args.sample_posterior) and (not args.pool_by):
+            msg = '\nWARNING: --sample-posterior is only applicable if user also '
+            msg += 'requests pooling with the --pool-by argument.'
+            print(msg)
 
-    	if args.subset: args.merges = True
+        if args.subset: args.merges = True
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	# unnecessary args
-    	args.hypothesis = None
+        # unnecessary args
+        args.hypothesis = None
 
-    	Command(args).fit()
+        Command(args).fit()
 
 
     def heatmap(self):
 
-    	parser = argparse.ArgumentParser(
-    		description='Plot a heatmap')
-    	parser.add_argument('-i','--input',required=True)
-    	parser.add_argument('-o','--output',required=True)
-    	parser.add_argument('-s','--subset',required=False)
-    	parser.add_argument('-v','--value',required=True)
-    	parser.add_argument('-x','--x-variable',required=True)
-    	parser.add_argument('-y','--y-variable',required=True)
-    	parser.add_argument('-p','--operation',required=False)
-    	parser.add_argument('-f','--filter',required=False)
-    	parser.add_argument('-t','--title',required=False)
-    	parser.add_argument('--kwargs',required=False)
-    	parser.add_argument('--verbose',action='store_true',default=False)
+        parser = argparse.ArgumentParser(
+            description='Plot a heatmap')
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('-o','--output',required=True)
+        parser.add_argument('-s','--subset',required=False)
+        parser.add_argument('-v','--value',required=True)
+        parser.add_argument('-x','--x-variable',required=True)
+        parser.add_argument('-y','--y-variable',required=True)
+        parser.add_argument('-p','--operation',required=False,default='mean',
+            choices=['mean','median'])
+        parser.add_argument('-f','--filter',required=False)
+        parser.add_argument('-t','--title',required=False)
+        parser.add_argument('--kwargs',required=False)
+        parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('--fontsize',required=False,default=20)
+        parser.add_argument('--width-height',required=False,nargs=2)
+        parser.add_argument('--x-rotation',required=False,default=90)
+        parser.add_argument('--highlight-labels',required=False)
+        parser.add_argument('--colorbar-ratio',required=False,default=0.1)
+        parser.add_argument('--color-x-by',required=False)
+        parser.add_argument('--color-y-by',required=False)
+        parser.add_argument('--color-file-x',required=False)
+        parser.add_argument('--color-file-y',required=False)
+        parser.add_argument('--color-scheme-x',required=False)
+        parser.add_argument('--color-scheme-y',required=False)
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	heatmap(args)
+        heatmap(args)
 
 
     def normalize(self):
-    	parser = argparse.ArgumentParser(
-    		description='Compare two growth curves')
+        parser = argparse.ArgumentParser(
+            description='Compare two growth curves')
 
-    	parser.add_argument('-i','--input',required=True)
-    	parser.add_argument('--over-write',action='store_true',default=False,
-    		help='over-write file otherwise a new copy is made with "_normalize" suffix')
-    	parser.add_argument('--verbose',action='store_true',default=False)
-    	parser.add_argument('--group-by',required=False)
-    	parser.add_argument('--control-by',required=False)
-    	parser.add_argument('--normalize-method',action='store',default='subtraction',
-    		choices=['division','subtraction'])
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('--over-write',action='store_true',default=False,
+            help='over-write file otherwise a new copy is made with "_normalize" suffix')
+        parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('--group-by',required=False)
+        parser.add_argument('--normalize-by',required=False)
+        parser.add_argument('--normalize-method',action='store',default='subtraction',
+            choices=['division','subtraction'])
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	normalize(args)
+        normalize(args)
 
 
     def print_defaults(self):
 
-    	parser = argparse.ArgumentParser(
-    		description='Print in terminal default values stored in libs/config.py')
+        parser = argparse.ArgumentParser(
+            description='Print in terminal default values stored in libs/config.py')
 
-    	msg = '\nDefault settings for select variables. '
-    	msg += 'You can adjust these values in "amiga/libs/config.py". \n\n'
-    	msg += tidyDictPrint(config)
-    	sys.exit(msg)
+        msg = '\nDefault settings for select variables. '
+        msg += 'You can adjust these values in "amiga/libs/config.py". \n\n'
+        msg += tidyDictPrint(config)
+        sys.exit(msg)
 
 
     def summarize(self):
-    	parser = argparse.ArgumentParser(
-    		description='Perform a basic summary and plot curves')
+        parser = argparse.ArgumentParser(
+            description='Perform a basic summary and plot curves')
 
-    	parser.add_argument('-i','--input',required=True)
-    	parser.add_argument('-o','--output',required=False)
-    	parser.add_argument('--dont-plot',action='store_true',default=False)
-    	parser.add_argument('--merge-summary',action='store_true',default=False)
-    	parser.add_argument('--verbose',action='store_true',default=False)
-    	parser.add_argument('-f','--flag',required=False)
-    	parser.add_argument('-s','--subset',required=False)
-    	parser.add_argument('-y','--hypothesis',required=False)
-    	parser.add_argument('-t','--interval',required=False)
-    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
-    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('-o','--output',required=False)
+        parser.add_argument('--dont-plot',action='store_true',default=False)
+        parser.add_argument('--merge-summary',action='store_true',default=False)
+        parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('-f','--flag',required=False)
+        parser.add_argument('-s','--subset',required=False)
+        parser.add_argument('-y','--hypothesis',required=False)
+        parser.add_argument('-t','--interval',required=False)
+        parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+        parser.add_argument('--save-mapping-tables',action='store_true',default=False)
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	args.subset = None  ## subsetting is not implemented
+        args.subset = None  ## subsetting is not implemented
 
-    	args.hypothesis = None
+        args.hypothesis = None
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	Command(args).summarize()
+        Command(args).summarize()
 
 
     def test(self):
-    	parser = argparse.ArgumentParser(
-    		description='Test for differential growth between two conditions')
+        parser = argparse.ArgumentParser(
+            description='Test for differential growth between two conditions')
 
-    	# defining input/output
-    	parser.add_argument('-i','--input',required=True)
-    	parser.add_argument('-o','--output',required=False)
-    	parser.add_argument('-f','--flag',required=False)
-    	parser.add_argument('-s','--subset',required=False)
-    	parser.add_argument('-t','--interval',required=False)
-    	parser.add_argument('-y','--hypothesis',required=True)
-    	parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
-    	parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
-    	parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
-    	parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
-    	parser.add_argument('--subtract-control',action='store_true',default=False)
-    	parser.add_argument('--verbose',action='store_true',default=False)
-    	parser.add_argument('--fix-noise',action='store_true',default=False)
-    	parser.add_argument('--include-gaussian-noise',action='store_true',default=False)
-    	parser.add_argument('--sample-posterior',action='store_true',default=False)
-    	parser.add_argument('--dont-plot',action='store_true',default=False)
-    	parser.add_argument('--dont-plot-delta-od',action='store_true',default=True)
-    	parser.add_argument('--save-cleaned-data',action='store_true',default=False)
-    	parser.add_argument('--save-mapping-tables',action='store_true',default=False)
-    	parser.add_argument('--save-gp-data',action='store_true',default=False)
-    	parser.add_argument('--merge-summary',action='store_true',default=False)
+        # defining input/output
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('-o','--output',required=False)
+        parser.add_argument('-f','--flag',required=False)
+        parser.add_argument('-s','--subset',required=False)
+        parser.add_argument('-t','--interval',required=False)
+        parser.add_argument('-y','--hypothesis',required=True)
+        parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+        parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
+        parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
+        parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
+        parser.add_argument('--confidence',required=False,type=float,default=95,
+            help='Must be between 80 and 100. Default is 95.')
+        parser.add_argument('--subtract-control',action='store_true',default=False)
+        parser.add_argument('--verbose',action='store_true',default=False)
+        parser.add_argument('--fix-noise',action='store_true',default=False)
+        parser.add_argument('--include-gaussian-noise',action='store_true',default=False)
+        parser.add_argument('--sample-posterior',action='store_true',default=False)
+        parser.add_argument('--dont-plot',action='store_true',default=False)
+        parser.add_argument('--dont-plot-delta-od',action='store_true',default=True)
+        parser.add_argument('--save-cleaned-data',action='store_true',default=False)
+        parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+        parser.add_argument('--save-gp-data',action='store_true',default=False)
+        parser.add_argument('--merge-summary',action='store_true',default=False)
 
-    	if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
-    	args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[2:])
 
-    	if args.verbose: print_arguments(args)
+        if args.verbose: print_arguments(args)
 
-    	Command(args).test()
+        if (args.confidence < 80) | (args.confidence > 100):
+            msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
+            sys.exit(msg)
+
+        args.confidence = args.confidence / 100
+
+        Command(args).test()
 
 
 if __name__ == '__main__':
 
-	AMiGA()
+    AMiGA()
