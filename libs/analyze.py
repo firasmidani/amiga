@@ -8,11 +8,12 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (9 functions)
+# TABLE OF CONTENTS (10 functions)
 
 # basicSummaryOnly
 # runGrowthFitting
 # runCombinedGrowthFitting
+# handleMissingData
 # prepDataForFitting
 # normalizeParameters
 # normalizePooledParameters
@@ -234,7 +235,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         sys.exit(msg)
 
     # continue processing data
-    plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=combine_keys)
+    plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=combine_keys) 
     plate_key = plate.key.copy()
     plate_data = plate.data.copy()
     plate_time = plate.time.copy()
@@ -323,12 +324,19 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     df_diauxie = df_diauxie.drop(params,axis=1)
     df_diauxie = minimizeDiauxieReport(df_diauxie)
 
+    # because pooling, drop linear AUC, K, and Death 
+    to_remove = ['death_lin','k_lin','auc_lin']
+    
+    to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
+    df_params.drop(to_remove,axis=1,inplace=True)
+
+    to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
+    df_diauxie.drop(to_remove,axis=1,inplace=True)
+
     summ_path = assembleFullName(directory['summary'],'',filename,'summary','.txt')
     diux_path = assembleFullName(directory['summary'],'',filename,'diauxie','.txt')
 
     # normalize parameters, if requested
-    #df_params = normalizePooledParameters(args,df_params)
-    #df_params = df_params.drop(['Group','Control'],1)
     df_params = minimizeParameterReport(df_params)
 
     # save results
