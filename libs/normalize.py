@@ -52,6 +52,11 @@ def main(args):
 		df = normalizeParameters(args,df)
 		df.to_csv(new_name,sep='\t',header=True,index=True)
 
+	msg = 'AMiGA compelted your request'
+
+	smartPrint('',verbose)
+	smartPrint(tidyMessage(msg),verbose)
+
 
 def read(ls_fpaths):
 	'''
@@ -100,16 +105,29 @@ def normalizeParameters(args,df):
 	# How to group samples and which ones are control samples?
 
 	# if user specifies with command-line arguments
-	if args.group_by is not None or args.control_by is not None:
+	if args.group_by is not None and args.normalize_by is not None:
 
 		groupby = args.group_by.split(',')
-		controlby = checkParameterCommand(args.control_by)
+		controlby = checkParameterCommand(args.normalize_by)
+
+	elif args.normalize_by is not None and args.group_by is None:
+
+		controlby = checkParameterCommand(args.normalize_by)
+		df.loc[:,'Group'] = [1]*df.shape[0]
+		groupby = ['Group']
 
 	# else check columns for Group and Contol variables
 	elif 'Group' in df_orig_keys and 'Control' in df_orig_keys:
 
 		groupby = ['Group']
 		controlby = {'Control':1}
+
+		if (len(df.Group.unique())==1) and (len(df.Plate_ID.unique())>1):
+			msg = '\nUSER WARNING: AMiGA detected a single "Group" but multiple Plate_IDs.\n'
+			msg += 'Wells from different plates will thus be normalized togther as a group.\n'
+			msg += 'If this was not your intention, please pass explicit arguments to AMiGA\n'
+			msg += 'using "--group-by" and "--control-by" arguments to avoid any ambiguity.\n' 
+			print(msg)
 
     # else exit with error message
 	else:
@@ -121,12 +139,17 @@ def normalizeParameters(args,df):
 	params_1 = initParamList(0)
 	params_1.remove('diauxie')
 	params_2 = ['mean({})'.format(ii) for ii in params_1]
+	params_3 = initParamList(2)
 
-	if any([ii in df_orig_keys for ii in params_2]):  params = params_2
+	if any([ii in df_orig_keys for ii in params_2]):  
+		params = params_2
+	elif any([ii in df_orig_keys for ii in params_3]):
+		params = params_3 
 	else:  params = params_1
 
-	params_norm = initParamList(2)
-	params_keep = groupby + list(controlby.keys()) + ['Sample_ID','PlateID'] + params
+	#params_norm = initParamList(2)
+
+	params_keep = groupby + list(controlby.keys()) + ['Sample_ID','Plate_ID'] + params
 	params_keep = list(df.columns[df.columns.isin(params_keep)])
 	params_varbs = list(set(params_keep).difference(set(params)))
 	df = df.loc[:,params_keep]
@@ -143,13 +166,13 @@ def normalizeParameters(args,df):
 		df_control.set_index(params_varbs,inplace=True)
 
 		dgv = df_group.values
-		dcv = df_control.values
+		dcv = df_control.mean().values
 
 		df_group.loc[:,:] = opr(dgv,dcv)
 		norm_df.append(df_group)	
 
 	norm_df = pd.concat(norm_df,axis=0)
-	norm_df.columns = params_norm	
+	norm_df.columns = ['norm({})'.format(ii) for ii in norm_df.columns]	
 	norm_df = norm_df.reset_index(drop=False)
 
 	df = pd.merge(df_orig,norm_df,on=params_varbs)
