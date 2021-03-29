@@ -491,7 +491,7 @@ class GrowthPlate(object):
 
     def addLocation(self):
         '''
-        Expands object key to include following columns: Row and Column, which desribe
+        Expands object key to include following columns: Row and Column, which describe
             the location of each sample in a multi-well plate (e.g. 96-well plate). However,
             locations here are numerical (i.e Rows 1-8 will correspond to A-H, respectively. 
 
@@ -507,9 +507,10 @@ class GrowthPlate(object):
             self.key = self.key.join(parseWellLayout().reset_index())
 
         row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'G':7,'H':8}
+        col_map = {ii:int(ii) for ii in self.key.Column.values}
 
         self.key.Row = self.key.Row.replace(row_map)
-        self.key.Column = self.key.Column.replace(int)
+        self.key.Column = self.key.Column.replace(col_map)
 
 
     def extractGrowthData(self,args_dict={},unmodified=False):
