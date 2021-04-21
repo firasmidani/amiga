@@ -12,14 +12,14 @@ source $1
 amiga=$2
 
 # fit each individual growth curve
-python $amiga/amiga.py \
+python $amiga/amiga.py fit \
 	-i $amiga/examples/manuscript/death/ \
 	-o CD2058_Low_Glucose_split \
 	-s 'Isolate:CD2058;Substrate:Glucose;Concentration:Low' \
 	--verbose --save-gp-data --save-cleaned-data
 
 # pool replicates then fit
-python $amiga/amiga.py \
+python $amiga/amiga.py fit \
 	-i $amiga/examples/manuscript/death/ \
 	-o CD2058_Low_Glucose_pooled \
 	-s 'Isolate:CD2058;Substrate:Glucose;Concentration:Low' \

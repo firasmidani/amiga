@@ -10,7 +10,6 @@ __email__ = "midani@bcm.edu"
 
 # TABLE OF CONTENTS (6 functions)
 
-# parseCommand
 # interpretParameters
 # initializeParameter
 # checkParameterCommand
@@ -24,140 +23,6 @@ import sys
 
 from libs.comm import smartPrint, tidyDictPrint, tidyMessage
 from libs.utils import selectFileName
-
-
-def parseCommand(config):
-    '''
-    Interprets the arguments passed by the user to AMiGA. If the verobse argument 
-        is set to True, argumentParser will also print a message summarizing the 
-        the user-passed command-line arguments.
-
-    Note: Function is AMiGA-specific and should not be used verbatim for other apps.
-
-    Args:
-        config (dictionary): variables saved in config.py where key is variable and value is value
-
-    Returns:
-        args (dict): a dictionary with keys as suggested variable names
-            and keys as the user-passed and argparse-interpreted arguments.
-    '''
-
-    args_dict= {};
-
-    # parse arguments 
-    parser = argparse.ArgumentParser()
-
-    # defining input/output
-    parser.add_argument('-i','--input',required=True)
-    parser.add_argument('-o','--output',required=False)
-
-    # reducing data
-    parser.add_argument('-f','--flag',required=False)
-    parser.add_argument('-s','--subset',required=False)
-
-    # selecting time points
-    parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
-    parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
-    parser.add_argument('-t','--interval',required=False)
-
-    # hypothesis testing
-    parser.add_argument('-y','--hypothesis',required=False)
-    parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
-    parser.add_argument('-np','--number-permutations',action='store',type=int,default=0)
-    parser.add_argument('--subtract-control',action='store_true',default=False)
-
-    # pooling and normalizations
-    parser.add_argument('--normalize-parameters',action='store_true',default=False)
-    parser.add_argument('--normalize-method',action='store',default='subtraction',choices=['division','subtraction'])
-    parser.add_argument('--pool-by',required=False)
-    parser.add_argument('--normalize-by',required=False)
-
-    # plotting
-    parser.add_argument('--plot',action='store_true',default=False)
-    parser.add_argument('--plot-derivative',action='store_true',default=False)
-    parser.add_argument('--plot-delta-od',action='store_true',default=True)
-    parser.add_argument('--dont-plot',action='store_true',default=False)
-
-    ## saving tables
-    parser.add_argument('--save-cleaned-data',action='store_true',default=False)
-    parser.add_argument('--save-gp-data',action='store_true',default=False)
-    parser.add_argument('--save-mapping-tables',action='store_true',default=False)
-    parser.add_argument('--merge-summary',action='store_true',default=False)
-
-    ## model preferences
-    parser.add_argument('--fix-noise',action='store_true',default=False)
-    parser.add_argument('--sample-posterior',action='store_true',default=False)
-    parser.add_argument('--include-gaussian-noise',action='store_true',default=False)
-
-    ## user communication
-    parser.add_argument('--only-basic-summary',action='store_true',default=False)
-    parser.add_argument('--only-print-defaults',action='store_true',default=False)
-    parser.add_argument('-v','--verbose',action='store_true',default=False)
-
-
-    # pass arguments to local variables 
-    args = parser.parse_args()
-    args_dict['fpath'] = args.input  # File path provided by user
-    args_dict['flag'] = args.flag
-    args_dict['subset'] = args.subset
-    args_dict['hypo'] = args.hypothesis
-    args_dict['interval'] = args.interval
-    args_dict['plot'] = args.plot
-    args_dict['verbose'] = args.verbose
-    args_dict['nperm'] = args.number_permutations
-    args_dict['nthin'] = args.time_step_size
-    args_dict['nskip'] = args.skip_first_n
-    args_dict['fdr'] = args.false_discovery_rate
-    args_dict['pool'] = [1 if args.pool_by is not None else 0][0]#: args.pool_replicates
-    args_dict['merges'] = args.merge_summary
-    args_dict['norm'] = args.normalize_parameters
-    args_dict['normmd'] = args.normalize_method
-    args_dict['pd'] = args.plot_derivative
-    args_dict['pdo'] = args.plot_delta_od
-    args_dict['obs'] = args.only_basic_summary
-    args_dict['scd'] = args.save_cleaned_data
-    args_dict['sgd'] = args.save_gp_data
-    args_dict['smt'] = args.save_mapping_tables
-    args_dict['opd'] = args.only_print_defaults
-    args_dict['sc'] = args.subtract_control
-    args_dict['dp'] = args.dont_plot
-    args_dict['fout'] = args.output
-    args_dict['pb'] = args.pool_by
-    args_dict['nb'] = args.normalize_by
-    args_dict['fn'] = args.fix_noise
-    args_dict['slf'] = args.sample_posterior
-    args_dict['noise'] = args.include_gaussian_noise
-
-    # logical argument definitions
-
-    # if normalizing parameters passed,
-    if args_dict['nb']:
-        args_dict['norm'] = True
-
-    # if subsetting, then merge summary
-    if args_dict['subset']:
-        args_dict['merges'] = True
-
-    # summarize command-line artguments and print
-    if args_dict['verbose']:
-        msg = '\n'
-        msg += tidyMessage('User provided the following command-line arguments:')
-        msg += '\n' 
-        msg += tidyDictPrint(args_dict)
-        print(msg)
-
-    # print default settings for select variables if prompted by user
-    if args_dict['opd']:
-        msg = '\nDefault settings for select variables. '
-        msg += 'You can adjust these values in amiga/libs/config.py. \n\n'
-        msg += tidyDictPrint(config)
-        sys.exit(msg)
-        
-    # if user requests any subsetting, summary results must be merged
-    if args_dict['subset'] is not None:
-        args_dict['merges'] = True
-
-    return args_dict
 
 
 def interpretParameters(files,args,verbose=False):
@@ -185,20 +50,20 @@ def interpretParameters(files,args,verbose=False):
         ('interval',',',True),
         ('subset',',',False),
         ('flag', ',',False),
-        ('hypo','\+|,',False)
+        ('hypothesis','\+|,',False)
     ]
     
     # initialize all parameters based on their settings
     params_dict = {}
     for pp,sep,integerize in params_settings:
-        params_dict[pp] = initializeParameter(files[pp],args[pp],sep=sep,integerize=integerize)
+        params_dict[pp] = initializeParameter(files[pp],getattr(args, pp),sep=sep,integerize=integerize)
 
     smartPrint(tidyDictPrint(params_dict),verbose)
 
     # if user requests any subsetting, summary results must be merged
-    if params_dict['subset']:
+    if params_dict['subset'] and (not args.merge_summary):
 
-        args['merges'] = True
+        args.merges = True
 
         msg = 'WARNING: Because user has requested subsetting of data, '
         msg += 'results will be merged into single summary and/or data file.\n'
@@ -225,14 +90,18 @@ def initializeParameter(filepath,arg,sep=',',integerize=False):
     if arg is None: param_dict = checkParameterText(filepath,sep=sep)
 
     # else if user provided argument, parse argument for parameters
+    elif len(arg)>0 and arg.isdigit(): param_dict = float(arg)
+
     elif len(arg)>0: param_dict = checkParameterCommand(arg,sep=sep)
 
     # otherwise, initialize empty dictionary
     else: param_dict = {};
 
     # if argument parameters should be converted to integers (e.g. time interval)
-    if integerize: return integerizeDictValues(param_dict)
-    else: return param_dict
+    if integerize and isinstance(param_dict,dict): 
+        return integerizeDictValues(param_dict)
+    else: 
+        return param_dict
 
 
 def checkParameterCommand(command,sep=','):

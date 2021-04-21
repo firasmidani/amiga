@@ -12,20 +12,20 @@ source $1
 amiga=$2
 
 # each growth curve modelled individually 
-python $amiga/amiga.py \
+python $amiga/amiga.py fit \
 	-i $amiga/examples/manuscript/death -o split \
 	-s 'Substrate:Glucose,Fructose,Water;Ribotype:RT001,RT027,RT053,RT078' \
 	-tss 1 --save-gp-data --verbose
 
 # replicates pooled then modeled jointly
-python $amiga/amiga.py \
+python $amiga/amiga.py fit \
 	-i $amiga/examples/manuscript/death -o pooled \
 	-s 'Substrate:Glucose,Fructose,Water;Ribotype:RT001,RT027,RT053,RT078' \
 	--pool-by 'Ribotype,Substrate,Concentration' \
 	--sample-posterior -tss 1 --save-gp-data --verbose
 
 # pooled with measurement noise empirically estimated
-python $amiga/amiga.py \
+python $amiga/amiga.py fit \
 	-i $amiga/examples/manuscript/death -o pooled_fixed_noise \
 	-s 'Substrate:Fructose;Ribotype:RT027,RT053' \
 	--pool-by 'Ribotype,Substrate,Concentration' \

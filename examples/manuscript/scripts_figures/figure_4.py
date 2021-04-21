@@ -11,6 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+#plt.rcParams.update({'mathtext.default':'regular'})
+
 from scipy.stats import norm
 
 def read_csv(foo):
@@ -194,6 +196,9 @@ fig,axes_all = plt.subplots(2,5,figsize=[22,10],sharex=False,
 fontsize = 20
 width = 0.7
 
+#plt.rcParams.update({'text.usetex':True,'font.family':'sans-serif','font.sans-serif':['Arial']})
+#plt.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}'] #for \text command
+
 # plot summary metrics 
 params = ['Func_Diff_Mean','Log_BF']
 labels = [r'$\Vert OD\Delta\Vert$','ln Bayes Factor']
@@ -316,8 +321,16 @@ plt.setp(ax[1],xticks=np.linspace(0,24,4))
 
 # adjust axes labels and title
 ax[1].set_xlabel('Time (hours)',fontsize=30)
-ax[1].set_ylabel(r'$\Delta$ ln OD',fontsize=30)
-ax[0].set_ylabel('ln OD',fontsize=30)
+# tt = ax[1].text(.5,0.98,r'$OD\Delta$',transform=ax[1].transAxes,
+#     fontsize=30,ha='center',va='top')
+# tt2 = ax[1].text(.5,0.02,r'$OD\Delta = {\rm ln\:OD}_{\rm High} - {\rm ln\:OD}_{\rmLow}$',
+#     transform=ax[1].transAxes,fontsize=20,ha='center',va='bottom')
+tt0 = ax[0].text (-0.25,0.5,'ln OD',fontsize=30,transform=ax[0].transAxes,rotation=90,ha='center',va='center')
+tt1 = ax[1].text (-0.25,0.5,r'${\rm ln\:OD}_{\rm High} - {\rm ln\:OD}_{\rmLow}$',
+    fontsize=30,transform=ax[1].transAxes,rotation=90,ha='center',va='center')
+
+# ax[1].set_ylabel(r'$OD\Delta$',fontsize=30)
+# ax[0].set_ylabel('ln OD',fontsize=30)
 ax[0].set_title('RT053 on Fructose',fontsize=30,y=1.05)
 
 # add actual curve used by model
@@ -341,4 +354,4 @@ plt.subplots_adjust(wspace=0.25)
     
 # save figure as PDF
 filename = 'Midani_AMiGA_Figure_4'
-plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')
+plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight',bbox_extra_artists=(tt0,tt1,))

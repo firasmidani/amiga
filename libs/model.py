@@ -34,6 +34,7 @@ from libs.utils import uniqueRandomString, subsetDf, getValue
 
 if getValue('Ignore_RuntimeWarning'): warnings.filterwarnings("ignore", category=RuntimeWarning) 
 
+
 def describeVariance(df,time='X0',od='Y'):
     '''
     df columns ['X0','X1',...,'Y']
@@ -41,26 +42,22 @@ def describeVariance(df,time='X0',od='Y'):
     '''
 
     window = getValue('variance_smoothing_window')
+    nX = len(df[time].drop_duplicates())
+    if window < 1:  window = int(np.ceil(nX*window))
     
-    df = df.sort_values('Time')
+    df = df.sort_values(time)
     df.reset_index(drop=True,inplace=True)
 
-    nX = len(df[time].drop_duplicates())
-    nS = int(df.shape[0]/nX)
-        
-    sid =  pd.DataFrame(np.ravel([np.arange(nS)]*nX),columns=['SID'])
-    df = df.join(sid)
-
-    tmp = pd.pivot(df,index=time,columns='SID',values=od)
-    if window < 1:  window = int(np.ceil(nX*window))
-
-    var = np.var(tmp.values,1)
-    var = filters.gaussian_filter1d(var,window)
-
-    df = df.sort_values(['SID','Time'])
-    df.loc[:,'error'] = np.ravel([var]*nS)
+    error = df[[time,'OD']]
+    error = error.groupby([time]).apply(lambda x: np.nanvar(x.OD))
+    error = pd.DataFrame(error,columns = ['error'])
+    error = error.reset_index()
+    error = error.drop_duplicates().set_index(time).sort_index()
+    error.loc[:,'error'] = filters.gaussian_filter1d(error.error.values,window)
+    df = pd.merge(df,error,on=time,how='outer').sort_values([time])
     
     return df
+
 
 class GrowthModel(object):
 
@@ -106,7 +103,7 @@ class GrowthModel(object):
             new_df.append(sub_df)
 
         new_df = pd.concat(new_df,axis=0)
-        new_df = new_df.drop(['SID',foo],axis=1)
+        new_df = new_df.drop([foo],axis=1)
 
         # construct a thinner dataframe to speed up regression
         time = new_df.Time.sort_values().unique()

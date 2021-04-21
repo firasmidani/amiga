@@ -52,7 +52,7 @@ def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
     mapping_dict = copy.deepcopy(mapping_dict)
 
     if params_dict is None:
-        params_dict = {'subset': {}, 'flag': {}, 'hypo': {}, 'interval': {}}
+        params_dict = {'subset': {}, 'flag': {}, 'hypothesis': {}, 'interval': {}}
 
     # annotate Subset and Flag columns in mapping files
     mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
@@ -80,10 +80,10 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
 
     # flag wells that user does not want to analyze
-    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
+    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose,drop=True)
 
     # tag wells that meet user-passed criteria for analysis
-    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
+    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypothesis'],verbose=verbose)
 
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case
@@ -180,7 +180,7 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
     return master_data
     
 
-def flagWells(df,flags,verbose=False):
+def flagWells(df,flags,verbose=False,drop=False):
     '''
     Passes plate-well-specific flags from user into mapping dataframes.
 
@@ -198,7 +198,10 @@ def flagWells(df,flags,verbose=False):
         return df
 
     for plate, wells in flags.items():
+
         df[plate].loc[wells,'Flag'] = [1]*len(wells)
+
+        if drop: df[plate] = df[plate][df[plate].Flag==0] 
 
     smartPrint('The following flags were detected:\n',verbose)
     smartPrint(tidyDictPrint(flags),verbose)

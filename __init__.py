@@ -31,4 +31,4 @@ __email__ = "midani@bcm.edu"
 #     |--trim.py
 #     |--utils.py
 
-__all__ = ["amiga.py","heatmap.py","libs"]
+__all__ = ["amiga.py","libs"]

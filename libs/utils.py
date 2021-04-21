@@ -26,6 +26,7 @@ __email__ = "midani@bcm.edu"
 # reverseDict
 
 import os
+import numpy as np
 import pandas as pd
 import string
 import random
@@ -33,6 +34,19 @@ import random
 from datetime import datetime
 
 from libs.config import config
+
+
+def flattenList(ls): 
+    '''Flatten a list of lists
+
+    Args:
+        ls (list): multi-dimensional
+
+    Returns: 
+        1-dimensional list
+        '''
+
+    return [item for sublist in ls for item in sublist]
 
 
 def randomString(n=6):
@@ -125,25 +139,63 @@ def handle_non_pos(arr):
         arr (list)
     '''
 
+    #arr = arr.values
+
+    approach = config['handling_nonpositives']
+
+    # if the curve is sijmply a repeat of the same vlaue, you must use the LOD method
+    if len(set(arr.values)) == 1: approach = 'LOD'
+
     # find the lowest value
     floor = min(arr)
 
-    # find the smallest absolute delta, i.e. OD(t+1) - OD(t)
-    delta = [abs(arr[n]-arr[n-1]) for n in range(1,len(arr))]
-    delta = min([ii for ii in delta if ii>0])
+    if approach == 'LOD':
 
-    ## this cannot handle a curve that is just zeroes ##
+        # get parameters
+        lod = config['limit_of_detection']
+        force_lod = config['force_limit_of_detection']
 
-    if floor == 0:
+        # if minimum value is zero simpy shift by LOD
+        if floor == 0: 
+            return arr + lod
 
-        arr = arr + delta 
+        # if minimum value is negative but its absolute value is smaller than LOD
+        elif floor < 0:
+            return arr + lod + abs(floor)
 
-    elif floor < 0:
+        # if minimum value is poistive but user wants to force LOD 
+        elif floor > 0 and force_lod and floor < lod:
+            return arr + lod - floor
 
-        arr = arr + delta + abs(floor)  # we have to add delta, o.w. minimum becomes zero
+        else:
+            return arr
+    
+    elif approach == 'Delta':
 
-    return arr
+        # get parameters
+        ndeltas = np.min([config['number_of_deltas'],len(arr)-1])
+        delta_choice = config['choice_of_deltas']
 
+        # compute absolute values of deltas over desired range
+        deltas = [abs(arr[n]-arr[n-1]) for n in range(1,1+ndeltas)]
+
+        # only consider positive deltas
+        deltas = [ii for ii in deltas if ii>0]
+
+        # pick delta based on desired operation
+        if delta_choice == 'median': delta = np.median(deltas)
+        elif delta_choice == 'mean': delta = np.mean(deltas)
+        elif delta_choice == 'min': delta = np.min(deltas)
+        elif delta_choice == 'max': delta = np.max(deltas)
+
+        if floor == 0: 
+            return arr + delta 
+
+        elif floor < 0: 
+            return arr + delta + abs(floor)  # we have to add floor, o.w. minimum becomes zero
+
+        else:
+            return arr
 
 def resetNameIndex(df,index_name='',new_index=False):
     '''

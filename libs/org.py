@@ -210,7 +210,7 @@ def mapFiles(directory):
     files['meta'] = '{}{}{}.txt'.format(directory['mapping'],os.sep,'meta')
 
     # format paths for files in the 'parameter' sub-directory
-    children = ['flag','hypo','subset','interval']
+    children = ['flag','hypothesis','subset','interval']
 
     for child in children:
 
@@ -234,6 +234,8 @@ def isFileOrFolder(filepath,up=2):
         if up == 2: parent = os.path.dirname(os.path.dirname(filepath))
         elif up == 1: parent = os.path.dirname(filepath)
         filename = os.path.basename(filepath)
+        if parent == '' or parent is None:
+            parent = '.'
         return parent,filename
     else:
         parent = filepath

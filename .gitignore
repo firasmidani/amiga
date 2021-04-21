@@ -7,13 +7,15 @@
 *.py[cod]
 
 # gitignore/community/Python/JupyterNotebooks.gitignore
-#
 *ipynb
 .ipynb_checkpoints
 *./ipynb_checkpoints/*
-#
-# remove previous ipynb checkpoints
-#  git rm -r .ipynb_checkpoints/
 
 # gitignore Vim-created swp files
 *.swp
+
+# gitignore local jekyll server
+.jekyll-cache
+Gemfile
+Gemfile.lock
+docs/_site/

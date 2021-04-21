@@ -19,23 +19,47 @@ config = {}
 ### DATA INPUT PARAMETERS ###
 ###	--------------------- ###
 
-# acceptable values are seconds, minutes, or hours
+# acceptable values are 'seconds', 'minutes', or 'hours'
 config['time_input_unit'] = 'seconds'
 config['time_output_unit'] = 'hours'
 
 # default time interval between OD measurments is set to 600 seconds
-config['interval'] = 850  # units ared based on 'time_input_unit' above  
+config['interval'] = 600  # units ared based on 'time_input_unit' above  
 
 # whether to estimate OD at the first time point using a polynomial regression fit across replicates
-config['PolyFit'] = True
+config['PolyFit'] = False
+
+# How to handle nonpositive (i.e. zero or negative) values. AMiGA handles nonpositive values by vertically
+#     translating the whole growth curve until all values are zero. Then, AMiGA adds an offet to the 
+#     the whole growth curve to raise it above zero. The offset is determiend by either one of two approachs
+#     the user select; either limit-of-detection (LOD) or the empircally-estimated offset (Delta) approach.
+#  1) The LOD approach relies on prior knowledge about the limit of detection of the instrument used 
+#     for measuring optical density. For example, the Tecan sunrise has an accuracy of 0.010 which we 
+#     can assume as a our limit-of-dtection. 
+#  2) The Delta approach relies on empirically estimating an offset for each growth curve. AMiGA measures
+#     the differences in OD between consecutive time points (i.e. Delta ODs). Then, it selects the Detla
+#     that has the smallest absolute value or the median Delta as the empirically estimated offset. Users can  
+#     adjust how many time points are used in estimating the offset. For example, 1 indicates that the users  
+#     wants AMiGA to simply use the first delta in the growth curve. If the users wants to use all delta values, 
+#     then they can pass a value equivalent to the number of timepoints of the curve or higher, say 1,000. 
+
+# raise to the limit of detection which is 0.010 and do not force LOD on all growth curves, 
+# only apply to curves with nonpositive values
+config['handling_nonpositives'] = 'LOD' # or 'LOD'
+
+config['limit_of_detection'] = 0.010 # must be numeric
+config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'LOD'
+config['number_of_deltas'] = 5 # must be int greater than 1, can be really large number (e.g. 1000) to comply with curves of various lengths
+config['choice_of_deltas'] = 'median' # or min or max or mean
+
 
 ###	------------- ###
 ### 96-Well Plots ###
 ###	------------- ###
 
 # parameters related to plotting and fold change
-config['fcg'] = 1.50  # fold-change threshold for growth
-config['fcd'] = 0.50  # fold-change threshold for death
+config['fcg'] = 1.5  # fold-change threshold for growth
+config['fcd'] = 0.5  # fold-change threshold for death
 
 config['fcg_line_color'] = (0.0,0.0,1.0,1.0)
 config['fcg_face_color'] = (0.0,0.0,1.0,0.15)
@@ -46,13 +70,15 @@ config['fcd_face_color'] = (1.0,0.0,0.0,0.15)
 config['fcn_line_color'] = (0.0,0.0,0.0,1.0)  # fc-neutral: i.e. fold-change is within thresholds defined above
 config['fcn_face_color'] = (0.0,0.0,0.0,0.15)  # fc-neutral: i.e. fold-change is within thresholds defined above
 
+config['gp_line_fit'] = 'yellow'
+
 # parameters related to annotating grid plots with OD Max and Well ID values
 config['fcn_well_id_color'] = (0.65,0.165,0.16,0.8)
 config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 
 # parameter for labeling y-axis of grid plots
-config['grid_plot_y_label'] = 'Optical Density (620 nm)'
-config['hypo_plot_y_label'] = 'OD'
+config['grid_plot_y_label'] = 'Optical Density'
+
 
 ###	---------------- ###
 ### Model Parameters ###
@@ -61,31 +87,40 @@ config['hypo_plot_y_label'] = 'OD'
 # for GP regression with input-dependent noise, select a variance smoothing window: 
 config['variance_smoothing_window'] = 6 # number of x-values, based on default paramters: 6 * 600 seconds = 1 hour
 
+# for GP regression on individual curves, AMiGA can check quality of fit by comparing the 
+# estiamted carrying capacity to the actual carrying capacity calculated from data
+# K_actual = OD_Max - OD_Baseline or Adj_OD_Max-Adj_OD_Basline
+# here, the user can define the threshold at which AMiGA will flag poor fit of a curve. the default
+# threshold is 20%.
+config['k_error_threshold'] = 20
+
 
 ###	------------------------ ###
 ### Hypothesis Testing Plots ###
 ###	------------------------ ###
 
-# hypothesis testing plot colors
-config['hypo_colors']  = [(0.11,0.62,0.47),(0.85,0.37,0.01),(0.46,0.44,0.70),
-						  (0.91,0.16,0.54),(0.40,0.65,0.12),(0.90,0.67,0.01),
-						  (0.62,0.42,0.11),(0.36,0.36,0.36)]  
-						  #seagreen, orange, purple, pink, olive, gold, brown, gray
+# hypothesis testing plot colors (the first two are the default colors used by AMiGA)
+config['hypo_colors']  = [(0.11,0.62,0.47),(0.85,0.37,0.01)]  
+						  # correspond to seagreen, orange, purple, pink, olive, gold, brown, gray
+#config['hypo_colors'] = ['black','red']
+
+config['hypo_plot_y_label'] = 'OD'
+
 
 config['HypoPlotParams'] = {'overlay_actual_data':True,
-							'plot_linear_od':False,
 							'fontsize':15,
 							'tick_spacing':5,
-							'legend':'inside'}
-
-config['confidence'] = 0.95 # internally, quantile = 1 - (1-confidence)/2
+							'legend':'outside'}
 
 ###	----------------- ###
 ### GROWTH PARAMETERS ###
 ###	----------------- ###
 
+# adaptationtime
+config['confidence_adapt_time'] = 0.95
+
 # diaxuic shift paramters
-config['diauxie_ratio_varb'] = 'K' # can be K (max OD) or r (max dOD/dt)
+config['diauxie_ratio_varb'] = 'K' # can be "K" (max OD) or "r" (max dOD/dt)
 config['diauxie_ratio_min'] = 0.20  # minimum ratio relative to maximum growth or growth rate for each growth phase
 config['diauxie_k_min'] = 0.10
  
@@ -95,12 +130,9 @@ config['report_parameters'] = ['auc_lin','auc_log','k_lin','k_log','death_lin','
                                't_k','t_gr','t_dr','diauxie']
 #config['report_parameters'] = ['auc_lin','k_lin','lagP','x_dr','diauxie']
 
-
-# whether growth parameters (K and AUC) are inferred based on the log or linear scale
-config['params_scale'] = 'log' # 'log or 'linear'
-
 # how many samples from the posterior funtion are used for estimating mean/std of growth parameters
 config['n_posterior_samples'] = 100
+
 
 ###	------------------ ###
 ### USER COMMUNICATION ###
