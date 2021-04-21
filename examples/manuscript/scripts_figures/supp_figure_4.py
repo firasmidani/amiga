@@ -16,8 +16,8 @@ sns.set_style('whitegrid')
 def read_csv(foo): return pd.read_csv(foo,sep='\t',header=0,index_col=0)
 
 # read model predictions
-split_df = './biolog/derived/split_normalized_merged_gp_data.txt'
-poold_df = './biolog/derived/pooled_normalized_merged_by_ribotype_gp_data.txt'
+split_df = './biolog/derived/split_gp_data.txt'
+poold_df = './biolog/derived/pooled_by_isolate_gp_data.txt'
     
 split = read_csv(split_df)
 poold = read_csv(poold_df)
@@ -170,6 +170,11 @@ for ii,title in enumerate(['L-Threonine','D-Sorbitol','D-Fructose']):
 
 [ax.axhline(0,0,1,lw=2,color='k') for ax in np.ravel(axes)]
 [ax.axvline(0,0,1,lw=2,color=(0,0,0,1),zorder=2) for ax in np.ravel(axes)]
+
+# add panel letters
+axes[0,0].text(transform=axes[0,0].transAxes,x=-0.05,y=1.15,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+axes[0,1].text(transform=axes[0,1].transAxes,x=-0.05,y=1.15,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+axes[0,2].text(transform=axes[0,2].transAxes,x=-0.05,y=1.15,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
 
 # save figure as PDF and convert to EPS
 filename = 'Midani_AMiGA_Supp_Figure_4'

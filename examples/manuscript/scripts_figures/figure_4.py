@@ -350,8 +350,14 @@ fig.delaxes(axes_all[1,1])
 fig.delaxes(axes_all[0,3])
 fig.delaxes(axes_all[1,3])
 
+# adjust spacing between panels
 plt.subplots_adjust(wspace=0.25)
-    
+
+# add panel letters
+axes_all[0,0].text(transform=axes_all[0,0].transAxes,x=-0.3,y=1.16,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+axes_all[0,2].text(transform=axes_all[0,2].transAxes,x=-0.3,y=1.16,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+axes_all[0,4].text(transform=axes_all[0,4].transAxes,x=-0.3,y=1.16,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
+
 # save figure as PDF
 filename = 'Midani_AMiGA_Figure_4'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight',bbox_extra_artists=(tt0,tt1,))

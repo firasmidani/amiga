@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2021-04-21
+
+New interface: 
+- As AMiGA got bloated, it became more confusing for new uers. I have re-structured the command-line interface. AMiGA now has one main command `amiga.py` and sub-commands including `Summarize`, `Fit`, `Normalize`, `Compare`, `Heatmap`, `Test`, `Get-Confidence`, and `Get-Time`. Most of these sub-commands were already implemented in previous verisons but were called as arguments (e.g., `--only-basic-summary`).
+
+New features: 
+- `Heatmap` has a lot more features including exporting data, adjusting aesthetics, labelling rows or columns by unique colors, and highlighting individual labels with a unique fontstyle. Users can now alter how heatmaps handle missing data using command-line arguments. 
+- Normalization of growth parameters is now a separate command: `Normalize`. Users can now normalize either by subtraction or division. 
+- Users can now explicitly request confidence intervals either for growth parameters or growth curves using the `Get-Confidence` section.
+- Growth curves are often used for identifying the time it takes for OD to reach a certain threshold. Users can now do this with `Get-Time`. 
+- Users can now subtract background OD, control samples, and select their preferred approach for handling non-positive values.
+
+Improved and expanded documentation on how to use the many features of `AMiGA` and nuances on how to interpret results.
+
+
 ## [1.1.0] - 2020-11-04
 
 New feature:

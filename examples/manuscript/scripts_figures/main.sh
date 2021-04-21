@@ -23,3 +23,5 @@ python $amiga/examples/manuscript/scripts_figures/figure_4.py
 python $amiga/examples/manuscript/scripts_figures/supp_figure_1.py
 python $amiga/examples/manuscript/scripts_figures/supp_figure_4.py
 python $amiga/examples/manuscript/scripts_figures/supp_figure_5.py
+python $amiga/examples/manuscript/scripts_figures/supp_figure_6.py
+python $amiga/examples/manuscript/scripts_figures/supp_figure_7.py

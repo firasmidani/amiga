@@ -288,8 +288,12 @@ axes_all[4,-1].set_ylabel('Fructose',fontsize=fontsize,labelpad=25)
 # adjust tick label sizes
 [largeTickLabels(ax,fontsize-10) for ax in np.ravel(axes)];
 
-# adjust spaces and save
+# adjust spacing between panels
 plt.subplots_adjust(wspace=0.3)
+
+# add panel letters
+axes_all[0,0].text(transform=axes_all[0,0].transAxes,x=-0.225,y=1.22,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+axes_all[4,0].text(transform=axes_all[3,0].transAxes,x=-0.225,y=1.22,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
 
 # save figure as PDF and convert to EPS
 filename = 'Midani_AMiGA_Figure_3'
