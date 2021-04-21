@@ -3,7 +3,7 @@ layout: page
 title: "Command Line Interface"
 category: doc
 date: 2020-04-16 21:42:08
-order: 14
+order: 16
 use_math: false
 ---
 <!-- AMiGA is covered under the GPL-3 license -->
@@ -46,7 +46,7 @@ Defines which files to be included in the analysis. The proper syntax for the ar
 
 `-t` or `--interval`
 
-Used to define the interval between time points in the data passed to `AMiGA`. Users can pass a single integer (e.g. `--interval 900`) or specify the interval for each plate (e.g. `--interavl "ER1_PM1-1:600;ER1_PM1-2:900;ER1_PM2-1:450"`). For the latter option, users must pass the `Plate_ID` followed by a colon (`:`) followed by the interval. User can set the interval for multiple plates by concatenating arguments with a semicolon (`;`) The default is 600 seconds. The default can be also modified in the `libs/config.py` file. In addition, user can modify the unit of time in the data input and output.
+Used to define the interval between time points in the data passed to `AMiGA`. Users can pass a single integer (e.g. `--interval 900`) or specify the interval for each plate (e.g. `--interavl "ER1_PM1-1:600;ER1_PM1-2:900;ER1_PM2-1:450"`). For the latter option, users must pass the `Plate_ID` followed by a colon (`:`) followed by the interval. User can set the interval for multiple plates by concatenating arguments with a semicolon (`;`) The default is 600 seconds. The default can be also modified in the `libs/config.py` file (see [Configure default parameters](/amiga/doc/configuration.html)). In addition, user can modify the unit of time in the data input and output.
 
 `-sfn` or `--skip-first-n`
 
@@ -78,7 +78,12 @@ Accepts an integer and defines the False Discovery Rate (FDR) threshold used in 
 
 `--subtract-control`
 
-A boolean argument on whether to condition samples on controls, i.e., subtract control growth curve(s) from treatment growth curve(s), before testing for differences in growth using GP inference.
+A boolean argument on whether to condition samples on controls, i.e., subtract control growth curve(s) from treatment growth curve(s), before testing for differences in growth using GP inference. If there are more than one control sample per group, their measurmenets will be averaged over time then used for subtraction. See [Note on Group and Control columns](/amiga/doc/metadata.html) for more details on how to provide the necessary information for this feature. See [Adjusting background OD](/amiga/doc/fitting.html) section for more details on when this step occurs. Keep in mind that control samples will control samples will be dropped from the analysis and will not be modelled with GP regression.
+
+`--subtract-blank`
+
+A boolean argument on whether to condition samples on blank media, i.e., subtract blank media growth curve(s) from treatment growth curve(s). If there are more than one blank sample per group, their measurmenets will be averaged over time then used for subtraction. To subtract a blank, `AMiGA` needs to know which wells correspond to media treatment and which correspond to media controls (i.e. blank). Users can provide this information in the meta-data files. Users must add two columns with the headers `BlankGroup` and `BlankControl`. The user can assign numbers to each unique `BlankGroup` and identify their corresponding `BlankControl` with 1 and other wells with 0, similar to how users can pass information necessary for `--subtract-control`. See [Adjusting background OD](/amiga/doc/fitting.html) section for more details on when this step occurs. Keep in mind that blank samples will be dropped from the analysis and will not be modelled with GP regression. 
+
 
 <br/>
 
@@ -161,7 +166,7 @@ A boolean argument that will ask force AMiGA to save all internally-generated or
 
 `--sample-posterior`
 
-A boolean argument on whether to infer summary statistics for all growth parameters. If not called, `AMiGA` povides a single estimate of each growth parameter based on the mean latent function of the GP model. If called, `AMiGA` samples from the posteiror distribution (`n` times, where `n` is defeined in the `libs/config.py` file), compute the growth parameter for each sampled curve, then returns the mean and the standard deivation of the mean of each growth parameter. See [Pool replicates](/amiga/doc/pooling.html) for more details.
+A boolean argument on whether to infer summary statistics for all growth parameters. If not called, `AMiGA` povides a single estimate of each growth parameter based on the mean latent function of the GP model. If called, `AMiGA` samples from the posteiror distribution (`n` times, where `n` is defined in the `libs/config.py` file, see [Configure default parameters](/amiga/doc/configuration.html)), computes the growth parameter for each sampled curve, then returns the mean and the standard deivation of the mean of each growth parameter. See [Pool replicates](/amiga/doc/pooling.html) for more details.
 
 `--fix-noise`
 

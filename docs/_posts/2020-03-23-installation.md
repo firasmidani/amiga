@@ -132,11 +132,26 @@ Please follow these instructions to install all requirements. See `amiga/require
 
     `pip install -r requirements.txt`
 
+<br />
+#### Python package requirements: troubleshooting 
+
 - If you are using `Anaconda` and installation of specific package(s) fails or results in an error, you can try:
 
     `conda config --add channels conda-forge`
 
     `conda install -c conda-forge PACKAGE_NAME`
+
+- If you are installing requirements with `Anaconda` and you are running into an error or getting stuck at `Solving environment: failed with initial frozen solve`. You may need to downgrade `conda` and its `python` version. Try the following (you may also need to re-install conda before this step). Then, you may have to re-create your virtual environemnt before re-attempting to install the requirements.
+
+    `conda config --set auto_update_conda True`
+
+    `conda config --set allow_conda_downgrades True`
+
+    `conda install python=3.6`
+    
+    `conda install conda=4.6`
+
+
 
 <br />
 #### Terminal alias [Optional] 

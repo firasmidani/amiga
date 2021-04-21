@@ -21,7 +21,7 @@ Diauxic growth or diauxie is characterized by multiple exponential growth phases
 <br />
 #### How does `AMiGA` detect diauxie?
 
-`AMiGA` can detect those diauxic shifts (or any multi-phasic growth) when fitting growth curves. See [Midani et al. (2020)](https://www.biorxiv.org/content/10.1101/2020.11.04.369140v1) for description of the algorithm. The algorithm can be fine-tuned using three different parameters that can be adjusted in `libs/config.py` file.
+`AMiGA` can detect those diauxic shifts (or any multi-phasic growth) when fitting growth curves. See [Midani et al. (2020)](https://www.biorxiv.org/content/10.1101/2020.11.04.369140v1) for description of the algorithm. The algorithm can be fine-tuned using three different parameters that can be adjusted in `libs/config.py` file (see [Configure default parameters](/amiga/doc/configuration.html)).
 
 - `diauxie_ratio_varb`: dictates which variable to use for detection of multiple phases of growth. Select `K` for using carrying capacity or `r` for using growth rate. The default  vaiable is `K`.
 

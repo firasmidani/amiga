@@ -4,7 +4,7 @@ title: "Compare Parameters"
 category: doc
 date: 2020-11-05 15:26:50
 use_math: false
-order: 13
+order: 11
 ---
 <!-- AMiGA is covered under the GPL-3 license -->
 **Table of Contents**
@@ -72,12 +72,12 @@ python $HOME/rab_fm/git/amiga/compare.py \
 ```
 
 <br />
-#### Command-Line arguments
+#### Command-line arguments
 
 To see the full list of arguments that `amiga compare` will accept, run
 
 ```bash
-python compare.py --help
+python amiga.py compare --help
 ```
 which will return the following message
 
