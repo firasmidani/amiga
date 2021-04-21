@@ -8,7 +8,7 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (1 class with 15 sub-functions)
+# TABLE OF CONTENTS (1 class with 16 sub-functions)
 
 # GrowthPlate (CLASS)
 #   __init__
@@ -25,6 +25,7 @@ __email__ = "midani@bcm.edu"
 #   addLocation
 #   extractGrowthData
 #   copy
+#   compute_k_error
 #   model
 
 import sys
@@ -596,6 +597,39 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
+        expected = self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]
+        actual = self.key.k_lin.values
+        diff = (abs(actual-expected)/expected)*100
+        diff = ['TRUE' if ii > thresh else 'FALSE' for ii in diff.values]
+        self.key.loc[:,'K_Error > {}%'.format(thresh)] = diff
+
+
+    def compute_k_error(self):
+        '''Compute K error for checking quality of fit'''
+
+        def foo(x,thresh):
+            
+            if x['expected'] == 0 and x['predicted'] == 0: kerr =  0
+            elif x['expected'] == 0 and x['predicted'] > 0: kerr = np.inf
+            else:  kerr = abs((x['predicted']/x['expected'])-1) * 100
+
+            if kerr > thresh: return 'TRUE'
+            else: return 'FALSE'
+        
+        # whetehr to use use raw or adjusted OD
+        if 'Adj_OD_Max' in self.key.columns: refs = ['Adj_OD_Max','Adj_OD_Baseline']
+        else: refs = ['OD_Max','OD_Baseline']
+        thresh = getValue('k_error_threshold')
+
+        # compute K_Error and flag ones that deviate above threshold
+        sub_df = pd.DataFrame(index=self.key.index,columns=['expected','predicted'])
+        sub_df.loc[:,'expected'] = (self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]).values
+        sub_df.loc[:,'predicted'] = self.key.k_lin.values
+        sub_df.loc[:,'K_Error'] = sub_df.apply(lambda x: foo(x,thresh),axis=1)
+        
+        self.key.loc[:,'K_Error > {}%'.format(thresh)] = sub_df.loc[:,'K_Error']
+
+
     def model(self,nthin=1,store=False,verbose=False):
         '''
         Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
@@ -636,7 +670,7 @@ class GrowthPlate(object):
 
             curve = gm.run(name=sample_id)
 
-            mse_df.loc[sample_id,:] = curve.compute_mse(); print(sample_id,curve.compute_mse())
+            mse_df.loc[sample_id,:] = curve.compute_mse()
             diauxie_dict[sample_id] = curve.params.pop('df_dx')
             gp_params.loc[sample_id,:] = curve.params
 
@@ -652,15 +686,8 @@ class GrowthPlate(object):
         self.key = self.key.join(mse_df)
         self.key = pd.merge(self.key,diauxie_df,on='Sample_ID')
 
-        # check quality of fit
-        if 'Adj_OD_Max' in self.key.columns: refs = ['Adj_OD_Max','Adj_OD_Baseline']
-        else: refs = ['OD_Max','OD_Baseline']
-        thresh = getValue('k_error_threshold')
-        expected = self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]
-        actual = self.key.k_lin.values
-        diff = (abs(actual-expected)/expected)*100
-        diff = ['TRUE' if ii > thresh else 'FALSE' for ii in diff.values]
-        self.key.loc[:,'K_Error > {}%'.format(thresh)] = diff
+        # check quality of fit with K_Error
+        self.compute_k_error()
 
         # plotting needs transformed (or real) OD & GP fit, & may need GP derivative, save all as obejct attributes
         if store: self.gp_data = pd.concat(data_ls).reset_index(drop=True)
