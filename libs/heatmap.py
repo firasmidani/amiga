@@ -70,7 +70,19 @@ def main(args):
 	sub_df = pivot(sub_df,args,args.value)
 	sub_df = reduceDf(sub_df,args)
 	clusterMap(sub_df,full_df,args,directory)
+	saveDf(full_df,sub_df,args,directory)
 
+
+def saveDf(full_df,sub_df,args,directory):
+
+	if not args.save_filtered_table:
+		return None
+
+	sub_df = subsetDf(full_df,{args.y_variable:list(sub_df.index.values),
+		                       args.x_variable:list(sub_df.keys().values)})
+
+	fpath = assembleFullName(directory,'',args.output,'filtered','.txt')
+	sub_df.to_csv(fpath,sep='\t',header=True,index=True)
 
 def read(ls_fpaths):
 
@@ -85,7 +97,6 @@ def read(ls_fpaths):
 
 
 def reduceDf(df,args):
-
 
 	if args.filter is None:
 		return df
@@ -189,8 +200,42 @@ def generate_missing_color(colors):
 
 
 def pivot(df,args,metric=None):
-	if metric is None:return df
-	else: return pd.pivot(data=df,columns=args.x_variable,index=args.y_variable,values=metric)
+
+	if metric is None:
+
+		return df
+
+	else: 
+
+		df = pd.pivot(data=df,columns=args.x_variable,index=args.y_variable,values=metric)
+
+		rows_todrop = np.where(df.isna().any(1))[0]
+		rows_todrop = df.index.values[rows_todrop]
+
+		cols_todrop = np.where(df.isna().any())[0]
+		cols_todrop = df.keys().values[cols_todrop]
+
+		if len(rows_todrop) > 0 or len(cols_todrop): 
+			msg = 'User Warning: The heatmap data is missing values. '
+			msg += 'Pleae check the data for the following:\n\n'
+			msg += 'Columns:\t'
+			msg += ', '.join(cols_todrop) + '\n'
+			msg += '\n'
+			msg += 'Rows:\t'
+			msg += ', '.join(rows_todrop) + '\n'
+			msg += '\nThese variables will be dropped and not plotted unless if you requested that '
+			msg += 'they be kept with --keep-rows-missing-data or --keep-columns-missing-data.\n\n'
+			smartPrint(msg,args.verbose)
+
+		if not args.keep_rows_missing_data:
+			df = df.drop(labels=rows_todrop,axis=0)
+
+		if not args.keep_columns_missing_data:
+			df = df.drop(labels=cols_todrop,axis=1)
+
+	return df
+
+
 
 def get_color_legend(df,full_df,args,directory,axis='y'):
 
@@ -219,8 +264,16 @@ def get_color_legend(df,full_df,args,directory,axis='y'):
     	colors_df = pd.DataFrame(colorscheme,index=['Color']).T
 
     # create list of colors based on meta-data
-    missing_color = generate_missing_color(list(colors_df.Color.values))
-    foo = full_df.loc[:,[colorby,variable]]
+    if args.missing_color is None:
+    	missing_color = generate_missing_color(list(colors_df.Color.values))
+    else:
+    	missing_color = args.missing_color
+
+    if colorby == variable:
+    	foo = full_df.loc[:,[variable]]
+    else:
+    	foo = full_df.loc[:,[colorby,variable]]
+    
     foo = foo.drop_duplicates().set_index(variable).astype(str)
     foo = foo.join(colors_df,on=colorby)
     foo.Color = [missing_color if str(ii)=='nan' else ii for ii in list(foo.Color.values)]
@@ -287,7 +340,11 @@ def clusterMap(df,full_df,args,directory):
 
 	# adjust title
 	title = [args.value if args.title is None else args.title][0]
-	c.ax_heatmap.set_title(title,fontsize=args.fontsize,pad=15)
+	if args.color_x_by is not None:
+		pad = 40
+	else:
+		pad = 15
+	c.ax_heatmap.set_title(title,fontsize=args.fontsize,pad=pad)
 
 	# adjust labels
 	kwargs = {'xlabel':'','ylabel':''}

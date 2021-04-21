@@ -150,7 +150,7 @@ def dynamicWindowAdjustment(ax):
     return ax
 
 
-def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False):
+def addMVNPlotLine(ax,x,criteria,label,z_value,color,plot_params,noise=False):
 
     '''
     Given data (x) and criteria, find relevant sample IDs and plot them on axis.
@@ -160,6 +160,7 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
         x (pandas.DataFrame): must include columns for Time, mu, Sigma
         criteria (dictionary): keys must be column headers in x, values must be values in x.
         label (str): used for legend label of plotted line.
+        z_value (float): z-value for computing confidence interval
         color (str or (R,G,B,A)) where R,G,B,A are floats [0,1]
         plot_params (dictionary)
         noise (boolean): whetehr to plot 95-pct credibel intervals including sample uncertainty
@@ -167,7 +168,7 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
     Returns:
         ax (matplotlib.axes._subplots.AxesSubplot)    
     '''
-    scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
+    scaler = norm.ppf(z_value) # define confidence interval scaler for MVN predictions
     x = subsetDf(x,criteria) # grab value-specific model predictions
 
     if noise: Sigma = x.Sigma + x.Noise

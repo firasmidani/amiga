@@ -53,8 +53,8 @@ def initParamList(complexity=0,params=None):
 
 
     if params is None:
-        lp0 = ['auc_lin','auc_log','k_lin','k_log',
-               'gr','dr','td','lagC','lagP','death_lin','death_log',
+        lp0 = ['auc_lin','auc_log','k_lin','k_log','death_lin','death_log',
+               'gr','dr','td','lagC','lagP',
                't_k','t_gr','t_dr','diauxie']
     else:
         lp0 = params
@@ -126,7 +126,9 @@ def minimizeParameterReport(df):
     keys = set(lp).intersection(set(df.keys()))
     remove = keys.difference(set(request))
 
-    return df.drop(remove,axis=1)
+    df = df.drop(remove,axis=1)
+
+    return df
 
 
 def minimizeDiauxieReport(df):
@@ -171,21 +173,21 @@ def prettyifyParameterReport(df,target,confidence=0.975):
         sys.exit(msg)
 
 
-    def getConfInts(means,stds,conf=0.975):
+    def getConfInts(means,stds,z_value=0.975):
         '''
         Computes confidence interval based on mean, standard deviation, and desired confidence.
 
         Args:
             means (array of floats)
             stds (array of floats)
-            conf (float)
+            z_value (float)
 
         Returns:
             cis (array of strings), where each formatted string indicates the confidence interval,
                 e.g. [0.4,0.6]
         '''
 
-        scaler = norm.ppf(conf)
+        scaler = norm.ppf(z_value)
 
         cis = []
         for m,s in zip(means,stds):
@@ -211,8 +213,8 @@ def prettyifyParameterReport(df,target,confidence=0.975):
         b = [float(ii) for ii in b]
         return not ((a[0] <= b[1]) and (b[0] <= a[1]))
 
-
-    confidence = 1-(1 - confidence)/2
+    alpha = 1-confidence
+    z_value = 1-(alpha/2)
 
     df = df.set_index(['Sample_ID'])
 
@@ -233,7 +235,7 @@ def prettyifyParameterReport(df,target,confidence=0.975):
         else:
             mus = df.loc[:,'mean({})'.format(p)].values
             stds = df.loc[:,'std({})'.format(p)].values
-            cis = getConfInts(mus,stds,confidence)
+            cis = getConfInts(mus,stds,z_value)
             olap = detSigDiff(eval(cis[0]),eval(cis[1]))
 
             df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]

@@ -434,9 +434,9 @@ def expandMappingParams(df,verbose):
         df.loc[:,'Control'] = [0]*df.shape[0]  # all wells (except) A1 are treatments
     
     if biolog:      
+
         df.loc[:,'Control'] = 0  # A1 is the control well
         df.loc['A1','Control'] = 1  # A1 is the control well
-
 
     if not all(x in [0.,1.] or np.isnan(x) for x in df.Control.unique()):
         

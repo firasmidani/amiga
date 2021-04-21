@@ -117,14 +117,14 @@ def subset(args,df):
 def compare(args,df,varbs):
 
 
-	def getConfInts(means,stds,conf=0.975):
+	def getConfInts(means,stds,z_value=0.975):
 		'''
 		Computes confidence interval based on mean, standard deviation, and desired confidence.
 
 		Args:
 			means (array of floats)
 			stds (array of floats)
-			conf (float)
+			z_value (float)
 
 		Returns:
 			cis (array of strings), where each formatted string indicates the confidence interval,
@@ -133,7 +133,7 @@ def compare(args,df,varbs):
 
 		from scipy.stats import norm
 
-		scaler = norm.ppf(conf)
+		scaler = norm.ppf(z_value)
 
 		cis = []
 		for m,s in zip(means,stds):
@@ -160,12 +160,12 @@ def compare(args,df,varbs):
 
 		return not ((a[0] <= b[1]) and (b[0] <= a[1]))
 
-	confidence = (100 - (100 - args.confidence)/2) / 100 
+	z_value = (100 - (100 - args.confidence)/2) / 100 
 
 	if 'Sample_ID' in df.keys(): df = df.set_index(['Sample_ID'])
 
 	params = set(df.keys()).difference(set(varbs))
-	params = list(params.intersection(initParamList(1)))
+	params = list(params.intersection(initParamLisconfidencet(1)))
 	params = list(set([ii.split('(')[1][:-1] if '(' in ii else ii for ii in params]))
 
 	df_top = df.loc[:,varbs].reset_index(drop=True).T
@@ -186,7 +186,7 @@ def compare(args,df,varbs):
 		else:
 			mus = df.loc[:,'mean({})'.format(p)].values
 			stds = df.loc[:,'std({})'.format(p)].values
-			cis = getConfInts(mus,stds,confidence)
+			cis = getConfInts(mus,stds,z_value)
 			olap = detSigdiff(eval(cis[0]),eval(cis[1]))
 
 			df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]

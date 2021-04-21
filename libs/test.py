@@ -8,11 +8,12 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 import os
+import sys
+import operator
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import sys
 
 from scipy.stats import norm, percentileofscore
 from matplotlib import rcParams
@@ -53,6 +54,7 @@ class HypothesisTest(object):
         self.directory = directory_dict
         self.hypothesis = params_dict['hypothesis']
         self.subtract_control = self.args.subtract_control
+        self.subtract_blanks = self.args.subtract_blanks
         self.verbose = self.args.verbose
 
         # only proceed if hypothesis is valid
@@ -246,10 +248,11 @@ class HypothesisTest(object):
 
         plate = GrowthPlate(self.master_data,self.master_mapping)
         plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
+        plate.subtractControl(to_do=self.subtract_blanks,drop=True,blank=True)
+        plate.subtractControl(to_do=self.subtract_control,drop=True,blank=False)
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
         plate.logData()
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
-        plate.subtractControl(to_do=self.subtract_control,drop=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
 
         self.plate = plate
@@ -292,6 +295,7 @@ class HypothesisTest(object):
         tmp = data.sort_values(['Time']).loc[:,['Time','OD']]
         drop_idx = tmp[tmp.isna().any(1)].index
         data = data.drop(labels=drop_idx,axis=0)
+        data = data.drop(['Subset','Flag'],axis=1)
 
         if save_path: data.to_csv(save_path,sep='\t',header=True,index=True)
 
@@ -566,7 +570,7 @@ class HypothesisTest(object):
         x_diff = self.x_full
         variable = self.target[0]
         confidence = self.args.confidence  # confidence interval, e.g. 0.95
-        confidence = 1-(1 - confidence)/2
+        z_value = 1-(1 - confidence)/2
         noise = self.args.include_gaussian_noise
         posterior_n = getValue('n_posterior_samples')
         save_latent = self.args.save_gp_data
@@ -618,7 +622,7 @@ class HypothesisTest(object):
         dos_actual = np.sqrt(np.sum([ii**2 for ii in m]))
 
         # compute the confidence interval for the sum of functional differences
-        scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
+        scaler = norm.ppf(z_value) # define confidence interval scaler for MVN predictions
         ci = (dos_mu-scaler*dos_std, dos_mu+scaler*dos_std)
 
         # compute credible intervals for the curve of the difference
@@ -683,7 +687,7 @@ class HypothesisTest(object):
         posterior_n = getValue('n_posterior_samples')
         colors = getValue('hypo_colors')  # list of colors
         confidence = self.args.confidence  # confidence interval, e.g. 0.95
-        confidence = 1-(1 - confidence)/2
+        z_value = 1-(1 - confidence)/2
 
         noise = self.args.include_gaussian_noise
 
@@ -702,7 +706,8 @@ class HypothesisTest(object):
         fig,ax = plt.subplots(2,1,figsize=[5,10.5],sharex=False)
 
         # for each unique value of variable of interest, plot MVN prediction
-        list_values = varb_codes_map.items();
+        list_values = varb_codes_map.items()
+        list_values = sorted(list_values, key=operator.itemgetter(1))
         list_colors = colors[0:x_min.shape[0]]
 
         # plot MVN predictions
@@ -712,7 +717,7 @@ class HypothesisTest(object):
             criteria_mvn = {variable:code}
 
             ax[0] = addRealPlotLine(ax[0],plate,criteria_real,color,plot_params)
-            ax[0] = addMVNPlotLine(ax[0],x_full,criteria_mvn,label,confidence,color,plot_params,noise)
+            ax[0] = addMVNPlotLine(ax[0],x_full,criteria_mvn,label,z_value,color,plot_params,noise)
             ax[0].xaxis.set_major_locator(MultipleLocator(tick_spacing))
 
         # adjust labels and window limits

@@ -80,7 +80,7 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
 
     # flag wells that user does not want to analyze
-    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
+    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose,drop=True)
 
     # tag wells that meet user-passed criteria for analysis
     mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypothesis'],verbose=verbose)
@@ -180,7 +180,7 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
     return master_data
     
 
-def flagWells(df,flags,verbose=False):
+def flagWells(df,flags,verbose=False,drop=False):
     '''
     Passes plate-well-specific flags from user into mapping dataframes.
 
@@ -198,7 +198,10 @@ def flagWells(df,flags,verbose=False):
         return df
 
     for plate, wells in flags.items():
+
         df[plate].loc[wells,'Flag'] = [1]*len(wells)
+
+        if drop: df[plate] = df[plate][df[plate].Flag==0] 
 
     smartPrint('The following flags were detected:\n',verbose)
     smartPrint(tidyDictPrint(flags),verbose)

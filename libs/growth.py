@@ -124,7 +124,7 @@ class GrowthPlate(object):
         self.key = self.key.join(joint_df)
 
 
-    def subtractControl(self,to_do=False,drop=True):
+    def subtractControl(self,to_do=False,drop=True,blank=False):
         '''
         Subtract from each treatment sample's growth curve, the growth curve of its corresponding control sample.
 
@@ -136,10 +136,15 @@ class GrowthPlate(object):
         if not to_do: return None
 
         data = self.data.copy()
-        mapping = self.key
+        mapping = self.key.copy()
+
+        pid_text = 'Plate_ID'
+        grp_text = 'Group'
+        ctr_text = 'Control'
+        if blank:  grp_text, ctr_text = 'Blank{}'.format(grp_text), 'Blank{}'.format(ctr_text)
 
         # find all unique groups
-        plate_groups = mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
+        plate_groups = mapping.loc[:,[pid_text,grp_text]].drop_duplicates()
         plate_groups = [tuple(x) for x in plate_groups.values]
 
         for plate_group in plate_groups:
@@ -147,8 +152,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+            controls = subsetDf(mapping,{pid_text:[pid],grp_text:[group],ctr_text:[1]}).index.values
+            cases = subsetDf(mapping,{pid_text:[pid],grp_text:[group]}).index.values  # includes controls
 
             if len(controls)==0:
                 msg = '\nFATAL ERROR: User requested subtraction of control samples. However, '
@@ -164,9 +169,16 @@ class GrowthPlate(object):
             data_cases = (data_cases.T - data_controls).T
             data.loc[:,cases] = data_cases.values
 
-            if drop: data = data.drop(controls,axis=1)
+            mapping.loc[cases,'Adj_OD_Baseline'] = data.loc[:,cases].loc[0,:].values
+            mapping.loc[cases,'Adj_OD_Min'] = data.loc[:,cases].apply(np.min).values
+            mapping.loc[cases,'Adj_OD_Max'] = data.loc[:,cases].apply(np.max).values
+
+            if drop: 
+                data = data.drop(controls,axis=1)
+                mapping = mapping.drop(controls,axis=0)
 
         self.data = data
+        self.key = mapping
         self.mods.controlled = True
 
 
@@ -451,7 +463,7 @@ class GrowthPlate(object):
             # add fit lines, if desired
             if plot_fit or plot_raw_with_fit:
                 y_fit = overlay_y.loc[:,well].values
-                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=10)
+                ax.plot(x,y_fit,color=getValue('gp_line_fit'),alpha=0.65,ls='--',lw=1.5,zorder=10)
 
             # show tick labels for bottom left subplot only, so by default no labels
             if plot_derivative: plt.setp(ax,yticks=[ymin,0,ymax],yticklabels=[])  # zero derivative indicates no instantaneous growth
@@ -477,7 +489,8 @@ class GrowthPlate(object):
         
         # add x- and y-labels and title
         ylabel_base = getValue('grid_plot_y_label')
-        ylabel_mod = ['ln ' if self.mods.logged else ''][0]
+        #ylabel_mod = ['ln ' if self.mods.logged else ''][0]
+        ylabel_mod = ''
 
         if plot_derivative: ylabel_text = 'd[ln{}]/dt'.format(ylabel_base)
         else: ylabel_text = ylabel_mod + ylabel_base
@@ -599,8 +612,9 @@ class GrowthPlate(object):
         posterior_n = getValue('n_posterior_samples')
 
         # initialize variables for storing parameters and data
-        data_ls , diauxie_dict = [], {}
+        data_ls, diauxie_dict = [], {}
         gp_params = initParamDf(self.key.index,0)
+        mse_df = pd.DataFrame(index=self.key.index,columns=['MSE'])
 
         for sample_id in self.key.index:
 
@@ -622,17 +636,31 @@ class GrowthPlate(object):
 
             curve = gm.run(name=sample_id)
 
+            mse_df.loc[sample_id,:] = curve.compute_mse(); print(sample_id,curve.compute_mse())
             diauxie_dict[sample_id] = curve.params.pop('df_dx')
             gp_params.loc[sample_id,:] = curve.params
 
             # passively save data, manipulation occurs below (input OD, GP fit, & GP derivative)
             if store: data_ls.append(curve.data())
 
+        smartPrint('',verbose)
+
         diauxie_df = mergeDiauxieDfs(diauxie_dict)
 
         # record results in object's key
-        self.key = self.key.join(gp_params) 
+        self.key = self.key.join(gp_params)
+        self.key = self.key.join(mse_df)
         self.key = pd.merge(self.key,diauxie_df,on='Sample_ID')
+
+        # check quality of fit
+        if 'Adj_OD_Max' in self.key.columns: refs = ['Adj_OD_Max','Adj_OD_Baseline']
+        else: refs = ['OD_Max','OD_Baseline']
+        thresh = getValue('k_error_threshold')
+        expected = self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]
+        actual = self.key.k_lin.values
+        diff = (abs(actual-expected)/expected)*100
+        diff = ['TRUE' if ii > thresh else 'FALSE' for ii in diff.values]
+        self.key.loc[:,'K_Error > {}%'.format(thresh)] = diff
 
         # plotting needs transformed (or real) OD & GP fit, & may need GP derivative, save all as obejct attributes
         if store: self.gp_data = pd.concat(data_ls).reset_index(drop=True)

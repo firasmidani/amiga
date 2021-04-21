@@ -138,13 +138,16 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     if args.save_gp_data or args.plot or args.plot_derivative: store = True
     else: store = False
 
+    #if args.output: args.merge_summary = True
+
     # if user requested merging of summary/data, store each plate's data/summary in temp directory first
     tmpdir = tempfile.mkdtemp()
     saved_umask = os.umask(0o77)  ## files can only be read/written by creator for security
     print('Temporary directory is {}\n'.format(tmpdir))
 
     # pre-process data
-    plate = prepDataForFitting(data,mapping,subtract_baseline=True)
+    plate = prepDataForFitting(data,mapping,subtract_baseline=True,
+        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
 
     dx_ratio_varb = getValue('diauxie_ratio_varb')
     dx_ratio_min = getValue('diauxie_ratio_min')
@@ -223,7 +226,8 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     filename = selectFileName(args.output)
 
     # pre-process data
-    plate = prepDataForFitting(data,mapping,subtract_baseline=False)
+    plate = prepDataForFitting(data,mapping,subtract_baseline=False,
+        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
 
     # which meta-data variables do you use to group replicates?
     combine_keys = args.pool_by.split(',')
@@ -249,7 +253,6 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     dx_ratio_varb = getValue('diauxie_ratio_varb')
     dx_ratio_min = getValue('diauxie_ratio_min')
     posterior_n = getValue('n_posterior_samples')
-    scale = getValue('params_scale')
 
     posterior = args.sample_posterior
     fix_noise = args.fix_noise
@@ -258,6 +261,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     # initialize empty dataframes for storing growth parameters
     params_latent = initParamDf(plate_cond.index,complexity=0)
     params_sample = initParamDf(plate_cond.index,complexity=1)
+    mse_df = pd.DataFrame(index=plate_cond.index,columns=['MSE'])
 
     # for each unique condition based on user request
     for idx,condition in plate_cond.iterrows():
@@ -282,6 +286,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         gm = GrowthModel(df=cond_data,ARD=True,heteroscedastic=fix_noise,nthin=nthin)#,
 
         curve = gm.run(name=idx)
+        mse_df.loc[idx,'MSE'] = curve.compute_mse(pooled=True)
 
         # get parameter estimates using latent function
         diauxie_dict[idx] = curve.params.pop('df_dx')
@@ -311,7 +316,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     else: gp_params = params_latent
 
     # record results in object's key
-    plate_cond = plate_cond.join(gp_params)
+    plate_cond = plate_cond.join(gp_params).join(mse_df)
     plate_cond.index.name = 'Sample_ID'
     plate_cond = plate_cond.reset_index(drop=False)
     plate_cond = pd.merge(plate_cond,diauxie_df,on='Sample_ID')
@@ -380,7 +385,7 @@ def handleMissingData(args,df):
     return df
 
 
-def prepDataForFitting(data,mapping,subtract_baseline=True):
+def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=False,subtract_blanks=False):
     '''
     Packages data set into a grwoth.GrowthPlate() object and transforms data in preparation for GP fitting.
 
@@ -390,7 +395,7 @@ def prepDataForFitting(data,mapping,subtract_baseline=True):
         mapping (pandas.DataFrame): number of wells/samples (n) x number of variables (p)
        
     Returns:
-        plate (growth.GrwothPlate() object)
+        plate (growth.GrwothPlate() object) 
     '''
 
     # merge data-sets for easier analysis and perform basic summaries and manipulations
@@ -399,6 +404,8 @@ def prepDataForFitting(data,mapping,subtract_baseline=True):
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=subtract_baseline)
     plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
+    plate.subtractControl(to_do=subtract_blanks,drop=True,blank=True)
+    plate.subtractControl(to_do=subtract_control,drop=True,blank=False)
     plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
     plate.logData()  # natural-log transform
     plate.subtractBaseline(subtract_baseline,poly=False)  # subtract first T0 (or rather divide by first T0)
@@ -485,8 +492,11 @@ def savePlateData(store_data,plate,data_path,summ_path,diux_path):
     df_diauxie = df_diauxie.reset_index(drop=True)
     df_diauxie = minimizeDiauxieReport(df_diauxie)
 
+
+    df_params.drop(['Subset','Flag'],axis=1,inplace=True)
     df_params.to_csv(summ_path,sep='\t',header=True,index=False)
     if df_diauxie.shape[0]>0:
+        df_diauxie.drop(['Subset','Flag'],axis=1,inplace=True)
         df_diauxie.to_csv(diux_path,sep='\t',header=True,index=False)
 
     if not store_data:
@@ -508,12 +518,15 @@ def mergeSummaryData(args,directory,ls_temp_files,ls_summ_files,ls_diux_files,fi
         filename (str): base file name  
     '''
 
-    if args.save_gp_data and args.merge_summary:
+    if args.save_gp_data and (args.merge_summary or args.output):
 
-        file_path = assembleFullName(directory['derived'],'',filename,'gp_data','.txt')
-        concatFileDfs(ls_temp_files).to_csv(file_path,sep='\t',header=True,index=True)
+        gp_data_df = concatFileDfs(ls_temp_files)
 
-    if args.merge_summary:
+        gp_data_path = assembleFullName(directory['derived'],'',filename,'gp_data','.txt')
+
+        gp_data_df.to_csv(gp_data_path,sep='\t',header=True,index=True)
+
+    if args.merge_summary or args.output:
 
         summ_df = concatFileDfs(ls_summ_files)
         diux_df = concatFileDfs(ls_diux_files)
@@ -522,8 +535,7 @@ def mergeSummaryData(args,directory,ls_temp_files,ls_summ_files,ls_diux_files,fi
         diux_path = assembleFullName(directory['summary'],'',filename,'diauxie','.txt')
 
         summ_df.to_csv(summ_path,sep='\t',header=True,index=True)
-        if diux_df.shape[0]>0:
-            diux_df.to_csv(diux_path,sep='\t',header=True,index=True)
+        if diux_df.shape[0]>0: diux_df.to_csv(diux_path,sep='\t',header=True,index=True)
 
         # clean-up
         for f in ls_temp_files + ls_summ_files + ls_diux_files:

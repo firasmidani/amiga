@@ -8,7 +8,11 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (# functions)
+# TABLE OF CONTENTS
+
+# main
+# read
+# normalize_parameters
 
 
 import os

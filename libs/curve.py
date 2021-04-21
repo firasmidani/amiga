@@ -130,6 +130,24 @@ class GrowthCurve(object):
         # compute all growth parameters or characteristics
         self.describe()
 
+    def compute_mse(self,pooled=False):
+        '''
+        Computes Mean Squared Error
+        '''
+
+        if pooled:
+            self_data = self.data()
+            y = self_data.GP_Input.values
+            y_hat = [ii for ii in self_data.GP_Output.values if ~np.isnan(ii)]
+            y_hat = y_hat * int(len(y)/len(y_hat))
+        else:
+            y = self.linear_input
+            y_hat = self.linear_output_raised
+
+        mse = (1./y.shape[0]) * sum((y-y_hat)**2)
+
+        return mse
+
 
     def log_to_linear(self):
         '''
@@ -309,7 +327,7 @@ class GrowthCurve(object):
         prob = np.array([norm.cdf(0,m,np.sqrt(v)) for m,v in zip(y1[:,0],np.diag(cov1))])
 
         ind = 0
-        while (ind < prob.shape[0]) and (prob[ind] > (1-confidence)): ind += 1
+        while (ind < prob.shape[0]) and (prob[ind] > confidence): ind += 1
 
         if ind == prob.shape[0]: lagP = np.inf
         else: lagP = float(self.x[ind][0])
