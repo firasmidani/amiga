@@ -28,6 +28,7 @@ import sys
 from libs.commands import Command
 from libs.comm import tidyMessage, tidyDictPrint
 from libs.compare import main as compare
+from libs.confidence import main as get_confidence
 from libs.config import config
 from libs.heatmap import main as heatmap
 from libs.normalize import main as normalize
@@ -44,6 +45,7 @@ The most commnly used amiga.py commands are:
     compare     Compare summary statistics for two growth curves
     test        Test a specific hypothesis
     heatmap     Plot a heatmap
+    get_confidence Compute confidence intervals for parameters or curves
     get_time    Get time at which growth reaches a certain value
     print_defaults  Shows the default values stored in libs/config.py
 
@@ -95,7 +97,7 @@ class AMiGA(object):
 
         parser.add_argument('-i','--input',required=True,action='append')
         parser.add_argument('-o','--output',required=True)
-        parser.add_argument('-s','--subset',required=True,action='append')
+        parser.add_argument('-s','--subset',required=True)
         parser.add_argument('--confidence',required=False,type=float,default=95,
             help='Must be between 80 and 100. Default is 95.')
         parser.add_argument('--verbose',action='store_true',default=False)
@@ -110,7 +112,32 @@ class AMiGA(object):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
 
-        compare(args)
+
+    def get_confidence(self):
+
+        parser = argparse.ArgumentParser(
+            description = 'Compute confidence intervals for parameters or curves.')
+        parser.add_argument('-i','--input',required=True)
+        parser.add_argument('--type',required=True,default='Parameters',choices=['Parameters','Curves'])
+        parser.add_argument('--confidence',required=False,type=float,default=95,
+            help='Must be between 80 and 100. Default is 95.')
+        parser.add_argument('--include-noise',action='store_true',default=False,
+            help='Include the estimated measurement noise when computing confidence interval (For Curves Only).')
+        parser.add_argument('--over-write',action='store_true',default=False,
+            help='Over-write file otherwise a new copy is made with "_confidence" suffix')
+        parser.add_argument('--verbose',action='store_true',default=False)
+
+        # pass arguments to local variables
+        args = parser.parse_args(sys.argv[2:])
+
+        if args.verbose: print_arguments(args)
+
+        if (args.confidence < 80) | (args.confidence > 100):
+            msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
+            sys.exit(msg)
+
+        get_confidence(args)
+
 
     def get_time(self):
 
@@ -143,6 +170,8 @@ class AMiGA(object):
         parser.add_argument('-t','--interval',required=False)
         parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
         parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+        parser.add_argument('--subtract-blanks',action='store_true',default=False)
+        parser.add_argument('--subtract-control',action='store_true',default=False)
         parser.add_argument('--keep-missing-time-points',action='store_true',default=False)
         parser.add_argument('--verbose',action='store_true',default=False)
         parser.add_argument('--plot',action='store_true',default=False)
@@ -206,6 +235,12 @@ class AMiGA(object):
         parser.add_argument('--color-file-y',required=False)
         parser.add_argument('--color-scheme-x',required=False)
         parser.add_argument('--color-scheme-y',required=False)
+        parser.add_argument('--missing-color',required=False,default=None)
+        parser.add_argument('--save-filtered-table',action='store_true',default=False)
+        parser.add_argument('--keep-rows-missing-data',action='store_true',default=False,
+            help='Drops columsn that have any missing data')
+        parser.add_argument('--keep-columns-missing-data',action='store_true',default=False,
+            help='Drops rows that have any missing data')
 
         #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
@@ -222,7 +257,7 @@ class AMiGA(object):
 
         parser.add_argument('-i','--input',required=True)
         parser.add_argument('--over-write',action='store_true',default=False,
-            help='over-write file otherwise a new copy is made with "_normalize" suffix')
+            help='Over-write file otherwise a new copy is made with "_normalize" suffix')
         parser.add_argument('--verbose',action='store_true',default=False)
         parser.add_argument('--group-by',required=False)
         parser.add_argument('--normalize-by',required=False)
@@ -295,6 +330,7 @@ class AMiGA(object):
         parser.add_argument('-fdr','--false-discovery-rate',action='store',type=int,default=10)
         parser.add_argument('--confidence',required=False,type=float,default=95,
             help='Must be between 80 and 100. Default is 95.')
+        parser.add_argument('--subtract-blanks',action='store_true',default=False)
         parser.add_argument('--subtract-control',action='store_true',default=False)
         parser.add_argument('--verbose',action='store_true',default=False)
         parser.add_argument('--fix-noise',action='store_true',default=False)
