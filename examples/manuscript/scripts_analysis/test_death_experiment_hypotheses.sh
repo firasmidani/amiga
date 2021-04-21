@@ -17,10 +17,10 @@ declare -a SUBSTRATES=("Glucose" "Fructose")
 declare -a CONCENTRATIONS=("Low" "High")
 
 ## define common command parameters
-BASE="python ${amiga}/amiga.py"   # path to amiga
+BASE="python ${amiga}/amiga.py test"   # path to amiga
 INPUT="${amiga}/examples/manuscript/death"  # path to working directory
 HYPO="'H0:Time;H1:Time+Concentration'"						 # hypothesis
-PARAMS="--verbose -np 100 -tss 10 -fdr 10 --plot --plot-delta-od --sample-posterior --save-gp-data" 
+PARAMS="--verbose -np 100 -tss 10 -fdr 10 	--sample-posterior --save-gp-data" 
 
 RESULTS=()  # array to maintain list of results files
 
