@@ -8,15 +8,13 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (10 functions)
+# TABLE OF CONTENTS (9 functions)
 
 # basicSummaryOnly
 # runGrowthFitting
 # runCombinedGrowthFitting
 # handleMissingData
 # prepDataForFitting
-# normalizeParameters
-# normalizePooledParameters
 # savePlots
 # prepGpData
 # savePlateData
@@ -171,7 +169,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
         savePlots(sub_plate,args,directory,pid)
         
         # define file paths where data will be written
-        if args.merge_summary:
+        if args.merge_summary or args.output:
             temp_path = assembleFullName(tmpdir,'',pid,'gp_data','.txt')
             summ_path = assembleFullName(tmpdir,'',pid,'summary','.txt') 
             diux_path = assembleFullName(tmpdir,'',pid,'diauxie','.txt') 

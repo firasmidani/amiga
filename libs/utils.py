@@ -8,13 +8,15 @@ __author__ = "Firas Said Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (14 functions)
+# TABLE OF CONTENTS (16 functions)
 
+# flattenList
 # randomString
 # uniqueRandomString
 # subsetDf
 # concatFileDfs
 # raise_non_pos
+# handle_non_pos
 # resetNameIndex
 # timeStamp
 # selectFileName

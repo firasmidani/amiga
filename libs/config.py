@@ -29,27 +29,12 @@ config['interval'] = 600  # units ared based on 'time_input_unit' above
 # whether to estimate OD at the first time point using a polynomial regression fit across replicates
 config['PolyFit'] = False
 
-# How to handle nonpositive (i.e. zero or negative) values. AMiGA handles nonpositive values by vertically
-#     translating the whole growth curve until all values are zero. Then, AMiGA adds an offet to the 
-#     the whole growth curve to raise it above zero. The offset is determiend by either one of two approachs
-#     the user select; either limit-of-detection (LOD) or the empircally-estimated offset (Delta) approach.
-#  1) The LOD approach relies on prior knowledge about the limit of detection of the instrument used 
-#     for measuring optical density. For example, the Tecan sunrise has an accuracy of 0.010 which we 
-#     can assume as a our limit-of-dtection. 
-#  2) The Delta approach relies on empirically estimating an offset for each growth curve. AMiGA measures
-#     the differences in OD between consecutive time points (i.e. Delta ODs). Then, it selects the Detla
-#     that has the smallest absolute value or the median Delta as the empirically estimated offset. Users can  
-#     adjust how many time points are used in estimating the offset. For example, 1 indicates that the users  
-#     wants AMiGA to simply use the first delta in the growth curve. If the users wants to use all delta values, 
-#     then they can pass a value equivalent to the number of timepoints of the curve or higher, say 1,000. 
-
-# raise to the limit of detection which is 0.010 and do not force LOD on all growth curves, 
-# only apply to curves with nonpositive values
-config['handling_nonpositives'] = 'LOD' # or 'LOD'
+# How to handle nonpositive (i.e. zero or negative) values. See AMiGA docs for more details
+config['handling_nonpositives'] = 'LOD' # or 'Delta'
 
 config['limit_of_detection'] = 0.010 # must be numeric
 config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'LOD'
-config['number_of_deltas'] = 5 # must be int greater than 1, can be really large number (e.g. 1000) to comply with curves of various lengths
+config['number_of_deltas'] = 5 # must be integer greater than 1, can be really large number (e.g. 1000) to comply with curves of various lengths
 config['choice_of_deltas'] = 'median' # or min or max or mean
 
 

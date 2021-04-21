@@ -8,8 +8,9 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (7 functions)
+# TABLE OF CONTENTS (8 functions)
 
+# articulateParameters
 # initDiauxieList
 # initParamList
 # initParamDf

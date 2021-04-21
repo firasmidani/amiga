@@ -8,16 +8,17 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (8 functions)
+# TABLE OF CONTENTS (9 functions)
 
-# main
 # read
-# reduceDf
-# group
-# pivot
 # clusterMap
-# plot
-# parseCommand
+# generate_missing_color
+# getColorLegend
+# group
+# main
+# pivot
+# reduceDf
+# saveDf
 
 import os
 import random

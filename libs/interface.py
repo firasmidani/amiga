@@ -8,7 +8,7 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (6 functions)
+# TABLE OF CONTENTS (5 functions)
 
 # interpretParameters
 # initializeParameter

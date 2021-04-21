@@ -8,14 +8,15 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS
+# TABLE OF CONTENTS (6 functions)
 
 # main
+# save
 # read
+# validate
 # subset
 # compare
-# save
-# parseCommand
+
 
 
 import os

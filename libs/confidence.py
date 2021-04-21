@@ -8,7 +8,7 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS
+# TABLE OF CONTENTS (3 functions)
 
 # main
 # get_parameter_confidence

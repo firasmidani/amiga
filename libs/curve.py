@@ -7,13 +7,14 @@ AMiGA library fo the microbial growth curve class.
 __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
-# TABLE OF CONTENTS (2 functions and 1 class with 12 sub-functions)
+# TABLE OF CONTENTS (2 functions and 1 class with 13 sub-functions)
 
 # linearize
 # maxValueArg
 #
 # Curve (CLASS)
 # 	__init__
+#   compute_mse
 #   log_to_linear
 #   describe
 #   AreaUnderCurve

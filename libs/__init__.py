@@ -8,7 +8,9 @@ __email__ = "midani@bcm.edu"
 __all__ = ["analyze.py",
 		   "biolog.py",
 		   "comm.py",
+		   "commands.py",
 		   "compare.py"
+		   "confidence.py",
 		   "config.py",
 		   "curve.py",
            "detail.py",
@@ -24,5 +26,6 @@ __all__ = ["analyze.py",
            "plot.py",
 	       "read.py",
 	       "test.py",
+	       "thresholds.py",
 	       "trim.py",
 	       "utils.py"]

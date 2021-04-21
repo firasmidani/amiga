@@ -8,9 +8,10 @@ __author__ = "Firas Said Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (15 functions)
+# TABLE OF CONTENTS (18 functions)
 
 # assembleMappings
+# checkBiologSize
 # checkMetaText
 # checkPlateIdColumn
 # isBiologFromMeta
@@ -25,6 +26,8 @@ __email__ = "midani@bcm.edu"
 # expandMappingParams
 # parseBiologLayout
 # parseWellLayout
+# updateMappingControls
+# shouldYouSubtractControl
 
 import os 
 import sys

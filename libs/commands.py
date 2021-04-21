@@ -8,6 +8,14 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
+# TABLE OF CONTENTS (1 class with 4 class functions)
+
+# Command
+# __init__
+# summarize
+# test
+# fit
+
 from libs.analyze import basicSummaryOnly, runGrowthFitting
 from libs.comm import tidyMessage
 from libs.config import config

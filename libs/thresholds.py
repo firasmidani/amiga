@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 
+'''
+AMiGA wrapper: getting time at which measurements reach a user-defined threshold.
+'''
+
+__author__ = "Firas S Midani"
+__email__ = "midani@bcm.edu"
+
+
+# TABLE OF CONTENTS (4 functions)
+
+# main
+# update
+# find
+# read
+
 import os
 import sys
 import argparse
