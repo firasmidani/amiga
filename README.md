@@ -4,7 +4,7 @@
 
 ## Documentation:
 
-See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and examples. I will be adding more documentation on new featues and more examples soon (2020/11/05). 
+See [documentation](https://firasmidani.github.io/amiga) for tutorials, technical details, and examples.
 
 ## Installation:
 
