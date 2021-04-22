@@ -8,13 +8,15 @@ __author__ = "Firas Said Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (14 functions)
+# TABLE OF CONTENTS (16 functions)
 
+# flattenList
 # randomString
 # uniqueRandomString
 # subsetDf
 # concatFileDfs
 # raise_non_pos
+# handle_non_pos
 # resetNameIndex
 # timeStamp
 # selectFileName
@@ -26,6 +28,7 @@ __email__ = "midani@bcm.edu"
 # reverseDict
 
 import os
+import numpy as np
 import pandas as pd
 import string
 import random
@@ -33,6 +36,19 @@ import random
 from datetime import datetime
 
 from libs.config import config
+
+
+def flattenList(ls): 
+    '''Flatten a list of lists
+
+    Args:
+        ls (list): multi-dimensional
+
+    Returns: 
+        1-dimensional list
+        '''
+
+    return [item for sublist in ls for item in sublist]
 
 
 def randomString(n=6):
@@ -113,6 +129,98 @@ def raise_non_pos(arr):
     
     return arr
 
+
+def handle_non_pos(arr):
+    '''
+    Handles zero or negative values in an array.
+
+    Args:
+        arr (list or np.array)
+
+    Returns:
+        arr (list)
+    '''
+
+    # get parameters
+    approach = config['handling_nonpositives']
+    lod = config['limit_of_detection']
+    force_lod = config['force_limit_of_detection']
+    ndeltas = np.min([config['number_of_deltas'],len(arr)-1])
+    delta_choice = config['choice_of_deltas']
+
+    if approach == 'LOD' and lod == 0:
+        msg = '\n\nFATAL USER ERROR: The limit-of-detection default value is set to 0. '
+        msg+= 'It must be positive. You can adjust this parameter in the libs/config.py file.\n\n'
+        sys.exit(msg)
+    elif approach == 'Delta' and ndeltas < 1:
+        msg = '\n\nFATAL USER ERROR: The number of deltas default value is less than 1 '
+        msg+= 'It must be one or higher. You can adjust this parameter in the libs/config.py file.\n\n'
+
+    # if the curve is simply a repeat of the same vlaue, you must use the LOD method
+    if len(set(arr.values)) == 1: approach = 'LOD'
+
+    # find the lowest value
+    floor = min(arr)
+
+    if approach == 'LOD':        
+
+        # if all values are positive and not forcing limit-of-detection
+        if floor > 0 and not force_lod:
+            return arr
+
+        # if minimum value is zero simpy shift by LOD
+        elif floor == 0: 
+            return arr + lod
+
+        # if minimum value is negative but its absolute value is smaller than LOD
+        elif floor < 0:
+            return arr + lod + abs(floor)
+
+        # if minimum value is poistive but user wants to force LOD 
+        elif floor > 0 and force_lod and floor < lod:
+            return arr + lod - floor
+
+        else:
+            return arr
+    
+    elif approach == 'Delta':
+
+        if floor > 0: return arr
+
+        delta = 0
+        count = 2
+        usr_ndeltas = ndeltas
+        max_ndeltas = len(arr)-1
+
+        while (delta == 0 or np.isnan(delta)):
+
+            # compute absolute values of deltas over desired range
+            deltas = [abs(arr[n]-arr[n-1]) for n in range(1,1+ndeltas)]
+
+            # only consider positive deltas
+            deltas = [ii for ii in deltas if ii>0]
+
+            # pick delta based on desired operation
+            if delta_choice == 'median': delta = np.median(deltas)
+            elif delta_choice == 'mean': delta = np.mean(deltas)
+            elif delta_choice == 'min': delta = np.min(deltas)
+            elif delta_choice == 'max': delta = np.max(deltas)
+
+            # increase ndeltas by a multiplier
+            ndeltas = ndeltas * count
+            count += 1
+
+            # if next iteration won't yield new information, welp!
+            if (max_ndeltas - ndeltas) > usr_ndeltas: return arr 
+
+        if floor == 0: 
+            return arr + delta 
+
+        elif floor < 0: 
+            return arr + delta + abs(floor)  # we have to add floor, o.w. minimum becomes zero
+
+        else:
+            return arr
 
 def resetNameIndex(df,index_name='',new_index=False):
     '''

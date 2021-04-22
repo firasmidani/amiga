@@ -8,7 +8,7 @@ __author__ = "Firas S Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (1 class with 15 sub-functions)
+# TABLE OF CONTENTS (1 class with 16 sub-functions)
 
 # GrowthPlate (CLASS)
 #   __init__
@@ -25,6 +25,7 @@ __email__ = "midani@bcm.edu"
 #   addLocation
 #   extractGrowthData
 #   copy
+#   compute_k_error
 #   model
 
 import sys
@@ -34,10 +35,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from libs.params import initParamDf, mergeDiauxieDfs
+from libs.plot import largeTickLabels
 from libs.model import GrowthModel
 from libs.comm import smartPrint, tidyDictPrint
 from libs.detail import parseWellLayout
-from libs.utils import subsetDf, raise_non_pos, getPlotColors, getTextColors, getValue, getTimeUnits
+from libs.utils import subsetDf, handle_non_pos, getPlotColors, getTextColors, getValue, getTimeUnits
 
 
 class GrowthPlate(object):
@@ -123,7 +125,7 @@ class GrowthPlate(object):
         self.key = self.key.join(joint_df)
 
 
-    def subtractControl(self,to_do=False,drop=True):
+    def subtractControl(self,to_do=False,drop=True,blank=False):
         '''
         Subtract from each treatment sample's growth curve, the growth curve of its corresponding control sample.
 
@@ -135,10 +137,15 @@ class GrowthPlate(object):
         if not to_do: return None
 
         data = self.data.copy()
-        mapping = self.key
+        mapping = self.key.copy()
+
+        pid_text = 'Plate_ID'
+        grp_text = 'Group'
+        ctr_text = 'Control'
+        if blank:  grp_text, ctr_text = 'Blank{}'.format(grp_text), 'Blank{}'.format(ctr_text)
 
         # find all unique groups
-        plate_groups = mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
+        plate_groups = mapping.loc[:,[pid_text,grp_text]].drop_duplicates()
         plate_groups = [tuple(x) for x in plate_groups.values]
 
         for plate_group in plate_groups:
@@ -146,8 +153,8 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group],'Control':[1]}).index.values
-            cases = subsetDf(mapping,{'Plate_ID':[pid],'Group':[group]}).index.values  # includes controls
+            controls = subsetDf(mapping,{pid_text:[pid],grp_text:[group],ctr_text:[1]}).index.values
+            cases = subsetDf(mapping,{pid_text:[pid],grp_text:[group]}).index.values  # includes controls
 
             if len(controls)==0:
                 msg = '\nFATAL ERROR: User requested subtraction of control samples. However, '
@@ -163,9 +170,16 @@ class GrowthPlate(object):
             data_cases = (data_cases.T - data_controls).T
             data.loc[:,cases] = data_cases.values
 
-            if drop: data = data.drop(controls,axis=1)
+            mapping.loc[cases,'Adj_OD_Baseline'] = data.loc[:,cases].loc[0,:].values
+            mapping.loc[cases,'Adj_OD_Min'] = data.loc[:,cases].apply(np.min).values
+            mapping.loc[cases,'Adj_OD_Max'] = data.loc[:,cases].apply(np.max).values
+
+            if drop: 
+                data = data.drop(controls,axis=1)
+                mapping = mapping.drop(controls,axis=0)
 
         self.data = data
+        self.key = mapping
         self.mods.controlled = True
 
 
@@ -276,8 +290,11 @@ class GrowthPlate(object):
         '''
 
         # raise any negative or zero values to a pseudo-count or baseline OD. 
-        self.data = self.data.apply(lambda x: raise_non_pos(x))
+        self.data = self.data.apply(lambda x: handle_non_pos(x))
         self.mods.raised = True
+
+        # add OD_Offset to key
+        self.key.loc[:,'OD_Offset'] = self.data.iloc[0,:].values
 
 
     def logData(self):
@@ -330,7 +347,7 @@ class GrowthPlate(object):
         # must have only one Plate_ID associated with all samples
         if len(self.key.Plate_ID.unique()) != 1: return False	
 
-        # Well must be a column, values woudl be well locations (e.g. A1)
+        # Well must be a column, values would be well locations (e.g. A1)
         if 'Well' not in self.key.columns: return False
 
         # makes sure that all 96 well locations are described in key and thus data
@@ -374,23 +391,26 @@ class GrowthPlate(object):
         '''
 
         sns.set_style('whitegrid')
-
-        self.addLocation()
+        fontsize=15
 
         time = self.time
 
-        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
-        key = self.key.reindex(cols,axis='columns',)
-        key = key.dropna(axis=1,how='all')
-        if 'Sample_ID' in key.columns:
-            key = key.drop_duplicates().set_index('Sample_ID')
-        
         # make sure plate is 96-well version, otherwise skip plotting
         if not self.isSingleMultiWellPlate():
             msg = 'WARNING: GrowthPlate() object for {} is not a 96-well plate. '.format(self.key.Plate_ID.iloc[0])
             msg += 'AMiGA can not plot it.\n'
             print(msg)
             return None
+
+        self.addLocation()
+
+        #key = self.key
+        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
+        key = self.key.reindex(cols,axis='columns',)
+        key = key.dropna(axis=1,how='all')
+        if 'Sample_ID' in key.columns:
+            key = key.drop_duplicates().set_index('Sample_ID')
+        
 
         if plot_derivative: 
             base_y = self.gp_data.pivot(columns='Sample_ID',index='Time',values='GP_Derivative')
@@ -412,7 +432,7 @@ class GrowthPlate(object):
         if plot_fit: ymin = 0
 
         xmin = 0
-        xmax = time.values[-1]
+        xmax = np.ravel(time)[-1]
         xmax_up = int(np.ceil(xmax)) # round up to nearest integer
 
         for well in base_y.columns:
@@ -444,7 +464,7 @@ class GrowthPlate(object):
             # add fit lines, if desired
             if plot_fit or plot_raw_with_fit:
                 y_fit = overlay_y.loc[:,well].values
-                ax.plot(x,y_fit,color='yellow',alpha=0.65,ls='--',lw=1.5,zorder=10)
+                ax.plot(x,y_fit,color=getValue('gp_line_fit'),alpha=0.65,ls='--',lw=1.5,zorder=10)
 
             # show tick labels for bottom left subplot only, so by default no labels
             if plot_derivative: plt.setp(ax,yticks=[ymin,0,ymax],yticklabels=[])  # zero derivative indicates no instantaneous growth
@@ -453,31 +473,33 @@ class GrowthPlate(object):
 
             # add well identifier on top left of each sub-plot
             well_color = getTextColors('Well_ID')
-            ax.text(0.,1.,key.loc[well,'Well'],color=well_color,ha='left',va='top',transform=ax.transAxes)
+            ax.text(0.,1.,key.loc[well,'Well'],fontsize=10,color=well_color,ha='left',va='top',transform=ax.transAxes)
 
             # add Max OD value on top right of each sub-plot
             if self.mods.floored:
                 od_max = key.loc[well,'OD_Max'] - key.loc[well,'OD_Baseline']
             else:
                 od_max = key.loc[well,'OD_Max']
-            ax.text(1.,1.,"{0:.2f}".format(od_max),
+            ax.text(1.,1.,"{0:.2f}".format(od_max),fontsize=10,
                 color=getTextColors('OD_Max'),ha='right',va='top',transform=ax.transAxes)
 
         # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])
         plt.setp(axes[7,0],yticks=[ymin,ymax],yticklabels=[ymin,ymax])
-
+        largeTickLabels(axes[7,0],fontsize=fontsize)
+        
         # add x- and y-labels and title
         ylabel_base = getValue('grid_plot_y_label')
-        ylabel_mod = ['ln ' if self.mods.logged else ''][0]
+        #ylabel_mod = ['ln ' if self.mods.logged else ''][0]
+        ylabel_mod = ''
 
         if plot_derivative: ylabel_text = 'd[ln{}]/dt'.format(ylabel_base)
         else: ylabel_text = ylabel_mod + ylabel_base
 
         # add labels and title 
-        fig.text(0.512,0.07,'Time ({})'.format(getTimeUnits('output')),fontsize=15,ha='center',va='bottom')
-        fig.text(0.100,0.50,ylabel_text,fontsize=15,ha='right',va='center',rotation='vertical')
-        fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=15,ha='center',va='center')
+        fig.text(0.512,0.07,'Time ({})'.format(getTimeUnits('output')),fontsize=fontsize,ha='center',va='bottom')
+        fig.text(0.100,0.50,ylabel_text,fontsize=fontsize,ha='right',va='center',rotation='vertical')
+        fig.suptitle(x=0.512,y=0.93,t=key.loc[well,'Plate_ID'],fontsize=fontsize,ha='center',va='center')
 
         # if no file path passed, do not save 
         if save_path!='':  plt.savefig(save_path, bbox_inches='tight')
@@ -575,6 +597,39 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
+        expected = self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]
+        actual = self.key.k_lin.values
+        diff = (abs(actual-expected)/expected)*100
+        diff = ['TRUE' if ii > thresh else 'FALSE' for ii in diff.values]
+        self.key.loc[:,'K_Error > {}%'.format(thresh)] = diff
+
+
+    def compute_k_error(self):
+        '''Compute K error for checking quality of fit'''
+
+        def foo(x,thresh):
+            
+            if x['expected'] == 0 and x['predicted'] == 0: kerr =  0
+            elif x['expected'] == 0 and x['predicted'] > 0: kerr = np.inf
+            else:  kerr = abs((x['predicted']/x['expected'])-1) * 100
+
+            if kerr > thresh: return 'TRUE'
+            else: return 'FALSE'
+        
+        # whetehr to use use raw or adjusted OD
+        if 'Adj_OD_Max' in self.key.columns: refs = ['Adj_OD_Max','Adj_OD_Baseline']
+        else: refs = ['OD_Max','OD_Baseline']
+        thresh = getValue('k_error_threshold')
+
+        # compute K_Error and flag ones that deviate above threshold
+        sub_df = pd.DataFrame(index=self.key.index,columns=['expected','predicted'])
+        sub_df.loc[:,'expected'] = (self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]).values
+        sub_df.loc[:,'predicted'] = self.key.k_lin.values
+        sub_df.loc[:,'K_Error'] = sub_df.apply(lambda x: foo(x,thresh),axis=1)
+        
+        self.key.loc[:,'K_Error > {}%'.format(thresh)] = sub_df.loc[:,'K_Error']
+
+
     def model(self,nthin=1,store=False,verbose=False):
         '''
         Infers growth parameters of interest (including diauxic shifts) by Gaussian Process fitting of data.
@@ -591,8 +646,9 @@ class GrowthPlate(object):
         posterior_n = getValue('n_posterior_samples')
 
         # initialize variables for storing parameters and data
-        data_ls , diauxie_dict = [], {}
+        data_ls, diauxie_dict = [], {}
         gp_params = initParamDf(self.key.index,0)
+        mse_df = pd.DataFrame(index=self.key.index,columns=['MSE'])
 
         for sample_id in self.key.index:
 
@@ -609,22 +665,29 @@ class GrowthPlate(object):
 
             # create GP object and analyze
             gm = GrowthModel(df=df,
-                             baseline=sample.key.OD_Baseline.values,
+                             baseline=sample.key.OD_Offset.values,
                              ARD=False,heteroscedastic=False,nthin=nthin)
 
             curve = gm.run(name=sample_id)
 
+            mse_df.loc[sample_id,:] = curve.compute_mse()
             diauxie_dict[sample_id] = curve.params.pop('df_dx')
             gp_params.loc[sample_id,:] = curve.params
 
             # passively save data, manipulation occurs below (input OD, GP fit, & GP derivative)
             if store: data_ls.append(curve.data())
 
+        smartPrint('',verbose)
+
         diauxie_df = mergeDiauxieDfs(diauxie_dict)
 
         # record results in object's key
-        self.key = self.key.join(gp_params) 
+        self.key = self.key.join(gp_params)
+        self.key = self.key.join(mse_df)
         self.key = pd.merge(self.key,diauxie_df,on='Sample_ID')
+
+        # check quality of fit with K_Error
+        self.compute_k_error()
 
         # plotting needs transformed (or real) OD & GP fit, & may need GP derivative, save all as obejct attributes
         if store: self.gp_data = pd.concat(data_ls).reset_index(drop=True)

@@ -8,9 +8,10 @@ __author__ = "Firas Said Midani"
 __email__ = "midani@bcm.edu"
 
 
-# TABLE OF CONTENTS (15 functions)
+# TABLE OF CONTENTS (18 functions)
 
 # assembleMappings
+# checkBiologSize
 # checkMetaText
 # checkPlateIdColumn
 # isBiologFromMeta
@@ -25,6 +26,8 @@ __email__ = "midani@bcm.edu"
 # expandMappingParams
 # parseBiologLayout
 # parseWellLayout
+# updateMappingControls
+# shouldYouSubtractControl
 
 import os 
 import sys
@@ -40,7 +43,7 @@ from libs.org import assembleFullName, assemblePath
 from libs.utils import subsetDf
 
 
-def assembleMappings(data,mapping_path,meta_path,save=False,verbose=False):
+def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
     '''
     Creates a master mapping file (or dictionary ?) for all data files in the input argument.
         For each data file, in this particular order, it will first (1) check if an individual
@@ -160,7 +163,10 @@ def checkMetaText(filepath,verbose=False):
 
     '''
 
-    exists = os.path.exists(filepath)
+    if filepath is None:
+        exists = False
+    else:
+        exists = os.path.exists(filepath)
 
     if not exists:
         df_meta = pd.DataFrame
@@ -431,9 +437,9 @@ def expandMappingParams(df,verbose):
         df.loc[:,'Control'] = [0]*df.shape[0]  # all wells (except) A1 are treatments
     
     if biolog:      
+
         df.loc[:,'Control'] = 0  # A1 is the control well
         df.loc['A1','Control'] = 1  # A1 is the control well
-
 
     if not all(x in [0.,1.] or np.isnan(x) for x in df.Control.unique()):
         

@@ -15,18 +15,15 @@ sns.set_style('whitegrid')
 def read_csv(foo): return pd.read_csv(foo,sep='\t',header=0,index_col=0)
 
 # read model estimated parameters
-summ_df ='./biolog/summary/pooled_normalized_merged_by_ribotype_summary.txt'
-diux_df = './biolog/summary/pooled_normalized_merged_by_ribotype_diauxie.txt'
-    
+summ_df ='./biolog/summary/pooled_by_isolate_summary_normalized.txt'    
 summ_df = read_csv(summ_df)
-diux_df = read_csv(diux_df)
 
 # replace 'negative control'  with 'no carbon control' to avoid ambiguity
 summ_df = summ_df.replace('Negative Control','No-carbon Control')
 
 # read model predictions
-split_df ='./biolog/derived/pooled_normalized_merged_by_ribotype_gp_data.txt'
-poold_df = './biolog/derived/split_normalized_merged_gp_data.txt'
+split_df ='./biolog/derived/pooled_by_isolate_gp_data.txt'
+poold_df = './biolog/derived/split_gp_data.txt'
     
 split = read_csv(split_df)
 poold = read_csv(poold_df)
@@ -115,10 +112,12 @@ plt.setp(ax1,yticks=np.linspace(1,1.6,4))
 ax1.axhline(1.2,0,1,color=(0.5,0.5,0.5,.5),zorder=2,lw=2,ls='--')
 ax1.axvline(1.2,0,1,color=(0.5,0.5,0.5,.5),zorder=2,lw=2,ls='--')
 
-# ax0.text(x=0.08,y=1,ha='left',va='top',s='A',fontsize=40,transform=fig.transFigure)
-# ax0.text(x=0.6,y=1,ha='right',va='top',s='B',fontsize=40,transform=fig.transFigure)
-
+# adjust spacing between panels
 plt.subplots_adjust(wspace=1.0)
+
+# add panel letters
+ax0.text(transform=ax0.transAxes,x=-0.225,y=1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+ax1.text(transform=ax1.transAxes,x=-0.225,y=1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
 
 filename='Midani_AMiGA_Figure_2'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')

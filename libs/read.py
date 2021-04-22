@@ -26,26 +26,45 @@ import pandas as pd
 
 from string import ascii_uppercase
 
+from libs.config import config
 from libs.detail import parseWellLayout
 from libs.comm import smartPrint
 from libs.org import assemblePath
 
 
-def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,verbose=False):
+def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=False,verbose=False):
     '''
     Finds, reads, and formats all files in a directory to be AMiGA-compatible.
 
     Args:
-        filename (str or None): str indicates user is intersted in a single data file, None otherwise
-        directory (dictionary): keys are folder names, values are their paths
-        config (dictionary): variables saved in config.py where key is variable and value is value
-        save (boolean): 
-        interval_dict (dictionary)
+        filename (str or None): 
+            if str: path to a single data file to be read.
+            if None: user is interested in reading one or more data files (so user must pass directory argument).
+        directory (dictionary or str or None):
+            if dictionary: Keys are folder names, values are their paths. Keys must include 'data' and 'derived'
+                'data' sub-folder must exist and house one or more data files to be read. 
+            if str: path to folder that houses one ore more data files to be read.
+            if None: user is interested in reading a single data file (so user must pass filename argument).
+        interval (dictionary or numeric):
+            if numeric: must be int or float.
+            if dictionary: Keys are file names, values are their respective interval parameter, e.g. 
+                {'CD2015_PM1-1':600,'CD2048_PM1-1':900}). If a filename does not have a corresponding key in the
+                dictionary, the default parameter for 'interval' in the 'config' dictionary will be used. 
+        save (boolean): will save AMiGA-formatted file in the 'derived' or input folder as a TSV file.
         verbose (boolean)
     '''
 
-    folderpath = directory['data']
-    copydirectory = directory['derived']
+    if (filename is None) and (directory is None): 
+        sys.exit('FATAL USER ERROR: User must pass either a filename or a directory argument')
+
+    # what is the data folder (folderpath) and where to save formatted data (copydirectory)? 
+    if isinstance(directory,dict):
+        folderpath = directory['data']
+        copydirectory = directory['derived']
+    elif isinstance(directory,str):
+        copydirectory = folderpath = directory
+    elif directory is None:
+        copydirectory = folderpath = os.path.dirname(filename)
 
     # user may have passed a specific file or a directory to the input argument
     if filename:
@@ -65,9 +84,11 @@ def readPlateReaderFolder(filename,directory,config,interval_dict={},save=False,
         _, filebase, newfilepath = breakDownFilePath(filepath,copydirectory=copydirectory)
 
         # set the interval time
-        if isinstance(interval_dict,dict):
-            if filebase in interval_dict.keys(): plate_interval = interval_dict[filebase][0]
-        else:
+        if isinstance(interval,(int,float)):
+            plate_interval = float(interval)
+        elif filebase in interval.keys():
+            plate_interval = interval[filebase]
+        else: 
             plate_interval = config['interval']
 
         # read and adjust file to format: time by wells where first column is time and rest are ODs
@@ -130,7 +151,7 @@ def breakDownFilePath(filepath,copydirectory):
     '''
 
     filename = os.path.basename(filepath)
-    filebase = ''.join(filename.split('.')[:-1])
+    filebase = '.'.join(filename.split('.')[:-1])
     dirname = os.path.dirname(filepath)
 
     newfilepath = assemblePath(copydirectory,filebase,'.tsv')
@@ -178,6 +199,9 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
 
     # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
     df = df.iloc[np.where(~df.T.isna().all(0))[0],:]
+
+    # strip leading zeros in row or well IDs
+    df.index = [ii[0] + ii[1:].lstrip('0') for ii in df.index]
 
     try:
         df = df.astype(float)

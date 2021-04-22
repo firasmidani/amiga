@@ -20,8 +20,8 @@ def read_csv(foo): return pd.read_csv(foo,sep='\t',header=0,index_col=0)
 
 # read model prediction
 
-summ_df ='./biolog/summary/pooled_normalized_merged_by_ribotype_summary.txt'
-poold_df = './biolog/derived/pooled_normalized_merged_by_ribotype_gp_data.txt'
+summ_df ='./biolog/summary/pooled_by_isolate_summary_normalized.txt'
+poold_df = './biolog/derived/pooled_by_isolate_gp_data.txt'
 
 df_summ = read_csv(summ_df)
 df_data = read_csv(poold_df)
@@ -170,7 +170,11 @@ for ax_ii in ax:
         ax_ii.axvline(x_time,0,.98,lw=2,ls='--',color=(0,0,0,0.8))
         ax_ii.text(transform=ax_ii.transAxes,s=x_str,x=x_pos,y=.98,va='top',ha='right',fontsize=20)
     
-    
+# add panel letters
+ax[0].text(transform=ax[0].transAxes,x=-0.29,y=1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+ax[1].text(transform=ax[1].transAxes,x=-0.29,y=1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+ax[2].text(transform=ax[2].transAxes,x=-0.29,y=1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
+
 # save figure as PDF and convert to EPS
-filename = 'Midani_AMiGA_Supp_Figure_1'
+filename = 'Midani_AMiGA_Supp_Figure_1_Left'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')

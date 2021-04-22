@@ -60,11 +60,17 @@ def setAxesLabels(ax,subtract_control,plot_params,fontsize=20):
     Returns:
         ax (matplotlib.axes._subplots.AxesSubplot) 
     '''
+    import matplotlib as mpl
+    mpl.rcParams["mathtext.default"] = 'regular'
+    mpl.rcParams["font.family"] = 'sans-serif'
+    mpl.rcParams["font.sans-serif"] = 'Arial'
+    # mpl.rcParams["text.usetex"] = True
 
-    if plot_params['plot_linear_od']:
-        base = getValue('hypo_plot_y_label')
-    else:
-        base = 'ln {}'.format(getValue('hypo_plot_y_label'))
+    #if plot_params['plot_linear_od']:
+    #    base = getValue('hypo_plot_y_label')
+    #    base = r'$\frac{{{}}}{{{}}}$'.format(base+'(t)',base+'(0)')
+    #else:
+    base = 'ln {}'.format(getValue('hypo_plot_y_label'))
 
     # plot aesthetics
     if subtract_control:
@@ -144,7 +150,7 @@ def dynamicWindowAdjustment(ax):
     return ax
 
 
-def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False):
+def addMVNPlotLine(ax,x,criteria,label,z_value,color,plot_params,noise=False):
 
     '''
     Given data (x) and criteria, find relevant sample IDs and plot them on axis.
@@ -154,6 +160,7 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
         x (pandas.DataFrame): must include columns for Time, mu, Sigma
         criteria (dictionary): keys must be column headers in x, values must be values in x.
         label (str): used for legend label of plotted line.
+        z_value (float): z-value for computing confidence interval
         color (str or (R,G,B,A)) where R,G,B,A are floats [0,1]
         plot_params (dictionary)
         noise (boolean): whetehr to plot 95-pct credibel intervals including sample uncertainty
@@ -161,7 +168,7 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
     Returns:
         ax (matplotlib.axes._subplots.AxesSubplot)    
     '''
-    scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
+    scaler = norm.ppf(z_value) # define confidence interval scaler for MVN predictions
     x = subsetDf(x,criteria) # grab value-specific model predictions
 
     if noise: Sigma = x.Sigma + x.Noise
@@ -174,19 +181,19 @@ def addMVNPlotLine(ax,x,criteria,label,confidence,color,plot_params,noise=False)
     y_upp = x.mu+scaler*np.sqrt(Sigma)
 
     # convert from log2 to linear OD
-    if plot_params['plot_linear_od']:
-        y_avg = np.exp(y_avg)
-        y_low = np.exp(y_low)
-        y_upp = np.exp(y_upp)
+    # if plot_params['plot_linear_od']:
+    #     y_avg = np.exp(y_avg)
+    #     y_low = np.exp(y_low)
+    #     y_upp = np.exp(y_upp)
 
     ax.plot(xtime,y_avg,color=color,label=label,alpha=0.9,lw=3.0,zorder=10)
     ax.fill_between(x=xtime,y1=y_low,y2=y_upp,color=color,alpha=0.10,zorder=5)
     ax = largeTickLabels(ax,fontsize=plot_params['fontsize']) 
 
-    if plot_params['plot_linear_od']:
-        ax.axhline(y=1,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
-    else:
-        ax.axhline(y=0,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
+    #if plot_params['plot_linear_od']:
+    #    ax.axhline(y=1,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
+    #else:
+    ax.axhline(y=0,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
 
     return ax
 
@@ -216,8 +223,8 @@ def addRealPlotLine(ax,plate,criteria,color,plot_params):
         time = plate.time.copy()
         data = plate.data.copy()
 
-        if plot_params['plot_linear_od']:
-            data = data.apply(np.exp).copy()
+        #if plot_params['plot_linear_od']:
+        #    data = data.apply(np.exp).copy()
 
         wide_df = time.join(data)
 

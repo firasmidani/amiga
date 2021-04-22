@@ -17,6 +17,7 @@ __email__ = "midani@bcm.edu"
 # flagWells
 # subsetWells
 
+import copy
 import pandas as pd
 import sys
 
@@ -27,7 +28,7 @@ from libs.comm import smartPrint, tidyDictPrint
 from libs.org import assembleFullName, assemblePath
 
 
-def trimInput(data_dict,mapping_dict,params_dict,nskip=0,verbose=False):
+def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
     '''
     Interprets parameters to reduce mapping and
      data files to match user-desired criteria.
@@ -46,6 +47,12 @@ def trimInput(data_dict,mapping_dict,params_dict,nskip=0,verbose=False):
         data (dictionary): values may have smaller size than at time of input
         mapping (dictionary): values may have smaller size than at time of input 
     '''
+
+    # a deep copy is needed to avoid altering mapping_dict globally
+    mapping_dict = copy.deepcopy(mapping_dict)
+
+    if params_dict is None:
+        params_dict = {'subset': {}, 'flag': {}, 'hypothesis': {}, 'interval': {}}
 
     # annotate Subset and Flag columns in mapping files
     mapping_dict = annotateMappings(mapping_dict,params_dict,verbose)
@@ -73,10 +80,10 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
 
     # flag wells that user does not want to analyze
-    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose)
+    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose,drop=True)
 
     # tag wells that meet user-passed criteria for analysis
-    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypo'],verbose=verbose)
+    mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypothesis'],verbose=verbose)
 
     # make sure that mappings have Well columns
     #   here we assume that mapping_dict values have index of Well IDs, which should be the case
@@ -168,13 +175,12 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
         msg += "Keep in mind that AMiGA argument parser is case-sensitive.\n"
         sys.exit(msg)
 
-    master_data = master_data.dropna(axis=0)
     master_data = master_data.sort_values(['Time']).reset_index(drop=True)
     
     return master_data
     
 
-def flagWells(df,flags,verbose=False):
+def flagWells(df,flags,verbose=False,drop=False):
     '''
     Passes plate-well-specific flags from user into mapping dataframes.
 
@@ -192,7 +198,10 @@ def flagWells(df,flags,verbose=False):
         return df
 
     for plate, wells in flags.items():
+
         df[plate].loc[wells,'Flag'] = [1]*len(wells)
+
+        if drop: df[plate] = df[plate][df[plate].Flag==0] 
 
     smartPrint('The following flags were detected:\n',verbose)
     smartPrint(tidyDictPrint(flags),verbose)
