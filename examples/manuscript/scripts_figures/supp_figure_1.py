@@ -176,5 +176,5 @@ ax[1].text(transform=ax[1].transAxes,x=-0.29,y=1,ha='left',va='top',s='B',fontsi
 ax[2].text(transform=ax[2].transAxes,x=-0.29,y=1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
 
 # save figure as PDF and convert to EPS
-filename = 'Midani_AMiGA_Supp_Figure_1'
+filename = 'Midani_AMiGA_Supp_Figure_1_Left'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')

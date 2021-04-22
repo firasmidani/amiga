@@ -145,7 +145,7 @@ declare -p strains
 for strain in "${strains[@]}";
 do
 
-	if [[ $strain == 'Ancestor' ]]; then 
+	if [ $strain = 'Ancestor' ] || [ $strain = 'Strain' ]; then 
 		continue
 	fi
 
@@ -218,9 +218,9 @@ sed -i '.bak' -e "s/$SRC/$DST/g" $amiga/libs/config.py
 python $amiga/amiga.py fit \
     -i $working \
     -o vervier_pooled --merge-summary \
-    --subset 'Isolate:8081c;PM:1    ' \
+    --subset 'Isolate:8081c;PM:1' \
     --pool-by "Isolate,PM,Substrate" --sample-posterior \
-    -t $interval -tss $timestepsize -sfn $skipfirstn --keep-missing-time-points \
+    -t $interval -tss $timestepsize -sfn $skipfirstn --keep-mi ssing-time-points \
     --save-gp-data --save-cleaned-data --verbose
 
 # normalize parameters

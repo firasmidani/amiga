@@ -14,8 +14,7 @@ amiga=$2
 # check that a folder exists for storing PDFs, else create.
 mkdir -p $amiga/examples/manuscript/figures/
 
-python $amiga/examples/manuscript/scripts_figures/figure_1_ab.py
-python $amiga/examples/manuscript/scripts_figures/figure_1_cd.py
+python $amiga/examples/manuscript/scripts_figures/figure_1.py
 python $amiga/examples/manuscript/scripts_figures/figure_2.py
 python $amiga/examples/manuscript/scripts_figures/figure_3.py
 python $amiga/examples/manuscript/scripts_figures/figure_4.py
