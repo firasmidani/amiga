@@ -112,6 +112,8 @@ class AMiGA(object):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
 
+        compare(args)
+
 
     def get_confidence(self):
 

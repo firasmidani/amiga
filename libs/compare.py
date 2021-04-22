@@ -45,7 +45,6 @@ def main(args):
 def save(args,df):
 
 	df = articulateParameters(df,axis=0)
-
 	df.to_csv('{}.txt'.format(args.output),sep='\t',header=False,index=True)
 
 
@@ -87,11 +86,14 @@ def subset(args,df):
 
 	ls_df, ls_varbs = [], []
 
+	if isinstance(args.subset,str):
+		args.subset = [args.subset]
+
 	for ii in args.subset:
 		criteria = checkParameterCommand(ii,sep=',')
 		ls_df.append(subsetDf(df,criteria))
 		ls_varbs.append(list(criteria.keys()))
-	
+
 	df = pd.concat(ls_df,sort=False).reset_index(drop=True).drop_duplicates()
 
 	if df.shape[0] != 2:
@@ -166,7 +168,7 @@ def compare(args,df,varbs):
 	if 'Sample_ID' in df.keys(): df = df.set_index(['Sample_ID'])
 
 	params = set(df.keys()).difference(set(varbs))
-	params = list(params.intersection(initParamLisconfidencet(1)))
+	params = list(params.intersection(initParamList(1)+['diauxie']))
 	params = list(set([ii.split('(')[1][:-1] if '(' in ii else ii for ii in params]))
 
 	df_top = df.loc[:,varbs].reset_index(drop=True).T
@@ -188,7 +190,7 @@ def compare(args,df,varbs):
 			mus = df.loc[:,'mean({})'.format(p)].values
 			stds = df.loc[:,'std({})'.format(p)].values
 			cis = getConfInts(mus,stds,z_value)
-			olap = detSigdiff(eval(cis[0]),eval(cis[1]))
+			olap = detSigDiff(eval(cis[0]),eval(cis[1]))
 
 			df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]
 			df_cis.loc[p,:] = cis + [olap]
