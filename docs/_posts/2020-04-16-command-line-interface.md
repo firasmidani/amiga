@@ -145,6 +145,7 @@ The result of this argument depends on whether a user requested pooling.
 * `OD_Growth_Data`: `GP_Input` that has been converted back to real OD but still baseline-corrected.
 * `OD_Growth_Fit`: `GP_Output` that has ben converted back real OD but still baseline-corrected.
 * `OD_Fit`: Predicted fit for the original OD. This is essentially `OD_Growth_Fit` but with baseline (OD at T0) added back.
+* `OD_Data`: Raw input data. 
 
 <ins>With pooling</ins>: `--save-gp-data` will save a table in a long format where each row is a time point for each unique condition and columns include:
 *  Meta-data variables that were passed to the `--pool-by` argument

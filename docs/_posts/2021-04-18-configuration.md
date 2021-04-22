@@ -93,7 +93,7 @@ config['choice_of_deltas'] = 'median'
 
 For example, the above parameters state the change in OD for the first five time intervals will be computed and the optimal delta is considered their median. If the user would like to use the whole growth curve for computing delta, they can simply pick a very large number like 1000. This way they don't have to adjut the number for growth curves with different number of time measurements. 
 
-On a final note, if you choose the `LOD` method but a particular growth curve has a negative measurement that has an absolute vlaue larger than the limit of detection, then `AMiGA` will be forced to use the `Delta` method. 
+On a final note, if you choose the `LOD` method but a particular growth curve has a negative measurement that has an absolute vlaue larger than the limit of detection, then `AMiGA` will be forced to use the `Delta` method. In a similar fashion, if you choose `number_of_deltas` where the OD turns out does not change at all, then `AMiGA` will incrementally increase the `number_of_deltas` by a multiplier until a change is detected or `number_of_deltas` is higher than the number of time points.
 
 <br />
 #### 96-well grid plotting
