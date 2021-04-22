@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [2.0.0] - 2021-04-21
 
 New interface: 
-- As AMiGA got bloated, it became more confusing for new uers. I have re-structured the command-line interface. AMiGA now has one main command `amiga.py` and sub-commands including `Summarize`, `Fit`, `Normalize`, `Compare`, `Heatmap`, `Test`, `Get-Confidence`, and `Get-Time`. Most of these sub-commands were already implemented in previous verisons but were called as arguments (e.g., `--only-basic-summary`).
+- As AMiGA got bloated, it became more confusing for users. I have re-structured the command-line interface. AMiGA now has one main command `amiga.py` and sub-commands including `Summarize`, `Fit`, `Normalize`, `Compare`, `Heatmap`, `Test`, `Get-Confidence`, and `Get-Time`. Most of these sub-commands were already implemented in previous verisons but were called as arguments (e.g., `--only-basic-summary`).
 
 New features: 
 - `Heatmap` has a lot more features including exporting data, adjusting aesthetics, labelling rows or columns by unique colors, and highlighting individual labels with a unique fontstyle. Users can now alter how heatmaps handle missing data using command-line arguments. 
