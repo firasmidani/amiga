@@ -32,8 +32,8 @@ config['PolyFit'] = False
 # How to handle nonpositive (i.e. zero or negative) values. See AMiGA docs for more details
 config['handling_nonpositives'] = 'Delta' # or 'LOD'
 
-config['limit_of_detection'] = 0.010 # must be numeric
-config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'LOD'
+config['limit_of_detection'] = 0.010 # must be numeric and positive (i.e. not zero)
+config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'Delta'
 config['number_of_deltas'] = 5 # must be integer greater than 1, can be really large number (e.g. 1000) to comply with curves of various lengths
 config['choice_of_deltas'] = 'median' # or min or max or mean
 
@@ -85,12 +85,9 @@ config['k_error_threshold'] = 20
 ###	------------------------ ###
 
 # hypothesis testing plot colors (the first two are the default colors used by AMiGA)
-config['hypo_colors']  = [(0.11,0.62,0.47),(0.85,0.37,0.01)]  
-						  # correspond to seagreen, orange, purple, pink, olive, gold, brown, gray
-#config['hypo_colors'] = ['black','red']
+config['hypo_colors']  = [(0.11,0.62,0.47),(0.85,0.37,0.01)]  # correspond to seagreen
 
 config['hypo_plot_y_label'] = 'OD'
-
 
 config['HypoPlotParams'] = {'overlay_actual_data':True,
 							'fontsize':15,
