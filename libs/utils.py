@@ -157,8 +157,12 @@ def handle_non_pos(arr):
         lod = config['limit_of_detection']
         force_lod = config['force_limit_of_detection']
 
+        # if all values are positive and not forcing limit-of-detection
+        if floor > 0 and not force_lod:
+            return arr
+
         # if minimum value is zero simpy shift by LOD
-        if floor == 0: 
+        elif floor == 0: 
             return arr + lod
 
         # if minimum value is negative but its absolute value is smaller than LOD
@@ -178,17 +182,25 @@ def handle_non_pos(arr):
         ndeltas = np.min([config['number_of_deltas'],len(arr)-1])
         delta_choice = config['choice_of_deltas']
 
-        # compute absolute values of deltas over desired range
-        deltas = [abs(arr[n]-arr[n-1]) for n in range(1,1+ndeltas)]
+        if floor > 0:
+            return arr
 
-        # only consider positive deltas
-        deltas = [ii for ii in deltas if ii>0]
+        delta = 0
+        while delta == 0 or np.isnan(delta):
 
-        # pick delta based on desired operation
-        if delta_choice == 'median': delta = np.median(deltas)
-        elif delta_choice == 'mean': delta = np.mean(deltas)
-        elif delta_choice == 'min': delta = np.min(deltas)
-        elif delta_choice == 'max': delta = np.max(deltas)
+            # compute absolute values of deltas over desired range
+            deltas = [abs(arr[n]-arr[n-1]) for n in range(1,1+ndeltas)]
+
+            # only consider positive deltas
+            deltas = [ii for ii in deltas if ii>0]
+
+            # pick delta based on desired operation
+            if delta_choice == 'median': delta = np.median(deltas)
+            elif delta_choice == 'mean': delta = np.mean(deltas)
+            elif delta_choice == 'min': delta = np.min(deltas)
+            elif delta_choice == 'max': delta = np.max(deltas)
+
+            ndeltas = ndeltas+1
 
         if floor == 0: 
             return arr + delta 
