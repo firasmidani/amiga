@@ -30,3 +30,10 @@ python $amiga/amiga.py fit \
 	-s 'Substrate:Fructose;Ribotype:RT027,RT053' \
 	--pool-by 'Ribotype,Substrate,Concentration' \
 	--sample-posterior --fix-noise -tss 1 --save-gp-data --verbose
+
+# supplementary table 2
+python $amiga/amiga.py compare \
+	-i $amiga/examples/manuscript/death/summary/pooled_summary.txt \
+	-o $amiga/examples/manuscript/death/summary/rt053_fructose_low_vs_high \
+	-s 'Ribotype:RT053;Substrate:Fructose;Concentration:Low,High' \
+	--confidence 95

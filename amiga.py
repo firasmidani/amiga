@@ -96,7 +96,7 @@ class AMiGA(object):
             description='Compare two growth curves')
 
         parser.add_argument('-i','--input',required=True,action='append')
-        parser.add_argument('-o','--output',required=True)
+        parser.add_argument('-o','--output',required=True,help='ouptut filename including path')
         parser.add_argument('-s','--subset',required=True)
         parser.add_argument('--confidence',required=False,type=float,default=95,
             help='Must be between 80 and 100. Default is 95.')
