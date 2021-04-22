@@ -141,21 +141,28 @@ def handle_non_pos(arr):
         arr (list)
     '''
 
-    #arr = arr.values
-
+    # get parameters
     approach = config['handling_nonpositives']
+    lod = config['limit_of_detection']
+    force_lod = config['force_limit_of_detection']
+    ndeltas = np.min([config['number_of_deltas'],len(arr)-1])
+    delta_choice = config['choice_of_deltas']
 
-    # if the curve is sijmply a repeat of the same vlaue, you must use the LOD method
+    if approach == 'LOD' and lod == 0:
+        msg = '\n\nFATAL USER ERROR: The limit-of-detection default value is set to 0. '
+        msg+= 'It must be positive. You can adjust this parameter in the libs/config.py file.\n\n'
+        sys.exit(msg)
+    elif approach == 'Delta' and ndeltas < 1:
+        msg = '\n\nFATAL USER ERROR: The number of deltas default value is less than 1 '
+        msg+= 'It must be one or higher. You can adjust this parameter in the libs/config.py file.\n\n'
+
+    # if the curve is simply a repeat of the same vlaue, you must use the LOD method
     if len(set(arr.values)) == 1: approach = 'LOD'
 
     # find the lowest value
     floor = min(arr)
 
-    if approach == 'LOD':
-
-        # get parameters
-        lod = config['limit_of_detection']
-        force_lod = config['force_limit_of_detection']
+    if approach == 'LOD':        
 
         # if all values are positive and not forcing limit-of-detection
         if floor > 0 and not force_lod:
@@ -178,15 +185,14 @@ def handle_non_pos(arr):
     
     elif approach == 'Delta':
 
-        # get parameters
-        ndeltas = np.min([config['number_of_deltas'],len(arr)-1])
-        delta_choice = config['choice_of_deltas']
-
-        if floor > 0:
-            return arr
+        if floor > 0: return arr
 
         delta = 0
-        while delta == 0 or np.isnan(delta):
+        count = 2
+        usr_ndeltas = ndeltas
+        max_ndeltas = len(arr)-1
+
+        while (delta == 0 or np.isnan(delta)):
 
             # compute absolute values of deltas over desired range
             deltas = [abs(arr[n]-arr[n-1]) for n in range(1,1+ndeltas)]
@@ -200,7 +206,12 @@ def handle_non_pos(arr):
             elif delta_choice == 'min': delta = np.min(deltas)
             elif delta_choice == 'max': delta = np.max(deltas)
 
-            ndeltas = ndeltas+1
+            # increase ndeltas by a multiplier
+            ndeltas = ndeltas * count
+            count += 1
+
+            # if next iteration won't yield new information, welp!
+            if (max_ndeltas - ndeltas) > usr_ndeltas: return arr 
 
         if floor == 0: 
             return arr + delta 
