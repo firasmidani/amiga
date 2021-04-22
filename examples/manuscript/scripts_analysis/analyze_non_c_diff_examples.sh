@@ -39,15 +39,16 @@ source $1
 # create variable for the absolute file path to amiga.py
 amiga=$2
 
-# mkdir -p ./non_cdiff/{cuevas,dunphy,vervier}
+# set up environment
+mkdir -p ./non_cdiff/{cuevas,dunphy,vervier}
 
-# #####################################
-# # Cuevas 2017: Citrobacter sedlakii #
-# #####################################
+#####################################
+# Cuevas 2017: Citrobacter sedlakii #
+#####################################
 
 # Download PMAnalyzer from Github
-if [[ ! -e ./non_cdiff/cuevas/PMAnalyzer ]]; then 
-    git clone https://github.com/dacuevas/PMAnalyzer.git ./non_cdiff/cuevas/PMAnalyzer
+if [[ ! -e $amiga/examples/manuscript/non_cdiff/cuevas/PMAnalyzer ]]; then 
+    git clone https://github.com/dacuevas/PMAnalyzer.git $amiga/examples/manuscript/non_cdiff/cuevas/PMAnalyzer
 fi
 
 # There are sample data for 3 C. sedlakii isolates. However, only R.S.3_ID952 and R.S.3_ID953 correlate
@@ -57,28 +58,15 @@ fi
 # sources, which would allow for fairer comparison to the other projects (dunphy and vervier)
 
 # first, read sample data and prepare for AMiGA
-python ./scripts_analysis/py/format_cuevas_files.py
+python $amiga/examples/manuscript/scripts_analysis/py/format_cuevas_files.py
 
 # set up parameters for AMiGA processing
 interval=1800
-working="./non_cdiff/cuevas/working"
-
-# basic summary
-python $amiga/amiga.py summarize -i $working --verbose
-
-# fit each curve separately
-python $amiga/amiga.py fit \
-    -i $working \
-    -o cuevas_split --merge-summary \
-    -s "Plate_ID:R.S.3_ID952,R.S.3_ID953;Source_Type:Carbon" \
-    -t $interval \
-    --plot --plot-derivative \
-    --save-gp-data --save-cleaned-data --verbose
-
-# pool then fit curves
+working="$amiga/examples/manuscript/non_cdiff/cuevas/working"
 timestepsize=1
 skipfirstn=0
 
+# pool then fit curves
 python $amiga/amiga.py fit \
     -i $working \
     -o cuevas_pooled --merge-summary \
@@ -89,10 +77,6 @@ python $amiga/amiga.py fit \
 
 # normalize parameters
 python $amiga/amiga.py normalize \
-    -i $working/summary/cuevas_split_summary.txt \
-    --normalize-method "division" --group-by "Plate_ID" --normalize-by "Substrate:Negative Control"
-
-python $amiga/amiga.py normalize \
     -i $working/summary/cuevas_pooled_summary.txt \
     --normalize-method "division" --normalize-by "Substrate:Negative Control"
 
@@ -102,33 +86,20 @@ python $amiga/amiga.py normalize \
 ##############################################
 
 # Download code/data from Github
-if [[ ! -e ./non_cdiff/dunphy/supplement ]]; then 
-    git clone https://github.com/lauradunphy/dunphy_yen_papin_supplement.git ./non_cdiff/dunphy/supplement
+if [[ ! -e $amiga/examples/manuscript/non_cdiff/dunphy/supplement ]]; then 
+    git clone https://github.com/lauradunphy/dunphy_yen_papin_supplement.git $amiga/examples/manuscript/non_cdiff/dunphy/supplement
 fi
 
 # first, read sample data and prepare for AMiGA
-python ./scripts_analysis/py/format_dunphy_files.py
+python $amiga/examples/manuscript/scripts_analysis/py/format_dunphy_files.py
 
 # set up parameters for AMiGA processing
 interval=600
-working="./non_cdiff/dunphy/working"
-
-# basic summary
-python $amiga/amiga.py summarize -i $working --verbose
-
-# fit each curve separately
-python $amiga/amiga.py fit \
-    -i $working \
-    -o dunphy_split --merge-summary \
-    -t $interval \
-    --subset 'Isolate:Day0Anc;PM:1' \
-    --plot --plot-derivative \
-    --save-gp-data --save-cleaned-data --verbose
-
-# pool then fit curves
+working="$amiga/examples/manuscript/non_cdiff/dunphy/working"
 timestepsize=4
 skipfirstn=0
 
+# pool then fit curves
 python $amiga/amiga.py fit \
     -i $working \
     -o dunphy_pooled --merge-summary \
@@ -139,10 +110,6 @@ python $amiga/amiga.py fit \
 
 # normalize parameters
 python $amiga/amiga.py normalize \
-    -i $working/summary/dunphy_split_summary.txt \
-    --normalize-method "division" --group-by "Plate_ID" --normalize-by "Substrate:Negative Control"
-
-python $amiga/amiga.py normalize \
     -i $working/summary/dunphy_pooled_summary.txt \
     --normalize-method "division" --group-by "PM,Isolate" --normalize-by "Substrate:Negative Control"
 
@@ -152,10 +119,10 @@ python $amiga/amiga.py normalize \
 ############################################################
 
 # first, read sample data and prepare for AMiGA
-python ./scripts_analysis/py/format_dunphy_glcnac_files.py
+python $amiga/examples/manuscript/scripts_analysis/py/format_dunphy_glcnac_files.py
 
 interval=639
-working="./non_cdiff/dunphy/working"
+working="$amiga/examples/manuscript/non_cdiff/dunphy/working"
 timestepsize=4
 skipfirstn=0
 
@@ -188,7 +155,7 @@ do
 		-s 'Strain:Ancestor,'$strain \
 		-t $interval -tss $timestepsize -sfn $skipfirstn\
 		-y 'H0:Time;H1:Time+Strain' \
-		--sample-posterior --confidence 95 -np 99\
+		--sample-posterior --confidence 95 -np 0\
 		--verbose
 
 done
@@ -205,42 +172,53 @@ python $amiga/amiga.py test \
 	--verbose
 
 
-# #########################################
-# # Vervier 2017: Yersinia enterocolitica #
-# #########################################
+#########################################
+# Vervier 2017: Yersinia enterocolitica #
+#########################################
 
 # Download CarboLogR from Github
-if [[ ! -e ./non_cdiff/vervier/CarboLogR ]]; then 
-    git clone https://github.com/kevinVervier/CarboLogR.git ./non_cdiff/vervier/CarboLogR
+if [[ ! -e $amiga/examples/manuscript/non_cdiff/vervier/CarboLogR ]]; then 
+    git clone https://github.com/kevinVervier/CarboLogR.git $amiga/examples/manuscript/non_cdiff/vervier/CarboLogR
 fi
 
 # first, read sample data and prepare for AMiGA
-python ./scripts_analysis/py/format_vervier_files.py
+python $amiga/examples/manuscript/scripts_analysis/py/format_vervier_files.py
 
 # set up parameters for AMiGA processing
 interval=900
-working="./non_cdiff/vervier/working"
+working="$amiga/examples/manuscript/non_cdiff/vervier/working"
+skipfirstn=0
+timestepsize=3
 
-# basic summary
-python $amiga/amiga.py summarize -i $working --verbose
-
-# fit each curve separately
+# fit individual curves
 python $amiga/amiga.py fit \
     -i $working \
     -o vervier_split --merge-summary \
-    -t $interval \
     --subset 'Isolate:8081c;PM:1' \
-    --plot --plot-derivative \
+    -t $interval \
     --save-gp-data --save-cleaned-data --verbose
 
-# pool then fit curves
-timestepsize=3
-skipfirstn=0
+## Force a high limit-of-detection because this is a colorimeteric Biolog assay where first measurements
+## seem to have an average near 19 (across three replicate Biolog PM1 plates for 8081c) but can be 
+## as low as 0 which heavily distorts comparisons between or pooling of curves. 
 
+SRC="config\['handling_nonpositives'\] = 'Delta'"
+DST="config\['handling_nonpositives'\] = 'LOD'"
+sed -i '.bak' -e "s/$SRC/$DST/g" $amiga/libs/config.py
+
+SRC="config\['limit_of_detection'\] = 0.010"
+DST="config\['limit_of_detection'\] = 20"
+sed -i '.bak' -e "s/$SRC/$DST/g" $amiga/libs/config.py
+
+SRC="config\['force_limit_of_detection'\] = False"
+DST="config\['force_limit_of_detection'\] = True"
+sed -i '.bak' -e "s/$SRC/$DST/g" $amiga/libs/config.py
+
+# pool then fit curves
 python $amiga/amiga.py fit \
     -i $working \
     -o vervier_pooled --merge-summary \
-    --subset 'Isolate:8081c;PM:1' \
+    --subset 'Isolate:8081c;PM:1    ' \
     --pool-by "Isolate,PM,Substrate" --sample-posterior \
     -t $interval -tss $timestepsize -sfn $skipfirstn --keep-missing-time-points \
     --save-gp-data --save-cleaned-data --verbose
@@ -254,3 +232,19 @@ python $amiga/amiga.py normalize \
     -i $working/summary/vervier_pooled_summary.txt \
     --normalize-method "division" --group-by "PM,Isolate" --normalize-by "Substrate:Negative Control"
 
+
+## Revert the default values in the config.py
+SRC="config\['handling_nonpositives'\] = 'Delta'"
+DST="config\['handling_nonpositives'\] = 'LOD'"
+sed -i '.bak' -e "s/$DST/$SRC/g" $amiga/libs/config.py
+
+SRC="config\['limit_of_detection'\] = 0.010"
+DST="config\['limit_of_detection'\] = 20"
+sed -i '.bak' -e "s/$DST/$SRC/g" $amiga/libs/config.py
+
+SRC="config\['force_limit_of_detection'\] = False"
+DST="config\['force_limit_of_detection'\] = True"
+sed -i '.bak' -e "s/$DST/$SRC/g" $amiga/libs/config.py
+
+## Remove back-up file for config.py
+rm $amiga/libs/config.py.bak

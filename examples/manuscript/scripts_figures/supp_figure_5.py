@@ -48,19 +48,17 @@ ax1_y_label = 'Normalized Growth Rate'
 fontsize = 20
 
 # initialize figure
-fig, axes = plt.subplots(3,2,figsize=[19,21],sharey=False,sharex=False)
+fig, axes = plt.subplots(3,2,figsize=[20,21],sharey=False,sharex=False)
 
 for cc,(proj,title) in enumerate(zip(['cuevas','dunphy','vervier'],
                       ['Citrobacter sedlakii','Pseudomonas aeruginosa','Yersinia enterocolitica'])):
 
     ax0,ax1 = axes[cc,:]
 
-    # read summary files
-    summ_split = read_csv('./non_cdiff/{}/working/summary/{}_split_summary_normalized.txt'.format(proj,proj))
+    # read summary file
     summ_poold = read_csv('./non_cdiff/{}/working/summary/{}_pooled_summary_normalized.txt'.format(proj,proj))
 
-    # read curve files
-    data_split = read_csv('./non_cdiff/{}/working/derived/{}_split_gp_data.txt'.format(proj,proj))
+    # read curve file
     data_poold = read_csv('./non_cdiff/{}/working/derived/{}_pooled_gp_data.txt'.format(proj,proj))
 
 
@@ -125,16 +123,15 @@ for cc,(proj,title) in enumerate(zip(['cuevas','dunphy','vervier'],
     ax1.set_title(italicized,fontsize=fontsize,y=1.05)
 
     # adjust spacing
-    plt.subplots_adjust(wspace=1.0,hspace=0.35)
+    plt.subplots_adjust(wspace=1.1,hspace=0.35)
 
-# # adjust spacing between panels
-# plt.subplots_adjust(hspace=0.23,wspace=0.8)
-
-# # add panel letters
-# axes[0,0].text(transform=axes[0,0].transAxes,x=-0.225,y=1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
-# axes[1,0].text(transform=axes[1,0].transAxes,x=-0.225,y=1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
-# axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
-# axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1,ha='left',va='top',s='D',fontsize=30,fontweight='bold')
+# add panel letters
+axes[0,0].text(transform=axes[0,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+axes[1,0].text(transform=axes[1,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
+axes[2,0].text(transform=axes[2,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='E',fontsize=30,fontweight='bold')
+axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='D',fontsize=30,fontweight='bold')
+axes[2,1].text(transform=axes[2,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='F',fontsize=30,fontweight='bold')
 
 filename='Midani_AMiGA_Supp_Figure_5'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')

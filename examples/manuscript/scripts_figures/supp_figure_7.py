@@ -240,8 +240,13 @@ for ii,strain in enumerate(dunphy_order_strains[1:][::-1]):
 
 	plt.setp(ax,xticks=np.linspace(0,48,5));  
 
-
+# adjust spacing between panels
 plt.subplots_adjust(hspace=0.3,wspace=0.25)
+
+# add panel letters
+ax00.text(transform=ax00.transAxes,x=-.5,y=1.1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+ax00.text(transform=ax00.transAxes,x=-.5,y=-0.25,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+
 filename='Midani_AMiGA_Supp_Figure_7'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')
 
