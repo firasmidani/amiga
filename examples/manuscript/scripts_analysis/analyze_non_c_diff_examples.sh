@@ -135,7 +135,6 @@ python $amiga/amiga.py fit \
     --save-gp-data --save-cleaned-data --verbose
 
 # hypothesis testing: compare all strains against the ancestor
-timestepsize=4
 
 # create an array of all the unique strain names
 strains=( $(awk '{print $3}' $working/mapping/dunphy_glcnac_mutants.txt | sort | uniq) )
