@@ -24,14 +24,15 @@ def subsetDf(df,criteria):
     
     return df[df.isin(criteria).sum(1)==len(criteria)]
 
-def conf_int(conf=.975,std=None,m=None):
+def conf_int(conf=.95,std=None,m=None):
     '''
     Compute 95% confidence interval.
     '''
     
     from scipy.stats import norm
-    
-    h = std*norm.ppf(conf)
+    alpha=1-conf
+    z_value=1-alpha/2
+    h = std*norm.ppf(z_value)
     if (m is not None):
         return m, m-h, m+h
     else:
@@ -57,8 +58,11 @@ def getLatentFunction(df,order=0,add_noise=False):
     else:
         mu = df.mu1.values
         Sigma = df.Sigma1.values
-            
-    scaler = norm.ppf(0.95)
+    
+    confidence=0.95
+    alpha=1-confidence
+    z_value=1-alpha/2
+    scaler = norm.ppf(z_value)
     
     low = mu - scaler*np.sqrt(Sigma)
     upp = mu + scaler*np.sqrt(Sigma) 
@@ -105,7 +109,7 @@ def addSubPlot(df,param,label,ax,ylims=None,fontsize=20,colors=None,alpha=0.3):
     
     hv1 = df[df.Concentration=='Low'][m].values
     he1 = df[df.Concentration=='Low'][s]
-    he1 = he1.apply(lambda x: conf_int(0.975,x))
+    he1 = he1.apply(lambda x: conf_int(0.95,x))
     intv1 = [[ii-jj,ii+jj] for ii,jj in zip(hv1,he1)]
     
     ax.bar(ind-width/2, hv1,width,yerr=he1,label='Low',zorder=2,
@@ -113,7 +117,7 @@ def addSubPlot(df,param,label,ax,ylims=None,fontsize=20,colors=None,alpha=0.3):
 
     hv2 = df[df.Concentration=='High'][m].values
     he2 = df[df.Concentration=='High'][s]
-    he2 = he2.apply(lambda x: conf_int(0.975,x))
+    he2 = he2.apply(lambda x: conf_int(0.95,x))
     intv2 = [[ii-jj,ii+jj] for ii,jj in zip(hv2,he2)]
 
     ax.bar(ind+width/2, hv2,width,yerr=he2,label='High',zorder=2,

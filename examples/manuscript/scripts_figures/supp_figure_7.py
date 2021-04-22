@@ -16,7 +16,7 @@ from scipy.stats import norm
 
 sns.set_style('whitegrid')
 
-confidence = 0.975 #0.995
+confidence = 0.95 #0.995
 
 working = './non_cdiff/dunphy/working'
 
@@ -58,7 +58,10 @@ gp_data = pd.read_csv(gp_data,sep='\t',header=0,index_col=0)
 
 def getMeanBands(foo):
 
-	scaler = norm.ppf(confidence)
+	confidence = 0.95
+	alpha=1-confidence
+	z_value=1-alpha/2
+	scaler = norm.ppf(z_value)
 
 	x_time = foo.Time.values
 	y_avg = foo.mu.values
@@ -88,12 +91,13 @@ def detSigDiff(a,b):
 	b = [float(ii) for ii in b]
 	return not ((a[0] <= b[1]) and (b[0] <= a[1]))
 
-def conf_int(conf=.975,std=None,m=None):
+def conf_int(conf=.95,std=None,m=None):
     '''Compute 95% confidence interval.'''
     
     from scipy.stats import norm
-    
-    h = std*norm.ppf(conf)
+    alpha=1-conf
+    z_value=1-alpha/2
+    h = std*norm.ppf(z_value)
     if (m is not None): return m, m-h, m+h
     else: return h
 
@@ -189,7 +193,8 @@ for ax,param in zip([ax01,ax02,ax03],['k_log','gr','lagC']):
 	# define mean and bands (x-axis)
 	x_values = list(params.loc[ypos_labels,mu_param].values)
 	xbands = params.loc[ypos_labels,mu_param.replace('mean','std')].values
-	xbands = [ii*norm.ppf(confidence) for ii in xbands]
+	z_value = 1-(1 - confidence)/2
+	xbands = [ii*norm.ppf(z_value) for ii in xbands]
 
 	# plot bars
 	ax.barh(ypos,x_values,xerr=xbands,**kwargs)  

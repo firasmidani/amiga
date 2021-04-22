@@ -90,103 +90,16 @@ def getLatentFunction(df,order=0,add_noise=False):
     else:
         mu = df.mu1.values
         Sigma = df.Sigma1.values
-            
-    scaler = norm.ppf(0.95)
+    
+    confidence = 0.95
+    alpha = 1-confidence
+    z_value = 1-alpha/2
+    scaler = norm.ppf(z_value)
     
     low = mu - scaler*np.sqrt(Sigma)
     upp = mu + scaler*np.sqrt(Sigma) 
     
     return time,mu,low,upp
-
-def computeFullDifference(x_diff,variable,confidence,noise=False):
-    '''
-    Computes the full difference between two latent function (modelling growth curves).
-
-    Args:
-        x_diff (pandas.DataFrame): must include columns of Time, mu (mean of latent 
-            function), Sigma (diagonal covariance of latent function)
-        variable (str): variable of interest, must be a column name in x_diff
-        confidence (float [0.0,1.0]): confidence interval, e.g. 0.95 for 95%.
-        n (int): number of samples from posterior distribution
-        eirorposterior (boolean), whether to sample from posterior distribution
-        noise (boolean): whetehr to plot 95-pct credibel intervals including sample uncertainty
-
-    Returns:
-        df (pandas.DataFrame)
-        delta_od_sum (float): ||OD(t)||^2 which is defined as the sum of squares 
-            for the OD when the mean and its credible interval deviates from zero.
-    '''
-
-    def buildTestMatrix(x_time):
-        '''
-        Build a test matrix to simlpify OD full difference computation.
-            See https://github.com/ptonner/gp_growth_phenotype/testStatistic.py 
-            This is used to compare two growth latent functions. The differeence between
-            first time points (measurements) are adjusted to zero. 
-        Args:
-            x_time (pandas.DataFrame or pandas.Series or numpy.ndarray), ndim > 1
-        Returns:
-            A (numpy.ndarray): N-1 x 2*N where N is length of time.
-        '''
-
-        # buildtestmatrix
-        n = x_time.shape[0]
-        A = np.zeros((n-1,2*n))
-        A[:,0] = 1
-        A[range(n-1),range(1,n)] = -1
-        A[:,n] = -1
-        A[range(n-1),n+np.arange(1,n)] = 1
-
-        return A
-
-    from scipy.stats import norm
-    
-    scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
-
-    x_diff = x_diff.sort_values([variable,'Time']) # do you really need to sort by variable
-    x_time = x_diff.Time.drop_duplicates()
-
-    # define mean and covariance of data
-    mu = x_diff['mu'].values
-    if noise: Sigma = np.diag(x_diff['Sigma'] + x_diff['Noise'])
-    else: Sigma = np.diag(x_diff['Sigma'])
-
-    # define mean and covariance of functional diffeence
-    A = buildTestMatrix(x_time)
-    m = np.dot(A,mu)
-    c = np.dot(A,np.dot(Sigma,A.T))
-    mean,std = m,np.sqrt(np.diag(c))
-
-    # sample the curve for the difference between functions, from an MVN distribution
-    n = 100 # number of posterior samples
-    samples = np.random.multivariate_normal(m,c,n)
-
-    pd.DataFrame(m).to_csv('/Users/firasmidani/Downloads/20201025_amiga_test/mu.txt',sep='\t')
-    pd.DataFrame(samples).to_csv('/Users/firasmidani/Downloads/20201025_amiga_test/samples.txt',sep='\t')
-
-    # compute the sum of functional differences for all sampled curves
-    dos = [np.sqrt(np.sum([ii**2 for ii in s])) for s in samples]
-    dos_mu, dos_std = np.mean(dos), np.std(dos)
-    dos_actual = np.sqrt(np.sum([ii**2 for ii in m]))
-
-    # compute the confidence interval for the sum of functional differences
-    scaler = norm.ppf(confidence) # define confidence interval scaler for MVN predictions
-    dos_ci = (dos_mu-scaler*dos_std, dos_mu+scaler*dos_std)
-
-    # compute credible intervals
-    y_avg = mean
-    y_low = y_avg-scaler*std
-    y_upp = y_avg+scaler*std
-
-    # package results
-    t = x_time[1:].values
-    df = pd.DataFrame([t,y_avg,y_low,y_upp],index=['Time','Avg','Low','Upp']).T
-
-    delta_od_sum_mean = dos_actual
-    delta_od_sum_ci = dos_ci
-
-    return df, delta_od_sum_mean, delta_od_sum_ci
-
 
 # initialize figure
 fig,axes_all = plt.subplots(2,5,figsize=[22,10],sharex=False,

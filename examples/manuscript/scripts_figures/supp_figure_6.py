@@ -56,8 +56,11 @@ def getLatentFunction(df,order=0,add_noise=False):
     else:
         mu = df.mu1.values
         Sigma = df.Sigma1.values
-            
-    scaler = norm.ppf(0.95)
+    
+    confidence = .95
+    alpha = 1 - confidence
+    z_value = 1-alpha/2
+    scaler = norm.ppf(z_value)
     
     low = mu - scaler*np.sqrt(Sigma)
     upp = mu + scaler*np.sqrt(Sigma) 
