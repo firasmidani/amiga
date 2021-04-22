@@ -18,6 +18,9 @@ This project is covered under the [GPL-3 license](https://www.gnu.org/licenses/g
 
 See [CHANGELOG](https://github.com/firasmidani/amiga/blob/master/CHANGELOG.md) for more details of changes and updates. 
 
+2021-02-22
+Major structural and aesthetic changes to amiga with new features.
+
 2020-11-04  
 Improvements to differential testing of growth.
 
