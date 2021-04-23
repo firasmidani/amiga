@@ -157,11 +157,11 @@ plt.setp(axes[0,0],xticks=np.linspace(0,24,4))
 ## adjust axes labels
 [ax.set_xlabel('Time (hours)',fontsize=20) for ax in axes[1,:]];
 
-axes[0,0].text(x=-0.25,y=0.5,transform=axes[0,0].transAxes,
+axes[0,0].text(x=-0.3,y=0.5,transform=axes[0,0].transAxes,
                s='ln OD(t)',fontsize=20,rotation=90,va='center',ha='center')
 
-axes[1,0].text(x=-0.25,y=0.5,transform=axes[1,0].transAxes,
-               s='d/dt ln OD(t)',fontsize=20,rotation=90,va='center',ha='center')
+axes[1,0].text(x=-0.3,y=0.5,transform=axes[1,0].transAxes,
+               s=r'$\frac{\mathrm{d}}{\mathrm{dt}}$ ln OD(t)',fontsize=20,rotation=90,va='center',ha='center')
 
 for ii,title in enumerate(['L-Threonine','D-Sorbitol','D-Fructose']):
     axes[0,ii].set_title(title,fontsize=20,y=1.05)

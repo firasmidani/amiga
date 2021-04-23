@@ -123,15 +123,15 @@ for cc,(proj,title) in enumerate(zip(['cuevas','dunphy','vervier'],
     ax1.set_title(italicized,fontsize=fontsize,y=1.05)
 
     # adjust spacing
-    plt.subplots_adjust(wspace=1.1,hspace=0.35)
+    plt.subplots_adjust(wspace=1.1,hspace=0.45)
 
 # add panel letters
-axes[0,0].text(transform=axes[0,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
-axes[1,0].text(transform=axes[1,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
-axes[2,0].text(transform=axes[2,0].transAxes,x=-0.165,y=1.1,ha='left',va='top',s='E',fontsize=30,fontweight='bold')
-axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
-axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='D',fontsize=30,fontweight='bold')
-axes[2,1].text(transform=axes[2,1].transAxes,x=-0.225,y=1.1,ha='left',va='top',s='F',fontsize=30,fontweight='bold')
+axes[0,0].text(transform=axes[0,0].transAxes,x=-0.165,y=1.13,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
+axes[1,0].text(transform=axes[1,0].transAxes,x=-0.165,y=1.13,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
+axes[2,0].text(transform=axes[2,0].transAxes,x=-0.165,y=1.13,ha='left',va='top',s='E',fontsize=30,fontweight='bold')
+axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1.13,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
+axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1.13,ha='left',va='top',s='D',fontsize=30,fontweight='bold')
+axes[2,1].text(transform=axes[2,1].transAxes,x=-0.225,y=1.13,ha='left',va='top',s='F',fontsize=30,fontweight='bold')
 
 filename='Midani_AMiGA_Supp_Figure_5'
 plt.savefig('./figures/{}.pdf'.format(filename),bbox_inches='tight')

@@ -112,8 +112,8 @@ plt.setp(ax[1],yticks=np.linspace(-0.2,0.4,7));
 plt.setp(ax[1],yticks=np.linspace(-0.2,0.4,4));
 
 ax[1].set_xlabel('Time (hours)',fontsize=20)
-ax[0].set_ylabel('ln OD',fontsize=20)
-ax[1].set_ylabel('d/dt  ln OD',fontsize=20)
+ax[0].text(s='ln OD',fontsize=20,transform=ax[0].transAxes,x=-0.2,y=0.5,ha='center',va='center',rotation=90)
+ax[1].text(s=r'$\frac{\mathrm{d}}{\mathrm{dt}}$ ln OD',fontsize=20,transform=ax[1].transAxes,x=-0.2,y=0.5,ha='center',va='center',rotation=90)
 #t = ax[0].set_title('RT053 isolate on 20 mM fructose',fontsize=20,y=1.05)
 
 # adjust window limits
@@ -285,8 +285,8 @@ plt.setp(ax[1],yticks=np.linspace(-0.2,0.6,5));
 plt.setp(ax[1],yticks=np.linspace(-0.2,0.4,4));
 
 ax[1].set_xlabel('Time (hours)',fontsize=20)
-ax[0].set_ylabel('ln OD',fontsize=20)
-ax[1].set_ylabel('d/dt  ln OD',fontsize=20)
+ax[0].text(s='ln OD',fontsize=20,transform=ax[0].transAxes,x=-0.2,y=0.5,ha='center',va='center',rotation=90)
+ax[1].text(s=r'$\frac{\mathrm{d}}{\mathrm{dt}}$ ln OD',fontsize=20,transform=ax[1].transAxes,x=-0.2,y=0.5,ha='center',va='center',rotation=90)
 #t = ax[0].set_title('CD2058 on 20 mM glucose',fontsize=20,y=1.05)
 
 
@@ -336,10 +336,10 @@ ax[1].grid(False)
 plt.subplots_adjust(hspace=0.23,wspace=0.8)
 
 # add panel letters
-axes[0,0].text(transform=axes[0,0].transAxes,x=-0.225,y=1,ha='left',va='top',s='A',fontsize=30,fontweight='bold')
-axes[1,0].text(transform=axes[1,0].transAxes,x=-0.225,y=1,ha='left',va='top',s='B',fontsize=30,fontweight='bold')
-axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1,ha='left',va='top',s='C',fontsize=30,fontweight='bold')
-axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1,ha='left',va='top',s='D',fontsize=30,fontweight='bold')
+axes[0,0].text(transform=axes[0,0].transAxes,x=-0.225,y=1,ha='center',va='top',s='A',fontsize=30,fontweight='bold')
+axes[1,0].text(transform=axes[1,0].transAxes,x=-0.225,y=1,ha='center',va='top',s='B',fontsize=30,fontweight='bold')
+axes[0,1].text(transform=axes[0,1].transAxes,x=-0.225,y=1,ha='center',va='top',s='C',fontsize=30,fontweight='bold')
+axes[1,1].text(transform=axes[1,1].transAxes,x=-0.225,y=1,ha='center',va='top',s='D',fontsize=30,fontweight='bold')
 
 # save figure as PDF and convert to EPS
 filename = 'Midani_AMiGA_Figure_1'
