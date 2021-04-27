@@ -33,6 +33,8 @@ $$\text{Normalized AUC} = \frac{\text{AUC}(\text{Isolate on Substrate})}{\text{A
 
 After modelling growth curves and estimating growth parameters using the `fit` function, users can adjust the estimated growth parameters with the `normalize` function. To properly normalize data, the users must indicate in their meta-data how samples are grouped and which samples are considered the control samples in each group. For example, all 96 wells belong to the same group because they are inoculated by the same cell culture and the `A1` well is the `Negative Control` well. As previously shown, `AMiGA` automatically adds a `Group` and `Control` column in the meta-data for Biolog PM plates to streamline this normalization. 
 
+**Example 1**
+
 As an example, let us assume that we profiled an isolate with two replicate plates of Biolog PM1
 
 ```bash
@@ -85,6 +87,46 @@ python $amiga/amiga.py normalize \
         -i /Users/firasmidani/experiment/summary/split_merged \
         --over-write
         --group-by "Plate_ID" --normalize-by "Substrate:None"
+```          
+
+<br/>
+**Example 2**
+
+Let's say you have a simple experiment with two isolates on two conditions (minimal media or trehalose). Below we show the mapping file that we created and we have already fit the curves for which the summary file was saved as `CD89_wt_summary.txt`. 
+
+||Plate_ID|Isolate|Substrate|Ribotype|Comments|Group|Control|
+|:---|:---|:---|:---|:---|:---|:---|:---|
+|A1|CD_treA|CD89_wt|Minimal Media|RT027|Wild-type|1|1|
+|A2|CD_treA|CD89_wt|Minimal Media|RT027|Wild-type|1|1|
+|A3|CD_treA|CD89_wt|D-Trehalose|RT027|Wild-type|1|0|
+|A4|CD_treA|CD89_wt|D-Trehalose|RT027|Wild-type|1|0|
+|B1|CD_treA|CD89_ko|Minimal Media|RT027|treA knock-out|2|1|
+|B2|CD_treA|CD89_ko|Minimal Media|RT027|treA knock-out|2|1|
+|B3|CD_treA|CD89_ko|D-Trehalose|RT027|treA knock-out|2|0|
+|B4|CD_treA|CD89_ko|D-Trehalose|RT027|treA knock-out|2|0|
+
+<br/> 
+
+We can adjust the growth paarmeters by simply using the `normalize` function.
+
+```bash
+python $amiga/amiga.py normalize \
+        -i /Users/firasmidani/experiment/summary/CD89_wt_summary.txt \
+        -o "CD89_wt_summary_normalized" \
+        --normalize-method "division"
+```  
+<br />
+
+If we did not expliclty include the `Group` and `Control` columns, we can still normalize the data directly with the command.    
+
+
+```bash
+python $amiga/amiga.py normalize \
+        -i /Users/firasmidani/experiment/summary/CD89_wt_summary.txt \
+        -o "CD89_wt_summary_normalized" \
+        --normalize-method "division" \
+        --group-by 'Isolate' \
+        --normalize-by 'Substrate:Minimal Media'
 ```          
 
 <br />
