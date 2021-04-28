@@ -305,7 +305,7 @@ def sort_heatmap(df,full_df,args,kwargs):
 	if (df.shape[1] == 1) and (args.sort_y_by is None):
 
 		kwargs['row_cluster'] = False
-		df = df.sort_values(df.keys()[0])
+		df = df.sort_values(df.keys()[0],ascending=False)
 
 	elif (args.sort_y_by == args.y_variable) and (not kwargs['row_cluster']):
 
@@ -320,9 +320,10 @@ def sort_heatmap(df,full_df,args,kwargs):
 		sub_full_df = sub_full_df.sort_values(args.sort_y_by)
 		df =  sub_full_df.drop([args.sort_y_by],axis=1)		
 
-	if (df.shape[0] == 0) and (args.sort_by_x is None):
+	if (df.shape[0] == 0) and (args.sort_x_by is None):
 		kwargs['col_cluster'] = False
-		df = df.T.sort_values(df.index[0]).T
+		print(df)
+		df = df.T.sort_values(df.index[0],ascending=False).T
 
 	elif (args.sort_x_by == args.x_variable) and (not kwargs['col_cluster']):
 		df = df.T.sort_index().T
@@ -335,45 +336,6 @@ def sort_heatmap(df,full_df,args,kwargs):
 		sub_full_df = df.T.join(sub_full_df,how='left')
 		sub_full_df = sub_full_df.sort_values(args.sort_x_by)
 		df =  sub_full_df.drop([args.sort_x_by],axis=1).T
-
-
-
-
-	# # if users requested sorting of rows
-	# if (args.sort_y) and (not kwargs['row_cluster']):
-
-	# 	# but did not declare how, sort by value
-	# 	if (df.shape[1] == 1) and (args.sort_y_by is None):
-
-	# 		df = df.sort_values(df.keys()[0])
-
-	# 	# otherwise, sort by requested meta-data variable
-	# 	elif (df.shape[1] > 1) or (args.sort_y_by is not None):
-
-	# 		sub_full_df = full_df.loc[:,[args.y_variable,args.sort_y_by]]
-	# 		sub_full_df = sub_full_df.drop_duplicates()
-	# 		sub_full_df = sub_full_df.set_index(args.y_variable)
-	# 		sub_full_df = df.join(sub_full_df,how='left')
-	# 		sub_full_df = sub_full_df.sort_values(args.sort_y_by)
-	# 		df =  sub_full_df.drop([args.sort_y_by],axis=1)
-
-	# # if users requested sorting of columns
-	# if (args.sort_x) and (not kwargs['col_cluster']):
-
-	# 	# but did not declare how, sort by value
-	# 	if (df.shape[0] == 1) and (args.sort_x_by is None):
-
-	# 		df = df.T.sort_values(df.index[0]).T
-
-	# 	# otherwise, sort by requested meta-data variable
-	# 	elif (df.shape[0] > 1) or (args.sort_x_by is not None):
-
-	# 		sub_full_df = full_df.loc[:,[args.x_variable,args.sort_x_by]]
-	# 		sub_full_df = sub_full_df.drop_duplicates()
-	# 		sub_full_df = sub_full_df.set_index(args.x_variable)
-	# 		sub_full_df = df.T.join(sub_full_df,how='left')
-	# 		sub_full_df = sub_full_df.sort_values(args.sort_x_by)
-	# 		df =  sub_full_df.drop([args.sort_x_by],axis=1).T
 
 	return df,kwargs
 
@@ -410,9 +372,9 @@ def dyanmically_size_font(ax_heatmap,ax_cax,args,df):
 
 		return fontsize
 
-	xtls = args.x_tick_labels_scale
-	ytls = args.y_tick_labels_scale
-	ctls = args.color_bar_labels_scale
+	xtls = float(args.x_tick_labels_scale)
+	ytls = float(args.y_tick_labels_scale)
+	ctls = float(args.color_bar_labels_scale)
 
 	if xtls != 1:
 		x_fontsize = set_fontsize(which='x',ax=ax_heatmap,fig=plt.gcf(),fontscale= xtls,nlabels=df.shape[1])
@@ -439,8 +401,8 @@ def clusterMap(df,full_df,args,directory):
 		'''Defines how to dfine types of user-defined arguments'''
 		key = ii.split(':')[0]
 		value = ii.split(':')[1]
-		for r in (('.',''),('-','')):
-			adj_value = value.replace(*r)
+		adj_value = value.replace('-','')
+		adj_value = adj_value.replace('.','')
 		if adj_value.isdigit():
 			value = float(value)
 		elif value in ['True','False']:
