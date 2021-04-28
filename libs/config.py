@@ -30,7 +30,7 @@ config['interval'] = 600  # units ared based on 'time_input_unit' above
 config['PolyFit'] = False
 
 # How to handle nonpositive (i.e. zero or negative) values. See AMiGA docs for more details
-config['handling_nonpositives'] = 'Delta' # or 'LOD'
+config['handling_nonpositives'] = 'LOD' # or 'LOD'
 
 config['limit_of_detection'] = 0.010 # must be numeric and positive (i.e. not zero)
 config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'Delta'
@@ -39,7 +39,7 @@ config['choice_of_deltas'] = 'median' # or min or max or mean
 
 # Whether to drop blank or control wells?
 config['drop_blank_wells'] = False
-config['drop_control_wells'] = True
+config['drop_control_wells'] = False
 
 ###	------------- ###
 ### 96-Well Plots ###
