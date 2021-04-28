@@ -82,10 +82,10 @@ def basicSummaryOnly(data,mapping,directory,args,verbose=False):
         # create GrowthPlate object, perform basic summary
         plate = GrowthPlate(data=data_df,key=mapping_df)
         plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
-        plate.subtractControl(to_do=args.subtract_blanks,drop=False,blank=True)
-        plate.subtractControl(to_do=args.subtract_control,drop=False,blank=False)
         plate.computeBasicSummary()
         plate.computeFoldChange(subtract_baseline=True)
+        plate.subtractControl(to_do=args.subtract_blanks,drop=False,blank=True)
+        plate.subtractControl(to_do=args.subtract_control,drop=False,blank=False)
 
         # plot and save as PDF, also save key as TXT
         if not args.dont_plot:
