@@ -253,6 +253,7 @@ class HypothesisTest(object):
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
         plate.logData()
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
+        pplate.dropFlaggedWells(to_do=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
 
         self.plate = plate

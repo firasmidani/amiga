@@ -153,7 +153,7 @@ class GrowthPlate(object):
             pid,group = plate_group
 
             # grab lists of Sample_ID of wells corresponding to control and cases
-            controls = subsetDf(mapping,{pid_text:[pid],grp_text:[group],ctr_text:[1]}).index.values
+            controls = subsetDf(mapping,{pid_text:[pid],grp_text:[group],ctr_text:[1],'Flag':[0]}).index.values
             cases = subsetDf(mapping,{pid_text:[pid],grp_text:[group]}).index.values  # includes controls
 
             if len(controls)==0:
@@ -197,6 +197,16 @@ class GrowthPlate(object):
 
         self.time = pd.DataFrame(matrix.iloc[:,0])
         self.data = matrix.iloc[:,1:] 
+
+
+    def dropFlaggedWells(self,to_do=False):
+
+        if not to_do: return None
+
+        flagged = self.key[self.key.Flag==1].index.values
+
+        self.key.drop(flagged,axis=0,inplace=True)
+        self.data.drop(flagged,axis=1,inplace=True)
 
 
     def computeFoldChange(self,subtract_baseline=True):

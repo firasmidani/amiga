@@ -71,7 +71,6 @@ config['grid_plot_y_label'] = 'Optical Density'
 ### Heat Maps ###
 ### --------- ###
 
-
 config['x_tick_labels_scale'] = 1
 config['y_tick_labels_scale'] = 1
 config['color_bar_labels_scale'] = 0.2
@@ -89,7 +88,6 @@ config['variance_smoothing_window'] = 6 # number of x-values, based on default p
 # here, the user can define the threshold at which AMiGA will flag poor fit of a curve. the default
 # threshold is 20%.
 config['k_error_threshold'] = 20
-
 
 ###	------------------------ ###
 ### Hypothesis Testing Plots ###

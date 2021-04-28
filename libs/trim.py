@@ -80,7 +80,7 @@ def annotateMappings(mapping_dict,params_dict,verbose=False):
     '''
 
     # flag wells that user does not want to analyze
-    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose,drop=True)
+    mapping_dict = flagWells(mapping_dict,params_dict['flag'],verbose=verbose,drop=False)
 
     # tag wells that meet user-passed criteria for analysis
     mapping_dict,_ = subsetWells(mapping_dict,params_dict['subset'],params_dict['hypothesis'],verbose=verbose)
@@ -114,7 +114,7 @@ def trimMergeMapping(mapping_dict,verbose=False):
     master_mapping = pd.concat(mapping_dict.values(),ignore_index=True,join='outer',sort=False)
 
     # trim mapping based on Subset and Flag columns
-    master_mapping = subsetDf(master_mapping,{'Subset':[1],'Flag':[0]})
+    master_mapping = subsetDf(master_mapping,{'Subset':[1],'Flag':[0,1]})
 
     # reset_index and set as Sample_ID
     master_mapping = resetNameIndex(master_mapping,'Sample_ID',True)

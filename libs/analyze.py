@@ -144,7 +144,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     print('Temporary directory is {}\n'.format(tmpdir))
 
     # pre-process data
-    plate = prepDataForFitting(data,mapping,subtract_baseline=True,
+    plate = prepDataForFitting(data,mapping,subtract_baseline=True,drop_flagged_wells=False,
         subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
 
     dx_ratio_varb = getValue('diauxie_ratio_varb')
@@ -224,7 +224,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     filename = selectFileName(args.output)
 
     # pre-process data
-    plate = prepDataForFitting(data,mapping,subtract_baseline=False,
+    plate = prepDataForFitting(data,mapping,subtract_baseline=False,drop_flagged_wells=True,
         subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
 
     # which meta-data variables do you use to group replicates?
@@ -383,7 +383,7 @@ def handleMissingData(args,df):
     return df
 
 
-def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=False,subtract_blanks=False):
+def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=False,subtract_blanks=False,drop_flagged_wells=False):
     '''
     Packages data set into a grwoth.GrowthPlate() object and transforms data in preparation for GP fitting.
 
@@ -407,6 +407,7 @@ def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=Fals
     plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
     plate.logData()  # natural-log transform
     plate.subtractBaseline(subtract_baseline,poly=False)  # subtract first T0 (or rather divide by first T0)
+    plate.dropFlaggedWells(to_do=drop_flagged_wells)
 
     return plate
 
