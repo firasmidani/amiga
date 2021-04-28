@@ -226,23 +226,49 @@ class AMiGA(object):
         parser.add_argument('-t','--title',required=False)
         parser.add_argument('--kwargs',required=False)
         parser.add_argument('--verbose',action='store_true',default=False)
-        parser.add_argument('--fontsize',required=False,default=20)
+        parser.add_argument('--save-filtered-table',action='store_true',default=False)
+
+        # sizing 
         parser.add_argument('--width-height',required=False,nargs=2)
-        parser.add_argument('--x-rotation',required=False,default=90)
-        parser.add_argument('--highlight-labels',required=False)
-        parser.add_argument('--colorbar-ratio',required=False,default=0.1)
+        parser.add_argument('--colorbar-ratio',required=False,default=0.1,type=float,
+            help='Proportion of figure size devoted to color bar. Default is 0.1')
+
+
+        # coloring labels
         parser.add_argument('--color-x-by',required=False)
         parser.add_argument('--color-y-by',required=False)
         parser.add_argument('--color-file-x',required=False)
         parser.add_argument('--color-file-y',required=False)
         parser.add_argument('--color-scheme-x',required=False)
         parser.add_argument('--color-scheme-y',required=False)
+        parser.add_argument('--color-x-ratio',required=False,default=0.1,type=float,
+            help='Proportion of the heatmap devoted to the column color labels. Default is 0.1')
+        parser.add_argument('--color-y-ratio',required=False,default=0.1,type=float,
+            help='Proportion of the heatmap devoted to the row color labels. Default is 0.1')
         parser.add_argument('--missing-color',required=False,default=None)
-        parser.add_argument('--save-filtered-table',action='store_true',default=False)
+
+        # sorting
+        parser.add_argument('--cluster-x',required=False,default=False,action='store_true')
+        parser.add_argument('--cluster-y',required=False,default=False,action='store_true')     
+        parser.add_argument('--sort-x-by',required=False)
+        parser.add_argument('--sort-y-by',required=False)
+
+        # handling missing data
         parser.add_argument('--keep-rows-missing-data',action='store_true',default=False,
             help='Drops columsn that have any missing data')
         parser.add_argument('--keep-columns-missing-data',action='store_true',default=False,
             help='Drops rows that have any missing data')
+
+        # handling label sizes and adjusting tick labels
+        parser.add_argument('--x-tick-labels-scale',required=False,default=config['x_tick_labels_scale'],
+            help='Must be between 0 (smallest) and 1 (largest).')
+        parser.add_argument('--y-tick-labels-scale',required=False,default=config['y_tick_labels_scale'],
+            help='Must be between 0 (smallest) and 1 (largest).')
+        parser.add_argument('--color-bar-labels-scale',required=False,default=config['color_bar_labels_scale'],
+            help='Must be between 0 (smallest) and 1 (largest).')
+        parser.add_argument('--x-rotation',required=False,default=90)
+        parser.add_argument('--highlight-labels',required=False)
+
 
         #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
