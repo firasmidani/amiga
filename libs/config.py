@@ -67,6 +67,9 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 # parameter for labeling y-axis of grid plots
 config['grid_plot_y_label'] = 'Optical Density'
 
+# how to handle flagged wells in plots
+config['plot_flag_wells'] = 'empty' # 'ignore', 'cross'
+
 ### --------- ###
 ### Heat Maps ###
 ### --------- ###

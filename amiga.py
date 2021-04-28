@@ -233,7 +233,6 @@ class AMiGA(object):
         parser.add_argument('--colorbar-ratio',required=False,default=0.1,type=float,
             help='Proportion of figure size devoted to color bar. Default is 0.1')
 
-
         # coloring labels
         parser.add_argument('--color-x-by',required=False)
         parser.add_argument('--color-y-by',required=False)
@@ -327,6 +326,8 @@ class AMiGA(object):
         parser.add_argument('-t','--interval',required=False)
         parser.add_argument('--save-cleaned-data',action='store_true',default=False)
         parser.add_argument('--save-mapping-tables',action='store_true',default=False)
+        parser.add_argument('--subtract-blanks',action='store_true',default=False)
+        parser.add_argument('--subtract-control',action='store_true',default=False)
 
         #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 

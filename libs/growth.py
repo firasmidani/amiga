@@ -415,13 +415,12 @@ class GrowthPlate(object):
         self.addLocation()
 
         #key = self.key
-        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline']
+        cols =['Sample_ID','Plate_ID','Well','Row','Column','Fold_Change','OD_Max','OD_Baseline','Flag']
         key = self.key.reindex(cols,axis='columns',)
         key = key.dropna(axis=1,how='all')
         if 'Sample_ID' in key.columns:
             key = key.drop_duplicates().set_index('Sample_ID')
         
-
         if plot_derivative: 
             base_y = self.gp_data.pivot(columns='Sample_ID',index='Time',values='GP_Derivative')
         elif plot_fit:
@@ -437,7 +436,8 @@ class GrowthPlate(object):
 
         # define window axis limits
         ymax = np.ceil(base_y.max(1).max())
-        ymin = np.floor(base_y.min(1).min())
+        if plot_derivative: ymin = np.floor(base_y.min(1).min())
+        else: ymin = 0
 
         if plot_fit: ymin = 0
 
@@ -450,7 +450,23 @@ class GrowthPlate(object):
             # select proper sub-plot
             r,c = key.loc[well,['Row','Column']] -1
             ax = axes[r,c]
+
+            # highlight flagged well
+            if key.loc[well,'Flag'] and getValue('plot_flag_wells')=='empty':
+
+                [ax.spines[ii].set(lw=0) for ii in ['top','bottom','right','left']]
+                plt.setp(ax,xticks=[],yticks=[])
+
+                continue
             
+            elif key.loc[well,'Flag'] and getValue('plot_flag_wells')=='cross':
+            
+                kwargs = {'color':'red','lw':2,'ls':'-','zorder':5}
+                (xmin,xmax), (ymin,ymax) = ax.get_xlim(), ax.get_ylim()
+                ax.plot([xmin,xmax],[ymin,ymax],**kwargs)
+                ax.plot([xmin,xmax],[ymax,ymin],**kwargs)
+                plt.setp(ax,xticks=[],yticks=[])
+                        
             # get colors based on fold-change and uration parameters
             if 'Fold_Change' in key.keys():
                 color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
@@ -492,6 +508,7 @@ class GrowthPlate(object):
                 od_max = key.loc[well,'OD_Max']
             ax.text(1.,1.,"{0:.2f}".format(od_max),fontsize=10,
                 color=getTextColors('OD_Max'),ha='right',va='top',transform=ax.transAxes)
+
 
         # show tick labels for bottom left sub-plot only
         plt.setp(axes[7,0],xticks=[0,xmax],xticklabels=[0,xmax_up])

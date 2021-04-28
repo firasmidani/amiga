@@ -24,7 +24,7 @@ from libs.interface import interpretParameters
 from libs.org import isFileOrFolder, mapDirectories, mapFiles, validateDirectories
 from libs.read import readPlateReaderFolder
 from libs.test import HypothesisTest
-from libs.trim import trimInput
+from libs.trim import trimInput, flagWells
 
 
 class Command(object):
@@ -76,8 +76,10 @@ class Command(object):
         self.data = data
         self.mappings = mappings
 
-
     def summarize(self):
+
+        # flag wells
+        self.mappings = flagWells(self.mappings,self.params['flag'],verbose=self.args.verbose,drop=False)
 
         # communicate with user
         print(tidyMessage('AMiGA is summarizing and plotting data'))
