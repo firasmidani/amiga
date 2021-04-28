@@ -248,8 +248,8 @@ class HypothesisTest(object):
 
         plate = GrowthPlate(self.master_data,self.master_mapping)
         plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
-        plate.subtractControl(to_do=self.subtract_blanks,drop=True,blank=True)
-        plate.subtractControl(to_do=self.subtract_control,drop=True,blank=False)
+        plate.subtractControl(to_do=self.subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
+        plate.subtractControl(to_do=self.subtract_control,drop=getValue('drop_control_wells'),blank=False)
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
         plate.logData()
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))

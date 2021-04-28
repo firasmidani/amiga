@@ -402,8 +402,8 @@ def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=Fals
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=subtract_baseline)
     plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
-    plate.subtractControl(to_do=subtract_blanks,drop=True,blank=True)
-    plate.subtractControl(to_do=subtract_control,drop=True,blank=False)
+    plate.subtractControl(to_do=subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
+    plate.subtractControl(to_do=subtract_control,drop=getValue('drop_control_wells'),blank=False)
     plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
     plate.logData()  # natural-log transform
     plate.subtractBaseline(subtract_baseline,poly=False)  # subtract first T0 (or rather divide by first T0)
