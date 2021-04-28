@@ -211,12 +211,13 @@ def handle_non_pos(arr):
             count += 1
 
             # if next iteration won't yield new information, welp!
-            if (max_ndeltas - ndeltas) > usr_ndeltas: return arr 
+            if (delta == 0 or np.isnan(delta)) and (max_ndeltas - ndeltas) > usr_ndeltas: 
+                return arr 
 
-        if floor == 0: 
+        if floor == 0:
             return arr + delta 
 
-        elif floor < 0: 
+        elif floor < 0:
             return arr + delta + abs(floor)  # we have to add floor, o.w. minimum becomes zero
 
         else:

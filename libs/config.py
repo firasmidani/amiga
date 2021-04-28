@@ -30,7 +30,7 @@ config['interval'] = 600  # units ared based on 'time_input_unit' above
 config['PolyFit'] = False
 
 # How to handle nonpositive (i.e. zero or negative) values. See AMiGA docs for more details
-config['handling_nonpositives'] = 'LOD' # or 'LOD'
+config['handling_nonpositives'] = 'Delta' # or 'LOD'
 
 config['limit_of_detection'] = 0.010 # must be numeric and positive (i.e. not zero)
 config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'Delta'
