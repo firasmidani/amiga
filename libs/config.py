@@ -37,6 +37,9 @@ config['force_limit_of_detection'] = False # or True. Only applies if: config['h
 config['number_of_deltas'] = 5 # must be integer greater than 1, can be really large number (e.g. 1000) to comply with curves of various lengths
 config['choice_of_deltas'] = 'median' # or min or max or mean
 
+# Whether to drop blank or control wells?
+config['drop_blank_wells'] = False
+config['drop_control_wells'] = True
 
 ###	------------- ###
 ### 96-Well Plots ###
@@ -64,6 +67,14 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 # parameter for labeling y-axis of grid plots
 config['grid_plot_y_label'] = 'Optical Density'
 
+### --------- ###
+### Heat Maps ###
+### --------- ###
+
+
+config['x_tick_labels_scale'] = 1
+config['y_tick_labels_scale'] = 1
+config['color_bar_labels_scale'] = 0.2
 
 ###	---------------- ###
 ### Model Parameters ###

@@ -42,6 +42,7 @@ from libs.interface import checkParameterCommand,integerizeDictValues
 from libs.org import assemblePath, assembleFullName
 from libs.org import isFileOrFolder, checkDirectoryNotEmpty, printDirectoryContents
 from libs.params import initParamList
+from libs.plot import largeTickLabels
 from libs.read import findPlateReaderFiles
 from libs.utils import flattenList, selectFileName, subsetDf
 
@@ -299,6 +300,138 @@ def get_color_legend(df,full_df,args,directory,axis='y'):
 
     return colors
 
+def sort_heatmap(df,full_df,args,kwargs):
+
+	if (df.shape[1] == 1) and (args.sort_y_by is None):
+
+		kwargs['row_cluster'] = False
+		df = df.sort_values(df.keys()[0])
+
+	elif (args.sort_y_by == args.y_variable) and (not kwargs['row_cluster']):
+
+		df = df.sort_index()
+	
+	elif (args.sort_y_by is not None) and (not kwargs['row_cluster']):
+
+		sub_full_df = full_df.loc[:,[args.y_variable,args.sort_y_by]]
+		sub_full_df = sub_full_df.drop_duplicates()
+		sub_full_df = sub_full_df.set_index(args.y_variable)
+		sub_full_df = df.join(sub_full_df,how='left')
+		sub_full_df = sub_full_df.sort_values(args.sort_y_by)
+		df =  sub_full_df.drop([args.sort_y_by],axis=1)		
+
+	if (df.shape[0] == 0) and (args.sort_by_x is None):
+		kwargs['col_cluster'] = False
+		df = df.T.sort_values(df.index[0]).T
+
+	elif (args.sort_x_by == args.x_variable) and (not kwargs['col_cluster']):
+		df = df.T.sort_index().T
+	
+	elif (args.sort_x_by is not None) and (not kwargs['col_cluster']):
+
+		sub_full_df = full_df.loc[:,[args.x_variable,args.sort_x_by]]
+		sub_full_df = sub_full_df.drop_duplicates()
+		sub_full_df = sub_full_df.set_index(args.x_variable)
+		sub_full_df = df.T.join(sub_full_df,how='left')
+		sub_full_df = sub_full_df.sort_values(args.sort_x_by)
+		df =  sub_full_df.drop([args.sort_x_by],axis=1).T
+
+
+
+
+	# # if users requested sorting of rows
+	# if (args.sort_y) and (not kwargs['row_cluster']):
+
+	# 	# but did not declare how, sort by value
+	# 	if (df.shape[1] == 1) and (args.sort_y_by is None):
+
+	# 		df = df.sort_values(df.keys()[0])
+
+	# 	# otherwise, sort by requested meta-data variable
+	# 	elif (df.shape[1] > 1) or (args.sort_y_by is not None):
+
+	# 		sub_full_df = full_df.loc[:,[args.y_variable,args.sort_y_by]]
+	# 		sub_full_df = sub_full_df.drop_duplicates()
+	# 		sub_full_df = sub_full_df.set_index(args.y_variable)
+	# 		sub_full_df = df.join(sub_full_df,how='left')
+	# 		sub_full_df = sub_full_df.sort_values(args.sort_y_by)
+	# 		df =  sub_full_df.drop([args.sort_y_by],axis=1)
+
+	# # if users requested sorting of columns
+	# if (args.sort_x) and (not kwargs['col_cluster']):
+
+	# 	# but did not declare how, sort by value
+	# 	if (df.shape[0] == 1) and (args.sort_x_by is None):
+
+	# 		df = df.T.sort_values(df.index[0]).T
+
+	# 	# otherwise, sort by requested meta-data variable
+	# 	elif (df.shape[0] > 1) or (args.sort_x_by is not None):
+
+	# 		sub_full_df = full_df.loc[:,[args.x_variable,args.sort_x_by]]
+	# 		sub_full_df = sub_full_df.drop_duplicates()
+	# 		sub_full_df = sub_full_df.set_index(args.x_variable)
+	# 		sub_full_df = df.T.join(sub_full_df,how='left')
+	# 		sub_full_df = sub_full_df.sort_values(args.sort_x_by)
+	# 		df =  sub_full_df.drop([args.sort_x_by],axis=1).T
+
+	return df,kwargs
+
+
+def dyanmically_size_font(ax_heatmap,ax_cax,args,df):
+
+	def get_bbox(item,ax=None,fig=None):
+		r = fig.canvas.get_renderer()
+		bb = item.get_window_extent(renderer=r)
+		bb = bb.transformed(ax.transAxes.inverted())
+		return bb
+
+	def get_bbox_width_height(item,ax=None,fig=None):
+		bb = get_bbox(item,ax=ax,fig=fig)
+		return (bb.width, bb.height)
+
+	def set_fontsize(which='x',ax=None,fig=None,fontscale=0.5,nlabels=None):
+		# initialze, what is the max bbox height
+		fontsize = 0	
+		dim = [0 if which=='x' else 1][0]
+		if nlabels is None: nlabels = eval('len(ax.get_{}ticks())'.format(which))
+		eval('[ii.set(fontsize={}) for ii in ax.get_{}ticklabels()]'.format(fontsize,which))
+		max_bb_height = 1. / float(nlabels)
+
+		# what is the current bbox height
+		sample = eval('ax.get_{}ticklabels()[0]'.format(which))
+		bb_height = get_bbox_width_height(sample,ax,fig)[dim]
+
+		# incrementally increase bbox height until you reach target
+		while bb_height < fontscale* max_bb_height:
+			fontsize +=1
+			eval('[ii.set(fontsize={}) for ii in ax.get_{}ticklabels()]'.format(fontsize,which))
+			bb_height = get_bbox_width_height(sample,ax,fig)[dim]
+
+		return fontsize
+
+	xtls = args.x_tick_labels_scale
+	ytls = args.y_tick_labels_scale
+	ctls = args.color_bar_labels_scale
+
+	if xtls != 1:
+		x_fontsize = set_fontsize(which='x',ax=ax_heatmap,fig=plt.gcf(),fontscale= xtls,nlabels=df.shape[1])
+		[ii.set(fontsize=x_fontsize) for ii in ax_heatmap.get_xticklabels()]
+
+	if ytls != 1:
+		y_fontsize = set_fontsize(which='y',ax=ax_heatmap,fig=plt.gcf(),fontscale= ytls,nlabels=df.shape[0])
+		[ii.set(fontsize=y_fontsize) for ii in ax_heatmap.get_yticklabels()]
+	
+	t_fontsize = set_fontsize(which='y',ax=ax_cax,fig=plt.gcf(),fontscale= ctls)
+	[ii.set(fontsize=t_fontsize) for ii in ax_cax.get_yticklabels()]
+
+	# adjust tick labels
+	if (int(args.x_rotation) % 90)==0:  ha = 'center'
+	else: ha = 'right'
+
+	[ii.set(rotation=args.x_rotation,ha=ha) for ii in ax_heatmap.get_xticklabels()]
+
+
 
 def clusterMap(df,full_df,args,directory):
 
@@ -311,7 +444,7 @@ def clusterMap(df,full_df,args,directory):
 		if adj_value.isdigit():
 			value = float(value)
 		elif value in ['True','False']:
-			value = bool(value)
+			value = eval(value)
 		return key,value
 
 	# define figure size (inches)
@@ -331,13 +464,23 @@ def clusterMap(df,full_df,args,directory):
 		h_kwargs = {k:v for k,v in h_kwargs}
 		kwargs.update(h_kwargs)
 
+	if kwargs['row_cluster'] or args.cluster_y:
+		kwargs['row_cluster'] = True
+	if kwargs['col_cluster'] or args.cluster_x:
+		kwargs['col_cluster'] = True
+
+	# sort heatmap, if requested
+	df,kwargs = sort_heatmap(df,full_df,args,kwargs)
+
 	# get colors for side bars
 	row_colors = get_color_legend(df,full_df,args,directory,axis='y')
 	col_colors = get_color_legend(df,full_df,args,directory,axis='x')
 
-    # clustermap
-	c = sns.clustermap(df,**kwargs,dendrogram_ratio=args.colorbar_ratio,
-		row_colors=row_colors,col_colors=col_colors)
+	# big finale
+	c = sns.clustermap(df,**kwargs,dendrogram_ratio=float(args.colorbar_ratio),
+		row_colors=row_colors,col_colors=col_colors,
+		colors_ratio=(args.color_x_ratio,args.color_y_ratio),
+		yticklabels=True,xticklabels=True)
 
 	# adjust title
 	title = [args.value if args.title is None else args.title][0]
@@ -345,7 +488,7 @@ def clusterMap(df,full_df,args,directory):
 		pad = 40
 	else:
 		pad = 15
-	c.ax_heatmap.set_title(title,fontsize=args.fontsize,pad=pad)
+	c.ax_heatmap.set_title(title,pad=pad)
 
 	# adjust labels
 	kwargs = {'xlabel':'','ylabel':''}
@@ -361,13 +504,8 @@ def clusterMap(df,full_df,args,directory):
 	c.cax.set_position(dendro_box)
 	c.cax.yaxis.set_ticks_position("left")
 
-	# adjust tick labels
-	if (int(args.x_rotation) % 90)==0:  ha = 'center'
-	else: ha = 'right'
-
-	[ii.set(fontsize=args.fontsize) for ii in c.ax_heatmap.get_xticklabels()+c.ax_heatmap.get_yticklabels()]
-	[ii.set(rotation=args.x_rotation,ha=ha) for ii in c.ax_heatmap.get_xticklabels()]
-	c.cax.tick_params(labelsize=args.fontsize)
+	# adjust size and rotation of tick labels
+	dyanmically_size_font(c.ax_heatmap,c.cax,args,df)
 
 	# check for proper rendering of tick labels
 	msg = 'WARNING: figure size is too small and /or fontsize is too large '
