@@ -454,8 +454,10 @@ def expandMappingParams(df,verbose):
     df.loc[:,'Control'] = df.Control.fillna(0)
 
     # initialize well-specific flag and subset parameters
-    df.loc[:,'Flag'] = [0]*df.shape[0]  # by default, no wells are flagged
-    df.loc[:,'Subset'] = [1]*df.shape[0]  # by default, all wells are included in analysis
+    if 'Flag' not in df.keys():
+        df.loc[:,'Flag'] = [0]*df.shape[0]  # by default, no wells are flagged
+    if 'Subset' not in df.keys():
+        df.loc[:,'Subset'] = [1]*df.shape[0]  # by default, all wells are included in analysis
 
     return df
 

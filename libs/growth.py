@@ -462,11 +462,13 @@ class GrowthPlate(object):
             elif key.loc[well,'Flag'] and getValue('plot_flag_wells')=='cross':
             
                 kwargs = {'color':'red','lw':2,'ls':'-','zorder':5}
-                (xmin,xmax), (ymin,ymax) = ax.get_xlim(), ax.get_ylim()
-                ax.plot([xmin,xmax],[ymin,ymax],**kwargs)
-                ax.plot([xmin,xmax],[ymax,ymin],**kwargs)
+                (xminf,xmaxf), (yminf,ymaxf) = ax.get_xlim(), ax.get_ylim()
+                ax.plot([xminf,xmaxf],[yminf,ymaxf],**kwargs)
+                ax.plot([xminf,xmaxf],[ymaxf,yminf],**kwargs)
                 plt.setp(ax,xticks=[],yticks=[])
-                        
+
+                continue
+
             # get colors based on fold-change and uration parameters
             if 'Fold_Change' in key.keys():
                 color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
