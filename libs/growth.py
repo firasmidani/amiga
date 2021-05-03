@@ -458,14 +458,6 @@ class GrowthPlate(object):
                 plt.setp(ax,xticks=[],yticks=[])
 
                 continue
-            
-            elif key.loc[well,'Flag'] and getValue('plot_flag_wells')=='cross':
-            
-                kwargs = {'color':'red','lw':2,'ls':'-','zorder':5}
-                (xminf,xmaxf), (yminf,ymaxf) = ax.get_xlim(), ax.get_ylim()
-                ax.plot([xminf,xmaxf],[yminf,ymaxf],**kwargs)
-                ax.plot([xminf,xmaxf],[ymaxf,yminf],**kwargs)
-                plt.setp(ax,xticks=[],yticks=[])
 
             # get colors based on fold-change and uration parameters
             if 'Fold_Change' in key.keys():
@@ -508,6 +500,14 @@ class GrowthPlate(object):
                 od_max = key.loc[well,'OD_Max']
             ax.text(1.,1.,"{0:.2f}".format(od_max),fontsize=10,
                 color=getTextColors('OD_Max'),ha='right',va='top',transform=ax.transAxes)
+            
+            if key.loc[well,'Flag'] and getValue('plot_flag_wells')=='cross':
+            
+                kwargs = {'color':'red','lw':2,'ls':'-','zorder':5}
+                (xminf,xmaxf), (yminf,ymaxf) = ax.get_xlim(), ax.get_ylim()
+                ax.plot([xminf,xmaxf],[yminf,ymaxf],**kwargs)
+                ax.plot([xminf,xmaxf],[ymaxf,yminf],**kwargs)
+                plt.setp(ax,xticks=[],yticks=[])
 
 
         # show tick labels for bottom left sub-plot only
