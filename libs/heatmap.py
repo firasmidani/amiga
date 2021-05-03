@@ -322,7 +322,6 @@ def sort_heatmap(df,full_df,args,kwargs):
 
 	if (df.shape[0] == 0) and (args.sort_x_by is None):
 		kwargs['col_cluster'] = False
-		print(df)
 		df = df.T.sort_values(df.index[0],ascending=False).T
 
 	elif (args.sort_x_by == args.x_variable) and (not kwargs['col_cluster']):
