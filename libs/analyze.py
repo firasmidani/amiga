@@ -494,10 +494,10 @@ def savePlateData(store_data,plate,data_path,summ_path,diux_path):
     df_diauxie = minimizeDiauxieReport(df_diauxie)
 
 
-    df_params.drop(['Subset','Flag'],axis=1,inplace=True)
+    df_params.drop(['Subset'],axis=1,inplace=True)
     df_params.to_csv(summ_path,sep='\t',header=True,index=False)
     if df_diauxie.shape[0]>0:
-        df_diauxie.drop(['Subset','Flag'],axis=1,inplace=True)
+        df_diauxie.drop(['Subset'],axis=1,inplace=True)
         df_diauxie.to_csv(diux_path,sep='\t',header=True,index=False)
 
     if not store_data:

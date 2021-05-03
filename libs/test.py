@@ -227,7 +227,7 @@ class HypothesisTest(object):
     def prettyTabulateSamples(self):
 
         if self.verbose:
-            print_map = self.master_mapping.copy().drop(['Flag','Subset'],axis=1)
+            print_map = self.master_mapping.copy().drop(['Subset'],axis=1)
             tab = tabulate(print_map,headers='keys',tablefmt='psql')
             msg = 'The following samples will be used in hypothesis testing:'
             msg = '\n{}\n{}\n'.format(msg,tab)
@@ -296,7 +296,7 @@ class HypothesisTest(object):
         tmp = data.sort_values(['Time']).loc[:,['Time','OD']]
         drop_idx = tmp[tmp.isna().any(1)].index
         data = data.drop(labels=drop_idx,axis=0)
-        data = data.drop(['Subset','Flag'],axis=1)
+        data = data.drop(['Subset'],axis=1)
 
         if save_path: data.to_csv(save_path,sep='\t',header=True,index=True)
 
