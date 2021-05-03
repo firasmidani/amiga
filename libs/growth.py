@@ -467,8 +467,6 @@ class GrowthPlate(object):
                 ax.plot([xminf,xmaxf],[ymaxf,yminf],**kwargs)
                 plt.setp(ax,xticks=[],yticks=[])
 
-                continue
-
             # get colors based on fold-change and uration parameters
             if 'Fold_Change' in key.keys():
                 color_l,color_f = getPlotColors(key.loc[well,'Fold_Change'])
