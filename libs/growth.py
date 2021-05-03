@@ -411,7 +411,7 @@ class GrowthPlate(object):
             msg += 'AMiGA can not plot it.\n'
             print(msg)
             return None
-
+        
         self.addLocation()
 
         #key = self.key
@@ -548,7 +548,14 @@ class GrowthPlate(object):
             self.key will have two additional columns, if they were missing prior to execution.
         '''
 
-        if all(x in self.key.columns for x in ['Row','Column']): return None
+        cond_1 = all(x in self.key.columns for x in ['Row','Column'])
+        cond_2 = all([isinstance(ii,int) for ii in self.key.Column.values])
+        cond_3 = all([isinstance(ii,int) for ii in self.key.Row.values])
+
+        if cond_1 and cond_2 and cond_3: 
+            return None
+        elif cond_1:
+            self.key = self.key.drop(['Row','Column'],axis=1)
 
         if 'Well' in self.key.columns:
             self.key = self.key.join(parseWellLayout(),on='Well')
