@@ -275,7 +275,7 @@ def get_color_legend(df,full_df,args,directory,axis='y'):
     	foo = full_df.loc[:,[variable]]
     else:
     	foo = full_df.loc[:,[colorby,variable]]
-    
+
     foo = foo.drop_duplicates().set_index(variable).astype(str)
     foo = foo.join(colors_df,on=colorby)
     foo.Color = [missing_color if str(ii)=='nan' else ii for ii in list(foo.Color.values)]
@@ -441,7 +441,7 @@ def clusterMap(df,full_df,args,directory):
 	c = sns.clustermap(df,**kwargs,dendrogram_ratio=float(args.colorbar_ratio),
 		row_colors=row_colors,col_colors=col_colors,
 		colors_ratio=(args.color_x_ratio,args.color_y_ratio),
-		yticklabels=True,xticklabels=True)
+		yticklabels=True,xticklabels=True,annot=False)
 
 	# adjust title
 	title = [args.value if args.title is None else args.title][0]

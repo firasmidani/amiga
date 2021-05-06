@@ -549,13 +549,13 @@ class GrowthPlate(object):
         '''
 
         cond_1 = all(x in self.key.columns for x in ['Row','Column'])
-        cond_2 = all([isinstance(ii,int) for ii in self.key.Column.values])
-        cond_3 = all([isinstance(ii,int) for ii in self.key.Row.values])
-
-        if cond_1 and cond_2 and cond_3: 
-            return None
-        elif cond_1:
-            self.key = self.key.drop(['Row','Column'],axis=1)
+        if cond_1:
+            cond_2 = all([isinstance(ii,int) for ii in self.key.Column.values])
+            cond_3 = all([isinstance(ii,int) for ii in self.key.Row.values])
+            if cond_2 and cond_3: 
+                return None
+            else:
+                self.key = self.key.drop(['Row','Column'],axis=1)
 
         if 'Well' in self.key.columns:
             self.key = self.key.join(parseWellLayout(),on='Well')

@@ -185,7 +185,7 @@ def flagWells(df,flags,verbose=False,drop=False):
     Passes plate-well-specific flags from user into mapping dataframes.
 
     Args:
-        df (pandas.DataFrame) must have Plate_IDs and Well as columns
+        df (dictionary of pandas.DataFrame) must have Plate_IDs and Well as columns
         flags (dictionary) with Plate_IDs (str) as keys and Wells (stR) as vlaues
         verbose (boolean)
 
@@ -198,10 +198,11 @@ def flagWells(df,flags,verbose=False,drop=False):
         return df
 
     for plate, wells in flags.items():
+        if plate in df.keys():
 
-        df[plate].loc[wells,'Flag'] = [1]*len(wells)
+            df[plate].loc[wells,'Flag'] = [1]*len(wells)
 
-        if drop: df[plate] = df[plate][df[plate].Flag==0] 
+            if drop: df[plate] = df[plate][df[plate].Flag==0] 
 
     smartPrint('The following flags were detected:\n',verbose)
     smartPrint(tidyDictPrint(flags),verbose)
