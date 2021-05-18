@@ -44,4 +44,3 @@ __AMiGA: software for automated analysis of microbial growth assays.__
 *bioRxiv* (2020). [https://doi.org/10.1101/2020.11.04.369140](https://doi.org/10.1101/2020.11.04.369140)  
 
 To reproduce analysis and figures in the manuscript, see [Manuscript README](https://github.com/firasmidani/amiga/blob/master/examples/manuscript/README.md). 
-
