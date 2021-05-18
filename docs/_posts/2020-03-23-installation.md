@@ -158,6 +158,11 @@ Please follow these instructions to install all requirements. See `amiga/require
     
     `conda install conda=4.6`
 
+    `conda install --channel defaults conda=4.6 python=3.6 --yes`
+    
+    `conda update --channel defaults --all --yes`
+
+
 
 
 <br />
