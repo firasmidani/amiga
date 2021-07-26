@@ -69,6 +69,6 @@ Please post issues or requests [here](https://github.com/firasmidani/amiga/issue
 
 FS Midani, J Collins, RA Britton.
 AMiGA: software for automated Analysis of Microbial Growth Assays. 
-*bioRxiv* (2020). <a href="https://biorxiv.org/cgi/content/short/2020.11.04.369140v1">https://biorxiv.org/cgi/content/short/2020.11.04.369140v1</a>
+*mSystems* (2020). <a href="https://doi.org/10.1128/mSystems.00508-21">https://doi.org/10.1128/mSystems.00508-21</a>
 
 <br />
