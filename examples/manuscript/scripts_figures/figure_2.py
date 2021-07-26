@@ -19,7 +19,7 @@ summ_df ='./biolog/summary/pooled_by_isolate_summary_normalized.txt'
 summ_df = read_csv(summ_df)
 
 # replace 'negative control'  with 'no carbon control' to avoid ambiguity
-summ_df = summ_df.replace('Negative Control','No-carbon Control')
+summ_df = summ_df.replace('Negative Control','Minimal Media')
 
 # read model predictions
 split_df ='./biolog/derived/pooled_by_isolate_gp_data.txt'
@@ -34,7 +34,7 @@ poold = poold[poold.Plate_ID=='CD2015_PM1-1']
 
 # get substrates that support normalized K > 1.2 and include no-carbon control
 substrates = summ_df[summ_df.loc[:,'norm(auc_log)']>1.2].Substrate.values
-tmp_summ = summ_df[summ_df.Substrate.isin(list(substrates)+['No-carbon Control'])]
+tmp_summ = summ_df[summ_df.Substrate.isin(list(substrates)+['Minimal Media'])]
 
 # reduce data to substrates
 sample_ids = tmp_summ.index

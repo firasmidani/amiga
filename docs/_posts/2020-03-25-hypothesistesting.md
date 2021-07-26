@@ -20,11 +20,7 @@ use_math: true
 #### Basic usage
 
 ```bash
-python amiga.py test \
-	-i /home/outbreaks/erandomii/ \
-	-s Isolate:ER1;PM:1;Substrate:Negative Control,alpha-D-glucose \
-	-y H0:Time;H1:Time+Substrate \
-	-tss 10 --subtract-control
+python amiga.py test -i /home/outbreaks/erandomii/ -s Isolate:ER1;PM:1;Substrate:Negative Control,alpha-D-glucose -y H0:Time;H1:Time+Substrate -tss 10 --subtract-control
 ```
 
 Here, we first reduced our data set only to the growth curves of the isolate `ER1` in `PM1` plates on `Negative Control` (i.e. no carbon) and `alpha-D-glucose` wells. We then test the null hypothesis (`H0`) that only `Time` variable explains variation in OD against the alternative hypothesis (`H1`) that both `Time` and `Substrate` variables explain the variation in OD.
@@ -50,12 +46,7 @@ In addition to the log Bayes Factor scores, `AMiGA` will compute the functional 
 See [Example](/amiga/doc/example.html) for more details on the context of this example. 
 
 ```bash
-python amiga.py test \
-  -i /home/outbreaks/erandomii \
-  -s "Substrate:L-Lactic Acid" \
-  -y "H0:Time;H1:Time+Strain" \
-  -o "strain_difference_l_lactic_acid" \
-  -np 99 -tss 3 --verbose
+python amiga.py test -i /home/outbreaks/erandomii -s "Substrate:L-Lactic Acid" -y "H0:Time;H1:Time+Strain" -o "strain_difference_l_lactic_acid" -np 99 -tss 3 --verbose
 ```
 
 If you run the above command using the example data, a figure will show the models estimated for each strain (bold lines) overlaid on the actual data (thin lines). Shaded bands indicate the 95% confidence interval for the models.
@@ -104,12 +95,7 @@ Therefore, the analysis suggests that the alternative hypothesis that strain dif
 So for the above example, we can re-run it without the `--subtract-control` argument and we will get the following figure.  
 
 ```bash
-python amiga.py test \
-  -i /home/outbreaks/erandomii \
-  -s "Substrate:L-Lactic Acid" \
-  -y "H0:Time;H1:Time+Strain" \
-  -o "strain_difference_l_lactic_acid" \
-  -np 99 -tss 3 --verbose
+python amiga.py test -i /home/outbreaks/erandomii -s "Substrate:L-Lactic Acid" -y "H0:Time;H1:Time+Strain" -o "strain_difference_l_lactic_acid" -np 99 -tss 3 --verbose
 ```
 
 ![lactic acid figure no control](../images/strain_difference_l_lactic_acid_no_control.png){:width="400px"}

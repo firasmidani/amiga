@@ -19,11 +19,7 @@ order: 11
 Users can directly compare growth parameters for two samples or two conditions using `compare.py`. This assumes that you have already analyzed your samples with `AMiGA`. For example, the following command will compare the growth of the CD2015 isolate in PM 1 on fructose and trehalose. It will generate the following table. 
 
 ```bash
-python $HOME/rab_fm/git/amiga/compare.py \
-	-i /Users/firasmidani/experiment/summary/CD2015_summary.txt \
-	-o CD2015_Fructose_vs_Trehalose \
-	-s "Substrate:D-Fructose,D-Trehalose;Isolate:CD2015;PM:1" \
-	--confidence 95
+python $HOME/rab_fm/git/amiga/compare.py -i /Users/firasmidani/experiment/summary/CD2015_summary.txt -o CD2015_Fructose_vs_Trehalose -s "Substrate:D-Fructose,D-Trehalose;Isolate:CD2015;PM:1" --confidence 95
 ```
 - `-i` must point to the summary file genearted by AMiGA.
 - `-o` assigns a filename for the results, otherwise, the filename will be a unique time stamp.
@@ -63,12 +59,7 @@ This will generate the below which will be saved in the same directory as the in
 Let's say you want to compare two samples but their growth summary are in different files. You can manually create a new summary file with only the two samples (rows) that you are interested in anlayzing, then passing this file to the `-i` argument. But you can also pass multiple `-i` arguments to `AMiGA`. The below will find the growth summary for CD2015 and CD1007 on fructose the compare them against each other.
 
 ```bash
-python $HOME/rab_fm/git/amiga/compare.py \
-	-i /Users/firasmidani/experiment/summary/CD2015_summary.txt \
-	-i /Users/firasmidani/experiment/summary/CD1007_summary.txt \
-	-o CD2015_vs_CD1007_on_Fructose \
-	-s 'Substrate:D-Fructose;Isolate:CD2015,CD1007' \
-	--confidence 95
+python $HOME/rab_fm/git/amiga/compare.py -i /Users/firasmidani/experiment/summary/CD2015_summary.txt -i /Users/firasmidani/experiment/summary/CD1007_summary.txt -o CD2015_vs_CD1007_on_Fructose -s 'Substrate:D-Fructose;Isolate:CD2015,CD1007' --confidence 95
 ```
 
 <br />

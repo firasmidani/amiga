@@ -165,7 +165,6 @@ def normalizeParameters(args,df):
 		df_group = df_group.sort_values(params_varbs)
 		df_control = subsetDf(df_group,controlby)
 
-
 		df_group.set_index(params_varbs,inplace=True)
 		df_control.set_index(params_varbs,inplace=True)
 
