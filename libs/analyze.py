@@ -88,8 +88,7 @@ def basicSummaryOnly(data,mapping,directory,args,verbose=False):
         plate.subtractControl(to_do=args.subtract_control,drop=False,blank=False)
 
         # plot and save as PDF, also save key as TXT
-        if not args.dont_plot:
-            plate.plot(key_fig_path)
+        if not args.dont_plot: plate.plot(key_fig_path)
 
         if args.merge_summary: list_keys.append(plate.key) 
         else: plate.key.to_csv(key_file_path,sep='\t',header=True,index=False)
@@ -147,7 +146,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
 
     # pre-process data
     plate = prepDataForFitting(data,mapping,subtract_baseline=True,drop_flagged_wells=False,
-        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
+        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks,log_transform=args.log_transform)
 
     dx_ratio_varb = getValue('diauxie_ratio_varb')
     dx_ratio_min = getValue('diauxie_ratio_min')
@@ -227,7 +226,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
 
     # pre-process data
     plate = prepDataForFitting(data,mapping,subtract_baseline=False,drop_flagged_wells=True,
-        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks)
+        subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks,log_transform=args.log_transform)
 
     # which meta-data variables do you use to group replicates?
     combine_keys = args.pool_by.split(',')
@@ -385,7 +384,7 @@ def handleMissingData(args,df):
     return df
 
 
-def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=False,subtract_blanks=False,drop_flagged_wells=False):
+def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=False,subtract_blanks=False,log_transform=False,drop_flagged_wells=False):
     '''
     Packages data set into a grwoth.GrowthPlate() object and transforms data in preparation for GP fitting.
 
@@ -401,13 +400,13 @@ def prepDataForFitting(data,mapping,subtract_baseline=True,subtract_control=Fals
     # merge data-sets for easier analysis and perform basic summaries and manipulations
     plate = GrowthPlate(data=data,key=mapping)
 
+    plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
     plate.computeBasicSummary()
     plate.computeFoldChange(subtract_baseline=subtract_baseline)
-    plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
     plate.subtractControl(to_do=subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
     plate.subtractControl(to_do=subtract_control,drop=getValue('drop_control_wells'),blank=False)
     plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
-    plate.logData()  # natural-log transform
+    plate.logData(to_do=log_transform)  # natural-log transform
     plate.subtractBaseline(subtract_baseline,poly=False)  # subtract first T0 (or rather divide by first T0)
     plate.dropFlaggedWells(to_do=drop_flagged_wells)
 

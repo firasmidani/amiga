@@ -419,7 +419,7 @@ def expandMappingParams(df,verbose):
     
     # check if Biolog PM plate
     biolog = isBiologFromName(Plate_ID) # True or False
-    
+
     if ('Control' in keys) and ('Group' not in keys):
         
         df.loc[:,'Control'] = df.Control.fillna(0)

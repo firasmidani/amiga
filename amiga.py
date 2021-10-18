@@ -172,6 +172,7 @@ class AMiGA(object):
         parser.add_argument('-t','--interval',required=False)
         parser.add_argument('-tss','--time-step-size',action='store',type=int,default=1)#11
         parser.add_argument('-sfn','--skip-first-n',action='store',type=int,default=0)
+        parser.add_argument('--do-not-log-transform',action='store_true',default=False)
         parser.add_argument('--subtract-blanks',action='store_true',default=False)
         parser.add_argument('--subtract-control',action='store_true',default=False)
         parser.add_argument('--keep-missing-time-points',action='store_true',default=False)
@@ -199,6 +200,9 @@ class AMiGA(object):
             msg = '\nWARNING: --sample-posterior is only applicable if user also '
             msg += 'requests pooling with the --pool-by argument.'
             print(msg)
+
+        if args.do_not_log_transform: args.log_transform = False
+        else: args.log_transform = True
 
         if args.subset: args.merges = True
 

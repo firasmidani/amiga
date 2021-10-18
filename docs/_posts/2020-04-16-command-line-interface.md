@@ -62,6 +62,14 @@ A boolean argument which forces `AMiGA` to model time points at which some repli
 
 <br/>
 
+**Manipulating growth curves**
+
+`--do-not-log-transform`
+
+A boolean argument which forces `AMiGA` to analyze growth curves without log-10 transformation. This may be useful if user is not analyzing microbial biomass or growth. For example, users may analze data in "Omnilog" units which are a proxy for microbial respiration not growth. Default value is False. 
+
+<br/>
+
 **Hypothesis testing**: see [Test Hypotheses](/amiga/doc/hypothesistesting.html) for more details.
 
 `-y` or `--hypothesis`

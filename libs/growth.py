@@ -114,13 +114,19 @@ class GrowthPlate(object):
             + OD_Min is the miimum measurement (any row)
         '''
 
+        # compute OD_Min, OD_Max, and OD_Baseline
         df = self.input_data.copy()  # timepoints by wells, input data that remains unmodified
         df_max = df.max(0)  # max by column (i.e. well)
         df_min = df.min(0)  # min by column (i.e. well)
         df_baseline = df.iloc[0,:]
 
-        joint_df = pd.concat([df_baseline,df_min,df_max],axis=1)
-        joint_df.columns = ['OD_Baseline','OD_Min','OD_Max']
+        # compute OD_Emp_AUC
+        time = self.time.values
+        dt = np.mean(time[1:,0]-time[:-1,0])
+        df_auc = df.apply(lambda x: np.dot(np.repeat(dt,df.shape[0]).T,x),axis=0)
+
+        joint_df = pd.concat([df_baseline,df_min,df_max,df_auc],axis=1)
+        joint_df.columns = ['OD_Baseline','OD_Min','OD_Max','OD_Emp_AUC']
 
         self.key = self.key.join(joint_df)
 
@@ -307,10 +313,12 @@ class GrowthPlate(object):
         self.key.loc[:,'OD_Offset'] = self.data.iloc[0,:].values
 
 
-    def logData(self):
+    def logData(self,to_do=True):
         '''
         Transform with a natural logarithm all values in object's data (pandas.DataFrame).
         '''
+
+        if not to_do: return None
 
         self.data = self.data.apply(lambda x: np.log(x))
         self.mods.logged = True
