@@ -36,7 +36,7 @@ from libs.diauxie import detectDiauxie
 from libs.utils import getValue
 
 
-def linearize(arr,baseline,floor=True):
+def linearize(arr,baseline,floor=True,logged=True):
     '''
     Converts arr from log space to linear space.
 
@@ -52,7 +52,8 @@ def linearize(arr,baseline,floor=True):
     if arr is None: return None
 
     # add ln OD(0) and exponentiate
-    arr = np.exp(arr+np.log(baseline))
+    if logged:  arr = np.exp(arr+np.log(baseline))
+    elif not logged: arr = arr + baseline
 
     # subtract OD(0)
     if floor: arr = arr - arr[0] 
@@ -86,7 +87,7 @@ def maxValueArg(x,y):
 
 class GrowthCurve(object):
 
-    def __init__(self,x=None,y=None,y0=None,y1=None,y2=None,cov0=None,cov1=None,baseline=1.0,name=None):
+    def __init__(self,x=None,y=None,y0=None,y1=None,y2=None,cov0=None,cov1=None,baseline=1.0,name=None,logged=True):
         '''
         Data structure for a growth curves. This is primarily used for computing 
             growth curve parameters and characteistics or converting curve and its fit to 
@@ -117,6 +118,7 @@ class GrowthCurve(object):
         # define attributes
         self.name = name
         self.baseline = baseline 
+        self.logged = logged
         self.x = x
         self.y = y
         self.y0 = y0
@@ -155,9 +157,9 @@ class GrowthCurve(object):
         Converts actual and predicted log OD from log space to linear space.
         '''
 
-        self.linear_input = linearize(self.y,baseline=self.baseline,floor=True)
-        self.linear_output = linearize(self.y0,baseline=self.baseline,floor=True)
-        self.linear_output_raised = linearize(self.y0,baseline=self.baseline,floor=False)
+        self.linear_input = linearize(self.y,baseline=self.baseline,floor=True,logged=self.logged)
+        self.linear_output = linearize(self.y0,baseline=self.baseline,floor=True,logged=self.logged)
+        self.linear_output_raised = linearize(self.y0,baseline=self.baseline,floor=False,logged=self.logged)
 
 
     def describe(self):

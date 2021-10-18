@@ -296,7 +296,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         cond_data = cond_data.drop(['Sample_ID'],axis=1) # T*R x 2 (where R is number of replicates)
         cond_data = cond_data.dropna()
         
-        gm = GrowthModel(df=cond_data,ARD=True,heteroscedastic=fix_noise,nthin=nthin)#,
+        gm = GrowthModel(df=cond_data,ARD=True,heteroscedastic=fix_noise,nthin=nthin,logged=plate.mods.logged)#,
 
         curve = gm.run(name=idx)
         mse_df.loc[idx,'MSE'] = curve.compute_mse(pooled=True)
@@ -344,12 +344,19 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
 
     # because pooling, drop linear AUC, K, and Death 
     to_remove = ['death_lin','k_lin','auc_lin']
+    if args.do_not_log_transform: to_remove += ['td']
     
     to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
     df_params.drop(to_remove,axis=1,inplace=True)
 
     to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
     df_diauxie.drop(to_remove,axis=1,inplace=True)
+
+    if args.do_not_log_transform:
+        columns = {'auc_log':'auc_lin','k_log':'k_lin','death_log':'death_lin',
+                   'dx_auc_log':'dx_auc_lin','dx_k_log':'dx_k_lin','dx_death_log':'dx_death_lin'}
+        df_params.rename(columns=columns,inplace=True)
+        df_diauxie.rename(columns=columns,inplace=True)
 
     summ_path = assembleFullName(directory['summary'],'',filename,'summary','.txt')
     diux_path = assembleFullName(directory['summary'],'',filename,'diauxie','.txt')
@@ -369,6 +376,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         gp_data.to_csv(file_path,sep='\t',header=True,index=True)
 
     return None
+
 
 def handleMissingData(args,df):
     '''

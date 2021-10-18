@@ -147,7 +147,7 @@ The result of this argument depends on whether a user requested pooling.
 
 <ins>Without pooling</ins>: `--save-gp-data` that will save the different variants of the growth curve OD data before and after it has been fit with Gaussian Process model. Data will be formatted in a long-format where each row is a specific time point for a specific well in a specific plate. Identifying columns include `Time`,`Sample_ID`,`Plate_ID`. The `Plate_ID` corresponds to the name of the file from which the growth curve was processed. The `Sample_ID` corresponds to a specific well, see corresponding key files saved in `summary` for which well. Data columns include the following:
 * `Time`: time points. 
-* `GP_Input`: OD after log-transformation and baseline (OD at T0) subtraction. This is the OD variant explicitly modeled by a GP. OD at all time points will be included here even if user requested thinning of the data during modelling. 
+* `GP_Input`: OD after log-transformation and/or baseline (OD at T0) subtraction. This is the OD variant explicitly modeled by a GP. OD at all time points will be included here even if user requested thinning of the data during modelling. 
 * `GP_Output`: Predicted OD by the GP model based on the thinned `GP_Input`.
 * `GP_Derivative`: Predicted derivative of the OD (dOD/dt) by the GP model.
 * `OD_Growth_Data`: `GP_Input` that has been converted back to real OD but still baseline-corrected.

@@ -251,7 +251,7 @@ class HypothesisTest(object):
         plate.subtractControl(to_do=self.subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
         plate.subtractControl(to_do=self.subtract_control,drop=getValue('drop_control_wells'),blank=False)
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
-        plate.logData()
+        plate.logData(to_do=args.do_not_log_transform)
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
         pplate.dropFlaggedWells(to_do=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
@@ -358,8 +358,8 @@ class HypothesisTest(object):
         data0 = data.loc[:,['OD']+hypothesis['H0']]
         data1 = data.loc[:,['OD']+hypothesis['H1']]
 
-        gm0 = GrowthModel(df=data0,ARD=True,heteroscedastic=fix_noise,nthin=nthin)
-        gm1 = GrowthModel(df=data1,ARD=True,heteroscedastic=fix_noise,nthin=nthin)
+        gm0 = GrowthModel(df=data0,ARD=True,heteroscedastic=fix_noise,nthin=nthin,logged=self.plate.mods.logged)
+        gm1 = GrowthModel(df=data1,ARD=True,heteroscedastic=fix_noise,nthin=nthin,logged=self.plate.mods.logged)
 
         gm0,LL0 = gm0.run(predict=False)
         gm1,LL1 = gm1.run(predict=False)
@@ -466,6 +466,7 @@ class HypothesisTest(object):
         posterior = self.args.sample_posterior
         save_latent = self.args.save_gp_data
         fix_noise = self.args.fix_noise
+        do_not_log_transform = args.do_not_log_transform
 
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']
@@ -525,13 +526,20 @@ class HypothesisTest(object):
 
         # because pooling, drop linear AUC, K, and Death 
         to_remove = ['death_lin','k_lin','auc_lin']
+        if do_not_log_transform: to_remove += ['td']
         
         to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
         df_params.drop(to_remove,axis=1,inplace=True)
 
         to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
         df_diauxie.drop(to_remove,axis=1,inplace=True)
-    
+
+        if do_not_log_transform:
+            columns = {'auc_log':'auc_lin','k_log':'k_lin','death_log':'death_lin',
+                       'dx_auc_log':'dx_auc_lin','dx_k_log':'dx_k_lin','dx_death_log':'dx_death_lin'}
+            df_params.rename(columns=columns,inplace=True)
+            df_diauxie.rename(columns=columns,inplace=True)
+
         if posterior:
             df_params = prettyifyParameterReport(df_params,variable,confidence)
             df_params = articulateParameters(df_params,axis=0)

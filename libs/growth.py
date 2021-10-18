@@ -639,13 +639,6 @@ class GrowthPlate(object):
         return deepcopy(self)
 
 
-        expected = self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]
-        actual = self.key.k_lin.values
-        diff = (abs(actual-expected)/expected)*100
-        diff = ['TRUE' if ii > thresh else 'FALSE' for ii in diff.values]
-        self.key.loc[:,'K_Error > {}%'.format(thresh)] = diff
-
-
     def compute_k_error(self):
         '''Compute K error for checking quality of fit'''
 
@@ -666,8 +659,10 @@ class GrowthPlate(object):
         # compute K_Error and flag ones that deviate above threshold
         sub_df = pd.DataFrame(index=self.key.index,columns=['expected','predicted'])
         sub_df.loc[:,'expected'] = (self.key.loc[:,refs[0]] - self.key.loc[:,refs[1]]).values
-        sub_df.loc[:,'predicted'] = self.key.k_lin.values
+        if self.mods.logged: sub_df.loc[:,'predicted'] = self.key.k_lin.values
+        else: sub_df.loc[:,'predicted'] = self.key.k_log.values
         sub_df.loc[:,'K_Error'] = sub_df.apply(lambda x: foo(x,thresh),axis=1)
+        print(sub_df)
         
         self.key.loc[:,'K_Error > {}%'.format(thresh)] = sub_df.loc[:,'K_Error']
 
@@ -708,7 +703,7 @@ class GrowthPlate(object):
             # create GP object and analyze
             gm = GrowthModel(df=df,
                              baseline=sample.key.OD_Offset.values,
-                             ARD=False,heteroscedastic=False,nthin=nthin)
+                             ARD=False,heteroscedastic=False,nthin=nthin,logged=self.mods.logged)
 
             curve = gm.run(name=sample_id)
 

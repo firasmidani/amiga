@@ -62,7 +62,7 @@ def describeVariance(df,time='X0',od='Y'):
 class GrowthModel(object):
 
 
-    def __init__(self,df=None,model=None,x_new=None,baseline=1.0,ARD=False,heteroscedastic=False,nthin=1):
+    def __init__(self,df=None,model=None,x_new=None,baseline=1.0,ARD=False,heteroscedastic=False,nthin=1,logged=True):
         '''
         Data structure for Gaussian Process regression and related parameter inference.
 
@@ -84,6 +84,7 @@ class GrowthModel(object):
             self.x_new = x_new
             self.ARD = ARD
             self.baseline = baseline
+            self.logged = logged
             self.y = None
             self.df = None
             return None
@@ -129,6 +130,7 @@ class GrowthModel(object):
         self.error = error
         self.error_new = error_new
         self.baseline = baseline
+        self.logged = logged
 
         self.model = model
         self.ARD = ARD
@@ -248,5 +250,5 @@ class GrowthModel(object):
             time = self.x_new[:,0][:,np.newaxis]
             curve = GrowthCurve(x=time,y=actual_input,y0=self.y0,y1=self.y1,y2=self.y2,
                                 cov0=self.cov0,cov1=self.cov1,
-                                baseline=self.baseline,name=name)
+                                baseline=self.baseline,name=name,logged=self.logged)
             return curve
