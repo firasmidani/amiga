@@ -166,6 +166,8 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
         # the primary motivation of this function: run gp model 
         sub_plate.model(nthin=args.time_step_size,store=store,verbose=verbose)
 
+        sub_plate = cleanUnlogged(sub_plate,args)
+
         # save plots, if requested by user
         savePlots(sub_plate,args,directory,pid)
         
@@ -198,6 +200,18 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     os.rmdir(tmpdir)
 
     return None
+
+def cleanUnlogged(plate,args):
+    
+    if args.do_not_log_transform:
+
+        to_drop = ['auc_lin','k_lin','death_lin','td','dx_auc_lin','dx_k_lin','dx_death_lin','dx_td']
+        to_drop = list(set(plate.key.columns).intersection(set(to_drop)))
+        plate.key = plate.key.drop(to_drop,axis=1)
+        plate.key = plate.key.rename(columns={'auc_log':'auc_lin','k_log':'k_lin','death_log':'death_lin',
+            'dx_auc_log':'dx_auc_lin','dx_k_log':'dx_k_lin','dx_death_log':'dx_death_lin'})
+
+    return plate
 
 
 def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
@@ -478,13 +492,13 @@ def savePlateData(store_data,plate,data_path,summ_path,diux_path):
     '''
 
     #params = getValue('params_report')
-
     params = initParamList(0) + initParamList(1) + initParamList(2) 
     params = list(set(params).intersection(set(plate.key.keys())))
-    diauxie = initDiauxieList()
+    diauxie = list(set(plate.key.keys()).intersection(set(initDiauxieList())))
 
     df_params = plate.key.drop(diauxie,axis=1).drop_duplicates().reset_index(drop=True)
     df_params = minimizeParameterReport(df_params)
+    df_params = df_params.drop_duplicates()
 
     df_diauxie = plate.key[plate.key.diauxie==1]
     df_diauxie = df_diauxie.drop(params,axis=1)
