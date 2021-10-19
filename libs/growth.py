@@ -662,7 +662,6 @@ class GrowthPlate(object):
         if self.mods.logged: sub_df.loc[:,'predicted'] = self.key.k_lin.values
         else: sub_df.loc[:,'predicted'] = self.key.k_log.values
         sub_df.loc[:,'K_Error'] = sub_df.apply(lambda x: foo(x,thresh),axis=1)
-        print(sub_df)
         
         self.key.loc[:,'K_Error > {}%'.format(thresh)] = sub_df.loc[:,'K_Error']
 

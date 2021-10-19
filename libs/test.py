@@ -486,7 +486,7 @@ class HypothesisTest(object):
             df = subsetDf(x_full.drop(['mu','Sigma','Noise'],1),row.to_dict())
 
             # get curve based on model predictions
-            gm = GrowthModel(model=model.model,x_new=df.values,ARD=True)
+            gm = GrowthModel(model=model.model,x_new=df.values,ARD=True,logged=model.logged)
             curve = gm.run()
 
             # get parameter estimates using predicted curve
