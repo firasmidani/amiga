@@ -87,9 +87,10 @@ def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
 
             df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
+            #df_mapping.index = [ii[0] + ii[1:].lstrip('0') for ii in df_mapping.index]
 
             smartPrint('{:.<30} Reading {}.'.format(filebase,mapping_file_path),verbose=verbose)
-
+        
         # see if user described the file in meta.txt 
         elif filebase in meta_df_plates:
 

@@ -375,6 +375,7 @@ class AMiGA(object):
         parser.add_argument('--save-mapping-tables',action='store_true',default=False)
         parser.add_argument('--save-gp-data',action='store_true',default=False)
         parser.add_argument('--merge-summary',action='store_true',default=False)
+        parser.add_argument('--do-not-log-transform',action='store_true',default=False)
 
         #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
 
@@ -386,6 +387,9 @@ class AMiGA(object):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
 
+        if args.do_not_log_transform: args.log_transform = False
+        else: args.log_transform = True
+        
         args.confidence = args.confidence / 100
 
         Command(args).test()

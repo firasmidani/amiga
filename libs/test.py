@@ -251,9 +251,9 @@ class HypothesisTest(object):
         plate.subtractControl(to_do=self.subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
         plate.subtractControl(to_do=self.subtract_control,drop=getValue('drop_control_wells'),blank=False)
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
-        plate.logData(to_do=args.do_not_log_transform)
+        plate.logData(to_do=self.args.do_not_log_transform)
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
-        pplate.dropFlaggedWells(to_do=True)
+        plate.dropFlaggedWells(to_do=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
 
         self.plate = plate
@@ -466,7 +466,7 @@ class HypothesisTest(object):
         posterior = self.args.sample_posterior
         save_latent = self.args.save_gp_data
         fix_noise = self.args.fix_noise
-        do_not_log_transform = args.do_not_log_transform
+        do_not_log_transform = self.args.do_not_log_transform
 
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']

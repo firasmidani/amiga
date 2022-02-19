@@ -68,7 +68,7 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 config['grid_plot_y_label'] = 'Optical Density'
 
 # how to handle flagged wells in plots
-config['plot_flag_wells'] = 'cross' # 'ignore', 'keep'
+config['plot_flag_wells'] = 'empty' # 'cross', 'keep'
 
 ### --------- ###
 ### Heat Maps ###
