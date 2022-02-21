@@ -30,7 +30,7 @@ config['interval'] = 600  # units ared based on 'time_input_unit' above
 config['PolyFit'] = False
 
 # How to handle nonpositive (i.e. zero or negative) values. See AMiGA docs for more details
-config['handling_nonpositives'] = 'Delta' # or 'LOD'
+config['handling_nonpositives'] = 'Delta' # 'Delta' or 'LOD'
 
 config['limit_of_detection'] = 0.010 # must be numeric and positive (i.e. not zero)
 config['force_limit_of_detection'] = False # or True. Only applies if: config['handling_nonpositives'] = 'Delta'
@@ -68,7 +68,7 @@ config['fcn_od_max_color'] = (0.0,0.0,0.0,1.0)
 config['grid_plot_y_label'] = 'Optical Density'
 
 # how to handle flagged wells in plots
-config['plot_flag_wells'] = 'empty' # 'cross', 'keep'
+config['plot_flag_wells'] = 'empty' # 'empty', cross', or 'keep'
 
 ### --------- ###
 ### Heat Maps ###
@@ -126,7 +126,6 @@ config['report_parameters'] = ['auc_lin','auc_log','k_lin','k_log','death_lin','
 
 # how many samples from the posterior funtion are used for estimating mean/std of growth parameters
 config['n_posterior_samples'] = 100
-
 
 ###	------------------ ###
 ### USER COMMUNICATION ###

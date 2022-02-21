@@ -248,14 +248,13 @@ class HypothesisTest(object):
 
         plate = GrowthPlate(self.master_data,self.master_mapping)
         plate.convertTimeUnits(input=getTimeUnits('input'),output=getTimeUnits('output'))
-        plate.subtractControl(to_do=self.subtract_blanks,drop=getValue('drop_blank_wells'),blank=True)
-        plate.subtractControl(to_do=self.subtract_control,drop=getValue('drop_control_wells'),blank=False)
+        plate.subtractControl(to_do=self.subtract_blanks,drop=True,blank=True)
+        plate.subtractControl(to_do=self.subtract_control,drop=True,blank=False)
         plate.raiseData()  # replace non-positive values, necessary prior to log-transformation
-        plate.logData(to_do=self.args.do_not_log_transform)
+        plate.logData(to_do=self.args.log_transform)
         plate.subtractBaseline(to_do=True,poly=getValue('PolyFit'),groupby=list(self.non_time_varbs))
         plate.dropFlaggedWells(to_do=True)
         plate.key.to_csv(self.paths_dict['key'],sep='\t',header=True,index=True)  # save model results
-
         self.plate = plate
         self.ntimepoints = plate.time.shape[0]
 
@@ -527,7 +526,9 @@ class HypothesisTest(object):
         # because pooling, drop linear AUC, K, and Death 
         to_remove = ['death_lin','k_lin','auc_lin']
         if do_not_log_transform: to_remove += ['td']
-        
+        print(to_remove)
+        print(df_params.keys())
+
         to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
         df_params.drop(to_remove,axis=1,inplace=True)
 
@@ -730,7 +731,7 @@ class HypothesisTest(object):
             ax[0].xaxis.set_major_locator(MultipleLocator(tick_spacing))
 
         # adjust labels and window limits
-        ax[0] = setAxesLabels(ax[0],subtract_control,plot_params)
+        ax[0] = setAxesLabels(ax[0],subtract_control,plot_params,logged=self.args.log_transform)
 
         # if variable has only 2 values and if requested, plot delta OD
         if (len(list_values) != 2) or (self.args.dont_plot_delta_od):

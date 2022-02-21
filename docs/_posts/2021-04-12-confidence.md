@@ -70,7 +70,7 @@ python amiga.py get_confidence -i /Users/firasmidani/experiment/derived/pooled_a
 
 <br />
 
-This will generate a new file `derived/pooled_analysis_gp_data_confidence.txt` where it will include also the lower and upper bounds for the 95% confidence interval of all growth parameters. This copy of the input file will have four additional columns for the lower (`Low`) and upper (`Upper`) confidence intervals of the growth function, and the lower (`Low1`) and upper (`Upper1`) confidence intervals of the growth rate function
+This will generate a new file `derived/pooled_analysis_gp_data_confidence.txt`. This copy of the input file will have four additional columns for the lower (`Low`) and upper (`Upper`) confidence intervals of the growth function, and the lower (`Low1`) and upper (`Upper1`) confidence intervals of the growth rate function
 
 By default, `get_confidence` will compute the confidence intervals without including sampling uncertainty (i.e. measurement noise). If you would like to include noise in the confidence interval, you must pass `--include-noise`. 
 

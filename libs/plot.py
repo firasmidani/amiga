@@ -46,7 +46,7 @@ def savePlotWithLegends(ax,fig_path,loc,fontsize=20):
     plt.savefig(fig_path,bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
-def setAxesLabels(ax,subtract_control,plot_params,fontsize=20):
+def setAxesLabels(ax,subtract_control,plot_params,logged=True,fontsize=20):
     ''''
     Given an axis and analysis parameters, determine appropriate labels 
         for axes and adjus them accordingly. 
@@ -70,7 +70,8 @@ def setAxesLabels(ax,subtract_control,plot_params,fontsize=20):
     #    base = getValue('hypo_plot_y_label')
     #    base = r'$\frac{{{}}}{{{}}}$'.format(base+'(t)',base+'(0)')
     #else:
-    base = 'ln {}'.format(getValue('hypo_plot_y_label'))
+    if logged: base = 'ln {}'.format(getValue('hypo_plot_y_label'))
+    else: base = getValue('hypo_plot_y_label')
 
     # plot aesthetics
     if subtract_control:
