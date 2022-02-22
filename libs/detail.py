@@ -85,7 +85,7 @@ def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
         # see if user provided a mapping file that corresponds to this data file (filebase)
         if os.path.exists(mapping_file_path):
 
-            df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0)   
+            df_mapping = pd.read_csv(mapping_file_path,sep='\t',header=0,index_col=0, dtype={'Plate_ID':str,'Isolate':str})
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
             #df_mapping.index = [ii[0] + ii[1:].lstrip('0') for ii in df_mapping.index]
 
@@ -173,7 +173,7 @@ def checkMetaText(filepath,verbose=False):
         df_meta = pd.DataFrame
         df_meta_plates = [];
     else:
-        df_meta = pd.read_csv(filepath,sep='\t',header=0,index_col=None)
+        df_meta = pd.read_csv(filepath,sep='\t',header=0,index_col=None,dtype={'Plate_ID':str,'Isolate':str})
 
     # which plates were characterized in meta.txt?
     try:
