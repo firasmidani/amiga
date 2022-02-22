@@ -52,7 +52,6 @@ def initParamList(complexity=0,params=None):
     Returns (list)
     '''
 
-
     if params is None:
         lp0 = ['auc_lin','auc_log','k_lin','k_log','death_lin','death_log',
                'gr','dr','td','lagC','lagP',
@@ -60,9 +59,17 @@ def initParamList(complexity=0,params=None):
     else:
         lp0 = params
 
-    lp1a = ['mean({})'.format(lp) for lp in lp0[:-1]]
-    lp1b = ['std({})'.format(lp) for lp in lp0[:-1]]
-    lp2 = ['norm({})'.format(ii) for ii in lp0[:-1]]
+    if isinstance(lp0,str): lp0 = [lp0]
+
+    # create variation of each parameter: i.e, mean(), std(), and norm()
+
+    # first get rid of diauxie
+    lp0_copy = lp0.copy()
+    if 'diauxie' in lp0_copy: lp0_copy.remove('diauxie')
+
+    lp1a = ['mean({})'.format(ii) for ii in lp0_copy]
+    lp1b = ['std({})'.format(ii) for ii in lp0_copy]
+    lp2 = ['norm({})'.format(ii) for ii in lp0_copy]
 
     if complexity == 0: return lp0
     elif complexity == 1: return lp1a + lp1b
@@ -146,9 +153,55 @@ def minimizeDiauxieReport(df):
 
     lp = initDiauxieList()
     keys = set(lp).intersection(set(df.keys()))
-    remove = set(initDiauxieList()).difference(set(request))
+    remove = keys.difference(set(request))
 
     return df.drop(remove,axis=1)
+
+
+def removeFromParameterReport(df,to_remove=None):
+    
+    # validate input type
+    if to_remove is None: 
+        return df
+    elif isinstance(to_remove,str): 
+        to_remove = [to_remove]
+    
+    # all variations of parameters to remove
+    to_remove = initParamList(0,to_remove) + initParamList(1,to_remove) + initParamList(2,to_remove)
+    
+    # all parameters that are possibly produced by AMiGA
+    lp = initParamList(0) + initParamList(1) + initParamList(2)
+
+    # all parameters that are possible but exists in input dataframe
+    keys = set(lp).intersection(df.keys())
+    
+    # which of those parameters in dataframe must be removed
+    to_remove = keys.intersection(set(to_remove))
+
+    return df.drop(to_remove,axis=1)
+
+
+def removeFromDiauxieReport(df,to_remove=None):
+    
+    # validate input type
+    if to_remove is None: 
+        return df
+    elif isinstance(to_remove,str): 
+        to_remove = [to_remove]
+    
+    # all variations of parameters to remove
+    to_remove = ['dx_{}'.format(ii) for ii in initParamList(0,to_remove)]
+    
+    # all parameters that are possibly produced by AMiGA
+    lp = initDiauxieList()
+
+    # all parameters that are possible but exists in input dataframe
+    keys = set(lp).intersection(df.keys())
+    
+    # which of those parameters in dataframe must be removed
+    to_remove = keys.intersection(set(to_remove))
+
+    return df.drop(to_remove,axis=1)
 
 
 def prettyifyParameterReport(df,target,confidence=0.975):

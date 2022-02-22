@@ -526,14 +526,9 @@ class HypothesisTest(object):
         # because pooling, drop linear AUC, K, and Death 
         to_remove = ['death_lin','k_lin','auc_lin']
         if do_not_log_transform: to_remove += ['td']
-        print(to_remove)
-        print(df_params.keys())
 
-        to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
-        df_params.drop(to_remove,axis=1,inplace=True)
-
-        to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
-        df_diauxie.drop(to_remove,axis=1,inplace=True)
+        df_params = removeFromParameterReport(df_params,to_remove)
+        df_diauxie = removeFromDiauxieReport(df_diauxie,to_remove)
 
         if do_not_log_transform:
             columns = {'auc_log':'auc_lin','k_log':'k_lin','death_log':'death_lin',

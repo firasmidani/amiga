@@ -317,7 +317,7 @@ def isWellId(item):
     if len(item) < 2:
         return False
 
-    if (item[0] in ascii_uppercase) and (item[1:].isdigit()):
+    if (item.lstrip('0')[0] in ascii_uppercase) and (item[1:].isdigit()):
         return True
     
     return False
