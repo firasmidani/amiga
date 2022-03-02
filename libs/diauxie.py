@@ -54,8 +54,13 @@ def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
 
     # indices for inflections
     ips = list(np.where(np.diff(np.sign(y2.ravel())))[0])
+
+    cond_1 = len(ips)==0
+    cond_2 = (len(ips)==1 and ips[0]==0)
+    cond_3 = (len(ips)==1 and ips[0]==len(y2)-1)
+    cond_4 = np.max(y0) < getValue('diauxie_k_min')
     
-    if len(ips)==0 or np.max(y0) < getValue('diauxie_k_min'):
+    if cond_1 or cond_2 or cond_3 or cond_4:
     	cols = ['t_left','t_right','K','r','r_left','r_right']
     	ret = pd.DataFrame([x[0],x[-1],np.max((x)),np.max(y1),y1[0][0],y1[-1][0]],index=cols)
     	return ret.T
@@ -134,11 +139,11 @@ def pad(ips,its,edge=1,length=None):
     '''
     pad() is used only within diauxie(). Diauxie functions best if the growth curve
         begins at time zero with a positive inflection and end at last time point
-        with anothe positive inflection. pad() pads the edges of inflection points 
+        with another positive inflection. pad() pads the edges of inflection points 
         (ips in time units) and inflection types (its, whether +ve or -ve) with dummy
         inflection points to assist diauxie in analyzing a gowth curve. 
     '''
-    
+
     # if negative, pad the right edge of the curve, otherwise pad the left
     if edge==-1:
         ips = ips[::-1]

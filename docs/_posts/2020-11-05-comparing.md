@@ -16,16 +16,13 @@ order: 11
 
 #### Basic usage
 
-Users can directly compare growth parameters for two samples or two conditions using `compare.py`. This assumes that you have already analyzed your samples by pooling with `AMiGA`. See [How to infer summary statistics for pooled replicates?
-](/amiga/doc/pooling.html#how-to-infer-summary-statistics-for-pooled-replicates?). For example, let's say you ran the following command:
+Users can directly compare growth parameters for two samples or two conditions using `compare.py`. This assumes that you have already analyzed your samples by pooling with `AMiGA`. See [How to infer summary statistics for pooled replicates?](/amiga/doc/pooling.html#how-to-infer-summary-statistics-for-pooled-replicates?). For example, let's say you ran the following command:
 
 ```bash
 python $amiga/compare.py -i /Users/firasmidani/experiment/ -o CD2015_summary --pool-by "Substrate,Isolate" --sample-posterior 
 ````
 
-The `--sample-posterior` argument asks `AMiGA` to compute summary statistics for growth parameters (i.e., mean and standard deviations). 
-
-Next, the following command will compare the growth of the CD2015 isolate in PM 1 on fructose and trehalose. It will generate the following table. 
+The `--sample-posterior` argument asks `AMiGA` to compute summary statistics for growth parameters (i.e., mean and standard deviations). Next, the following command will compare the growth of the CD2015 isolate in PM 1 on fructose and trehalose. It will generate the following table. 
 
 ```bash
 python $amiga/compare.py -i /Users/firasmidani/experiment/summary/CD2015_summary.txt -o CD2015_Fructose_vs_Trehalose -s "Substrate:D-Fructose,D-Trehalose;Isolate:CD2015;PM:1" --confidence 95
