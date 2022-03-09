@@ -419,7 +419,7 @@ def expandMappingParams(df,verbose):
     keys = list(df.keys()) 
     
     # check if Biolog PM plate
-    biolog = isBiologFromName(Plate_ID) # True or False
+    biolog = isBiologFromName(Plate_ID) or isBiologFromMeta(df) # True or False
 
     if ('Control' in keys) and ('Group' not in keys):
         
@@ -472,10 +472,10 @@ def parseBiologLayout():
         df (pandas.DataFrame)
     '''
 
-    biolog_layout = [biolog.Carbon1,biolog.Carbon2,biolog.PhosphorusAndSulfur]
+    biolog_layout = [biolog.Carbon1,biolog.Carbon2,biolog.Nitrogen,biolog.PhosphorusAndSulfur]
     biolog_layout += [biolog.PeptideNitrogen1,biolog.PeptideNitrogen2,biolog.PeptideNitrogen3]
 
-    index = [str(ii) for ii in range(1,7)]
+    index = [str(ii) for ii in range(1,8)]
     keys = parseWellLayout(order_axis=0).index
 
     biolog_layout_df = pd.DataFrame(biolog_layout,index=index,columns=keys).T
