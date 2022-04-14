@@ -372,6 +372,8 @@ class GrowthPlate(object):
         expc_wells = set(parseWellLayout().index.values)  # expected list of wells 
         list_wells = set(self.key.Well.values)  # actual list of wells
 
+        if len(list_wells) != 96: return False
+
         if len(expc_wells.intersection(list_wells)) == 96: return True
 
 
