@@ -369,7 +369,7 @@ class GrowthPlate(object):
         if 'Well' not in self.key.columns: return False
 
         # makes sure that all 96 well locations are described in key and thus data
-        expc_wells = set(parseWellLayout().index.values)  # expected list of wells 
+        expc_wells = set(parseWellLayout(order_axis=1).index.values)  # expected list of wells 
         list_wells = set(self.key.Well.values)  # actual list of wells
 
         if len(list_wells) != 96: return False
@@ -421,7 +421,7 @@ class GrowthPlate(object):
             msg += 'AMiGA can not plot it.\n'
             print(msg)
             return None
-        
+
         self.addLocation()
 
         #key = self.key
@@ -568,9 +568,9 @@ class GrowthPlate(object):
                 self.key = self.key.drop(['Row','Column'],axis=1)
 
         if 'Well' in self.key.columns:
-            self.key = self.key.join(parseWellLayout(),on='Well')
+            self.key = self.key.join(parseWellLayout(order_axis=1),on='Well')
         else:
-            self.key = self.key.join(parseWellLayout().reset_index())
+            self.key = self.key.join(parseWellLayout(order_axis=1).reset_index())
 
         row_map = {'A':1,'B':2,'C':3,'D':4,'E':5,'F':6,'G':7,'H':8}
         col_map = {ii:int(ii) for ii in self.key.Column.values}
@@ -645,9 +645,9 @@ class GrowthPlate(object):
         '''Compute K error for checking quality of fit'''
 
         def foo(x,thresh):
-            
+
             if x['expected'] == 0 and x['predicted'] == 0: kerr =  0
-            elif x['expected'] == 0 and x['predicted'] > 0: kerr = np.inf
+            elif x['expected'] == 0 and x['predicted'] != 0: kerr = np.inf
             else:  kerr = abs((x['predicted']/x['expected'])-1) * 100
 
             if kerr > thresh: return 'TRUE'

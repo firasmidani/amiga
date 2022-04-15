@@ -144,7 +144,7 @@ class GrowthCurve(object):
             y_hat = [ii for ii in self_data.GP_Output.values if ~np.isnan(ii)]
             y_hat = y_hat * int(len(y)/len(y_hat))
         else:
-            y = self.linear_input
+            y = self.linear_input_raised
             y_hat = self.linear_output_raised
 
         mse = (1./y.shape[0]) * sum((y-y_hat)**2)
@@ -158,6 +158,7 @@ class GrowthCurve(object):
         '''
 
         self.linear_input = linearize(self.y,baseline=self.baseline,floor=True,logged=self.logged)
+        self.linear_input_raised = linearize(self.y,baseline=self.baseline,floor=False,logged=self.logged)
         self.linear_output = linearize(self.y0,baseline=self.baseline,floor=True,logged=self.logged)
         self.linear_output_raised = linearize(self.y0,baseline=self.baseline,floor=False,logged=self.logged)
 

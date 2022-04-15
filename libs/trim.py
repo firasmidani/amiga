@@ -144,7 +144,7 @@ def trimMergeData(data_dict,master_mapping,nskip=0,verbose=False):
 
         # grab plate-specific samples
         mapping_df = master_mapping[master_mapping.Plate_ID==pid]
-
+        
         # if no plate-specific samples are included in master_mapping, skip
         if mapping_df.shape[0]==0:
             continue
