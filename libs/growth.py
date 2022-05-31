@@ -503,8 +503,10 @@ class GrowthPlate(object):
             well_color = getTextColors('Well_ID')
             ax.text(0.,1.,key.loc[well,'Well'],fontsize=10,color=well_color,ha='left',va='top',transform=ax.transAxes)
 
-            # add Max OD value on top right of each sub-plot
-            if self.mods.floored:
+            # add Max OD (or Max dOD/dt) value on top right of each sub-plot
+            if plot_derivative:
+                od_max = np.max(y)
+            elif self.mods.floored:
                 od_max = key.loc[well,'OD_Max'] - key.loc[well,'OD_Baseline']
             else:
                 od_max = key.loc[well,'OD_Max']

@@ -153,7 +153,7 @@ class GrowthModel(object):
         x_dim = x.shape[1]
         y_dim = y.shape[1]
 
-        kern = buildKernel(x_dim,ARD=self.ARD)
+        kern = buildKernel(x_dim,x,y,ARD=self.ARD)
         mcopy = GPRegression(x,y,kern)
   
         if self.heteroscedastic:
@@ -174,7 +174,7 @@ class GrowthModel(object):
         x_dim = self.x.shape[1] # number of input dimensions, 1 if only time
         y_dim = self.y.shape[1] # number of ouptut dimensions, typically only 1 for log OD
 
-        kern = buildKernel(x_dim,ARD=self.ARD)
+        kern = buildKernel(x_dim,self.x,self.y,ARD=self.ARD)
         m = GPRegression(self.x,self.y,kern)
 
         if self.heteroscedastic:
@@ -200,7 +200,6 @@ class GrowthModel(object):
 
         self.y0 = mu
         self.cov0 = cov
-
 
     def predict_y1(self):
 

@@ -14,26 +14,74 @@ __email__ = "midani@bcm.edu"
 # buildCompositeKernel
 # addFixedKernel
 
+import math
 import numpy as np
+import pandas as pd
 
+from GPy.models import GPRegression
 from GPy.kern import RBF,Fixed
 
+from libs.config import config
 
-def buildKernel(ndim,ARD=False):
+
+def initHyperParams(ndim,x,y):
+    '''
+    Initializes hyper-parameters for RBF kernel based on method defined in libs/config.py
+    Moment-based normalization sets lengthscale initial value to its range (max value - min value)
+    and variance initial value is optimized with grid search centered around variance of observations.
+    '''
+
+    def oom(number): return math.floor(math.log(number,10))
+
+    method = config['initialization_method']
+
+    if method == 'default': return 1,1
+    
+    if method.startswith('moments-based'):
+        
+        lengthscale = np.max(x)-np.min(x)
+
+        if method.endswith('fast') and ndim == 1: variance = np.var(y)
+        elif method.endswith('proper') and ndim > 1: variance = np.var(y[:,0])
+
+    if method.endswith('proper'):
+
+        max_oom = 2 + oom(np.max(np.var(y)))
+        lst_oom = [10**ii for ii in range(max_oom)]
+        params = pd.DataFrame(lst_oom, columns=['variance'])
+
+        loglikelihoods = []
+        
+        for _,(i_var) in params.iterrows():
+            kern = RBF(1, ARD=False, variance=i_var, lengthscale=lengthscale)
+            m = GPRegression(x,y,kern)
+            m.optimize()
+            loglikelihoods.append(m.objective_function())
+        
+        params = params.join(pd.DataFrame(data=loglikelihoods,columns=['LogLikelihood']))
+        params = params.sort_values('LogLikelihood')
+        variance = params.iloc[0,:].variance
+
+    return variance, lengthscale
+
+
+def buildKernel(ndim,x,y,ARD=False):
+
+    variance, lengthscale = initHyperParams(ndim, x, y)
 
     if (ndim > 1) and (ARD == False):
-        kern = buildCompositeKernel(ndim)
+        kern = buildCompositeKernel(ndim,variance,lengthscale)
 
     elif (ndim > 1):
-        kern = RBF(ndim,ARD=True)
+        kern = RBF(ndim,ARD=True,variance=variance,lengthscale=lengthscale)
 
     elif (ndim == 1):
-        kern = RBF(ndim,ARD=False)
+        kern = RBF(ndim,ARD=False,variance=variance,lengthscale=lengthscale)
 
     return kern
 
 
-def buildCompositeKernel(ndim):
+def buildCompositeKernel(ndim,variance=1,lengthscale=1):
     '''
     Build an RBF kernel that extends beyond the first dimension. 
         For example, if GP(X,Y) and X has three dimensions, first is Time which 
@@ -43,7 +91,7 @@ def buildCompositeKernel(ndim):
         See also https://github.com/ptonner/gp_growth_phenotype/bgreat.py 
     '''
 
-    kern = RBF(1,active_dims=[0],ARD=False)
+    kern = RBF(1,active_dims=[0],ARD=False,lengthscale=lengthscale,variance=variance)
     ksum = None
 
     for ii in range(1,ndim):

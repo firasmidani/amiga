@@ -82,6 +82,14 @@ config['color_bar_labels_scale'] = 0.2
 ### Model Parameters ###
 ###	---------------- ###
 
+# select mode for initializing hyperparamters of GP regression
+#     1. "default" will set viarance and lengthscale parameters to 1
+#     2. "moments-based-proper" will initialize lengthscale to range of time and
+#            will optimize variance based on a grid search
+#     3. "moments-based-fast" will initilize lengthscale to range of time and will
+#            initilize variance to variance of measurements
+config['initialization_method'] = 'default'  # "deault", "moments-based-proper" or "moments-based-fast"
+
 # for GP regression with input-dependent noise, select a variance smoothing window: 
 config['variance_smoothing_window'] = 6 # number of x-values, based on default paramters: 6 * 600 seconds = 1 hour
 
