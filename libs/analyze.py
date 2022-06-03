@@ -30,7 +30,7 @@ import os
 from libs.model import GrowthModel 
 from libs.growth import GrowthPlate
 from libs.org import assembleFullName, assemblePath
-from libs.utils import concatFileDfs, resetNameIndex, subsetDf
+from libs.utils import concatFileDfs, resetNameIndex, subsetDf, flattenList
 from libs.utils import getValue, getTimeUnits, selectFileName, uniqueRandomString
 from libs.comm import *
 from libs.params import *
@@ -344,12 +344,15 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
 
     # because pooling, drop linear AUC, K, and Death 
     to_remove = ['death_lin','k_lin','auc_lin']
-    if args.do_not_log_transform: to_remove += ['td']
-    
-    to_remove = np.ravel([[jj for jj in df_params.keys() if ii in jj] for ii in to_remove])
+    to_remove = flattenList([[jj for jj in df_params.keys().values if ii in jj] for ii in to_remove])
     df_params.drop(to_remove,axis=1,inplace=True)
 
-    to_remove = np.ravel([[jj for jj in df_diauxie.keys() if ii in jj] for ii in to_remove])
+    if args.do_not_log_transform: 
+        to_remove = ['td','mean(td)','std(td)']
+        to_remove = flattenList([[ii for jj in df_params.keys().values if ii == jj] for ii in to_remove])
+        df_params.drop(to_remove,axis=1,inplace=True)
+
+    to_remove = flattenList([[jj for jj in df_diauxie.keys().values if ii in jj] for ii in to_remove])
     df_diauxie.drop(to_remove,axis=1,inplace=True)
 
     if args.do_not_log_transform:
