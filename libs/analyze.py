@@ -97,7 +97,7 @@ def basicSummaryOnly(data,mapping,directory,args,verbose=False):
 
     if args.merge_summary:
         filename = selectFileName(args.output)
-        summary_path = assembleFullName(directory['summary'],'summary',filename,'_basic','.txt')
+        summary_path = assembleFullName(directory['summary'],'summary',filename,'basic','.txt')
         summary_df = pd.concat(list_keys,sort=False)
         summary_df.to_csv(summary_path,sep='\t',header=True,index=False)
 
