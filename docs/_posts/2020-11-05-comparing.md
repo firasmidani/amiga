@@ -19,7 +19,7 @@ order: 11
 Users can directly compare growth parameters for two samples or two conditions using `compare.py`. This assumes that you have already analyzed your samples by pooling with `AMiGA`. See [How to infer summary statistics for pooled replicates?](/amiga/doc/pooling.html#how-to-infer-summary-statistics-for-pooled-replicates?). For example, let's say you ran the following command:
 
 ```bash
-python $amiga/fit.py -i /Users/firasmidani/experiment/ -o CD2015_summary --pool-by "Substrate,Isolate" --sample-posterior 
+python $amiga/fit.py -i /Users/firasmidani/experiment/ -o CD2015 --pool-by "Substrate,Isolate" --sample-posterior 
 ````
 
 The `--sample-posterior` argument asks `AMiGA` to compute summary statistics for growth parameters (i.e., mean and standard deviations). Next, the following command will compare the growth of the CD2015 isolate in PM 1 on fructose and trehalose. It will generate the following table. 
