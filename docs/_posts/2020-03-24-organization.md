@@ -29,7 +29,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 
 `AMiGA` is designed for the analysis of plate reader data. Plate readers typically measure the optical density in every well of a 96-well microplate at fixed time intervals (e.g. every 10 minutes). These files are often saved as `.TXT` or `.ASC` files and may contain run information such as protocol, temperature, ... etc., in the first or last few lines of the text file.
 
-AMiGA expects the data in a specific format, so you will need to clean and format your data before feeding it to AMiGA. The below example describes how to format the data. You can also see an example textfile [here](https://github.com/firasmidani/amiga/tree/master/examples/randomii/data) which is used in the AMiGA [tutorial](https://firasmidani.github.io/amiga/doc/example.html). Your data should be formatted as follows:
+`AMiGA` expects the data in a specific format, so you will need to clean and format your data before feeding it to `AMiGA`. The below example describes how to format the data. You can also see an example textfile [here](https://github.com/firasmidani/amiga/tree/master/examples/randomii/data) which is used in the `AMiGA` [tutorial](https://firasmidani.github.io/amiga/doc/example.html). Your data should be formatted as follows:
 
 1. Rows correspond to wells and columns correspond to time points. The cell values are the measured optical density in each well at a specific time point.
 2. First column will be the Well IDs. Each well ID must be an uppercase letter followed by a number (no spaces).
