@@ -34,6 +34,7 @@ Before you begin with your first analysis, you need to create a folder which we 
 1. Rows correspond to wells and columns correspond to time points. The cell values are the measured optical density in each well at a specific time point.
 2. First column will be the Well IDs. Each well ID must be an uppercase letter followed by a number (no spaces).
 3. Although AMiGA will ignore this row, the first row can correspond to the time points at which measurements were recorded.
+4. File must be saved as tab-delimited text file. 
 
 <br />
 
