@@ -24,32 +24,36 @@ __email__ = "midani@bcm.edu"
 
 import argparse
 import sys
- 
-from libs.commands import Command
-from libs.comm import tidyMessage, tidyDictPrint
-from libs.compare import main as compare
-from libs.confidence import main as get_confidence
-from libs.config import config
-from libs.heatmap import main as heatmap
-from libs.normalize import main as normalize
-from libs.thresholds import main as get_time
+import os
+
+# Add the parent directory to sys.path to allow package imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+from amiga.libs.commands import Command
+from amiga.libs.comm import tidyMessage, tidyDictPrint
+from amiga.libs.compare import main as compare
+from amiga.libs.confidence import main as get_confidence
+from amiga.libs.config import config
+from amiga.libs.heatmap import main as heatmap
+from amiga.libs.normalize import main as normalize
+from amiga.libs.thresholds import main as get_time
 
 # define long string variables
 
-usage_init = '''amiga.py <command> [<args>]
+usage_init = '''amiga <command> [<args>]
 
-The most commnly used amiga.py commands are:
-    summarize   Perform basic summary and plot curves
-    fit         Fit growth curves
+The most commnly used amiga commands are:
+    summarize       Perform basic summary and plot curves
+    fit             Fit growth curves
     normalize       Normalize growth parameters of fitted curves
-    compare     Compare summary statistics for two growth curves
-    test        Test a specific hypothesis
-    heatmap     Plot a heatmap
-    get_confidence Compute confidence intervals for parameters or curves
-    get_time    Get time at which growth reaches a certain value
+    compare         Compare summary statistics for two growth curves
+    test            Test a specific hypothesis
+    heatmap         Plot a heatmap
+    get_confidence  Compute confidence intervals for parameters or curves
+    get_time        Get time at which growth reaches a certain value
     print_defaults  Shows the default values stored in libs/config.py
 
-See `amiga.py <command> --help` for information on a specific command.
+See `amiga <command> --help` for information on a specific command.
 For full documentation, see https://firasmidani.github.io/amiga
 '''
 
@@ -65,7 +69,7 @@ def print_arguments(args):
     print(msg)
 
 
-class AMiGA(object):
+class AMiGA:
     '''
     Class for interpreting the arguments passed by the user to AMiGA. If the verobse argument 
         is set to True, sub-commands will also print a message summarizing the 
@@ -75,20 +79,23 @@ class AMiGA(object):
     def __init__(self):
         parser = argparse.ArgumentParser(
             usage=usage_init)
-        parser.add_argument('command', help='Subcommand to run. See amiga.py --help for more details.')
+        parser.add_argument('command', help='Subcommand to run. See amiga --help for more details.')
 
-        if len(sys.argv)==1 and (sys.argv[0]=='amiga.py'):
+        if len(sys.argv)==1: # no arguments provided (just command)
             parser.print_help()
             exit(1)
         
         args = parser.parse_args(sys.argv[1:2])
 
         if not hasattr(self,args.command):
+            print(f"Error: Unknown command '{args.command}'\n")
             parser.print_help()
             exit(1)
         
         getattr(self, args.command)()
 
+        # Prevent Python from returning the object representation
+        sys.exit(0)
 
     def compare(self):
 
@@ -102,11 +109,10 @@ class AMiGA(object):
             help='Must be between 80 and 100. Default is 95.')
         parser.add_argument('--verbose',action='store_true',default=False)
 
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
-
         args = parser.parse_args(sys.argv[2:])
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         if (args.confidence < 80) | (args.confidence > 100):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
@@ -132,7 +138,8 @@ class AMiGA(object):
         # pass arguments to local variables
         args = parser.parse_args(sys.argv[2:])
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         if (args.confidence < 80) | (args.confidence > 100):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
@@ -187,8 +194,6 @@ class AMiGA(object):
         parser.add_argument('--fix-noise',action='store_true',default=False)
         parser.add_argument('--sample-posterior',action='store_true',default=False)
 
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
-
         args = parser.parse_args(sys.argv[2:])
 
         if (args.fix_noise) and (not args.pool_by):
@@ -201,12 +206,16 @@ class AMiGA(object):
             msg += 'requests pooling with the --pool-by argument.'
             print(msg)
 
-        if args.do_not_log_transform: args.log_transform = False
-        else: args.log_transform = True
+        if args.do_not_log_transform:
+            args.log_transform = False
+        else:
+            args.log_transform = True
 
-        if args.subset: args.merges = True
+        if args.subset:
+            args.merges = True
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         # unnecessary args
         args.hypothesis = None
@@ -272,12 +281,10 @@ class AMiGA(object):
         parser.add_argument('--x-rotation',required=False,default=90)
         parser.add_argument('--highlight-labels',required=False)
 
-
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
-
         args = parser.parse_args(sys.argv[2:])
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         heatmap(args)
 
@@ -295,24 +302,21 @@ class AMiGA(object):
         parser.add_argument('--normalize-method',action='store',default='subtraction',
             choices=['division','subtraction'])
 
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
-
         args = parser.parse_args(sys.argv[2:])
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         normalize(args)
 
 
     def print_defaults(self):
 
-        parser = argparse.ArgumentParser(
-            description='Print in terminal default values stored in libs/config.py')
-
         msg = '\nDefault settings for select variables. '
         msg += 'You can adjust these values in "amiga/libs/config.py". \n\n'
         msg += tidyDictPrint(config)
-        sys.exit(msg)
+        print(msg)
+        #sys.exit(msg)
 
 
     def summarize(self):
@@ -333,15 +337,14 @@ class AMiGA(object):
         parser.add_argument('--subtract-blanks',action='store_true',default=False)
         parser.add_argument('--subtract-control',action='store_true',default=False)
 
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
-
         args = parser.parse_args(sys.argv[2:])
 
         args.subset = None  ## subsetting is not implemented
 
         args.hypothesis = None
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         Command(args).summarize()
 
@@ -385,15 +388,17 @@ class AMiGA(object):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
 
-        if args.do_not_log_transform: args.log_transform = False
-        else: args.log_transform = True
+        if args.do_not_log_transform:
+            args.log_transform = False
+        else:
+            args.log_transform = True
         
         args.confidence = args.confidence / 100
 
-        if args.verbose: print_arguments(args)
+        if args.verbose:
+            print_arguments(args)
 
         Command(args).test()
-
 
 if __name__ == '__main__':
 

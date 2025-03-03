@@ -1,0 +1,44 @@
+
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[project]
+name = "amiga"
+version = "2.0.3"
+description = "Analysis of Microbial Growth Assays"
+readme = "README.md"
+authors = [
+    { name = "Firas Midani", email = "firasmidani@gmail.com"}
+]
+license = { text = "GNU GPL v3.0" }
+requires-python = ">=3.12.0,<3.13.0"
+dependencies = [
+    "cycler",
+    "cython",
+    "decorator",
+    "gpy",
+    "kiwisolver",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "paramz",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "scipy",
+    "seaborn",
+    "six",
+    "tabulate",  
+]
+
+[project.scripts]
+amiga = "amiga.amiga:AMiGA"
+
+[project.urls]
+Homepage = "https://github.com/firasmidani/amiga"
+Documentation = "https://firasmidani.github.io/amiga/"
+Repository = "https://github.com/firasmidani/amiga"
+Issues = "https://github.com/firasmidani/amiga/issues"

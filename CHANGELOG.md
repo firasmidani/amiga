@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-03-03
+
+- AMiGA was refactored into a Python package (no longer as standalone scripts).
+- AMiGA was updated to work with Python versions <= 3.12
+- AMiGA was upoaded to PyPi and Anaconda, and can now be installed with pip or conda.
+
 ## [2.0.0] - 2021-04-21
 
 New interface: 
