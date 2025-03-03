@@ -6,7 +6,8 @@ package:
   version: "{{ version }}"
 
 source:
-  path: /Users/midani/Projects/2025-03-01-build-amiga
+  git_url: https://github.com/firasmidani/amiga
+  git_tag: dev
 
 outputs:
   - name: amiga
@@ -21,6 +22,8 @@ outputs:
 
 build:
   script: "pip install ."
+  #script_env:
+  #  - EXCLUDE_FILES="docs/ examples"
   noarch: python
   number: 0
   entry_points:
