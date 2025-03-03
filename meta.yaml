@@ -11,7 +11,7 @@ source:
 
 build:
   script_env:
-   - EXCLUDE_FILES="docs/ examples"
+   - EXCLUDE_FILES="docs/ examples/"
   noarch: python
   number: 0
   entry_points:
