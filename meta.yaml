@@ -9,19 +9,9 @@ source:
   git_url: https://github.com/firasmidani/amiga
   git_tag: dev
 
-outputs:
-  - name: amiga
-    files:
-      include:
-        - README.md
-        - LICENSE.md
-        - amiga/**
-      exclude:
-        - docs/**
-        - examples/**
-
 build:
-  script: "pip install ."
+  script_env:
+   - EXCLUDE_FILES="docs/ examples"
   noarch: python
   number: 0
   entry_points:
@@ -57,7 +47,18 @@ requirements:
       - amiga
     commands:
       - python amiga/tests/test_amiga.py
-  
+
+outputs:
+  - name: amiga
+    files:
+      include:
+        - README.md
+        - LICENSE.md
+        - amiga/**
+      exclude:
+        - docs/**
+        - examples/**
+
 about:
   home: https://github.com/firasmidani/amiga
   summary: "Analysis of Microbial Growth Assays"
@@ -69,5 +70,5 @@ about:
 extra:
   maintainers:
     - Firas Midani
-  dentifiers:
+  identifiers:
     - doi:10.1128/mSystems.00508-21
