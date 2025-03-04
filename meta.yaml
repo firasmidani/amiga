@@ -10,8 +10,7 @@ source:
   git_tag: dev
 
 build:
-  script_env:
-   - EXCLUDE_FILES='docs/ examples/'
+  script: pip install .
   noarch: python
   number: 0
   entry_points:
