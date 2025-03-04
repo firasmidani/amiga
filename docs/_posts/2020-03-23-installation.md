@@ -48,9 +48,7 @@ git clone https://github.com/firasmidani/amiga
 cd amiga
 python -m build .
 python -m pip install dist/amiga*.whl
-
 ```
-
 
 ## Instructions for Beginners
 

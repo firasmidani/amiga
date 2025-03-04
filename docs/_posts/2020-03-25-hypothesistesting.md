@@ -132,14 +132,15 @@ amiga test --help
 which will return the following message
 
 ```bash
-usage: amiga.py [-h] -i INPUT [-o OUTPUT] [-f FLAG] [-s SUBSET] [-t INTERVAL]
-                -y HYPOTHESIS [-sfn SKIP_FIRST_N] [-tss TIME_STEP_SIZE]
-                [-np NUMBER_PERMUTATIONS] [-fdr FALSE_DISCOVERY_RATE]
-                [--confidence CONFIDENCE] [--subtract-blanks]
-                [--subtract-control] [--verbose] [--fix-noise]
-                [--include-gaussian-noise] [--sample-posterior] [--dont-plot]
-                [--dont-plot-delta-od] [--save-cleaned-data]
-                [--save-mapping-tables] [--save-gp-data] [--merge-summary]
+usage: amiga [-h] -i INPUT [-o OUTPUT] [-f FLAG] [-s SUBSET] [-t INTERVAL] -y
+             HYPOTHESIS [-sfn SKIP_FIRST_N] [-tss TIME_STEP_SIZE]
+             [-np NUMBER_PERMUTATIONS] [-fdr FALSE_DISCOVERY_RATE]
+             [--confidence CONFIDENCE] [--subtract-blanks]
+             [--subtract-control] [--verbose] [--fix-noise]
+             [--include-gaussian-noise] [--sample-posterior] [--dont-plot]
+             [--dont-plot-delta-od] [--save-cleaned-data]
+             [--save-mapping-tables] [--save-gp-data] [--merge-summary]
+             [--do-not-log-transform]
 
 Test for differential growth between two conditions
 
@@ -169,6 +170,7 @@ optional arguments:
   --save-mapping-tables
   --save-gp-data
   --merge-summary
+  --do-not-log-transform
 ```
 
 <br/>

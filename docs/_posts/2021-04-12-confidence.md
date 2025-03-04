@@ -78,17 +78,17 @@ By default, `get_confidence` will compute the confidence intervals without inclu
 
 #### Command-line arguments
 
-To see the full list of arguments that `amiga compare` will accept, run
+To see the full list of arguments that `amiga get_confidence` will accept, run
 
 ```bash
-python compare.py --help
+amiga get_confidence --help
 ```
 which will return the following message
 
 ```bash
-usage: amiga.py [-h] -i INPUT --type {Parameters,Curves}
-                [--confidence CONFIDENCE] [--include-noise] [--over-write]
-                [--verbose]
+usage: amiga [-h] -i INPUT --type {Parameters,Curves}
+             [--confidence CONFIDENCE] [--include-noise] [--over-write]
+             [--verbose]
 
 Compute confidence intervals for parameters or curves.
 
