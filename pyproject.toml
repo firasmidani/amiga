@@ -2,16 +2,9 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["*.md","amiga*"]
-exclude = ["docs*", "examples*"]
-
 [project]
 name = "amiga"
-version = "2.0.3"
+version = "3.0.0-a.1"
 description = "Analysis of Microbial Growth Assays"
 readme = "README.md"
 authors = [
