@@ -74,7 +74,7 @@ python $amiga/compare.py -i /Users/firasmidani/experiment/summary/CD2015_summary
 To see the full list of arguments that `amiga compare` will accept, run
 
 ```bash
-python amiga.py compare --help
+amiga compare --help
 ```
 which will return the following message
 

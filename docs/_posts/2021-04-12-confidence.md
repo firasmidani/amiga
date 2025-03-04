@@ -20,7 +20,7 @@ The `get_confidence` function allows you to easily estimate the confidence inter
 <br />
 
 ```bash
-python amiga.py fit -i /Users/firasmidani/experiment/ -o "pooled_analysis" --pool-by "Isolate,Substrate" --sample-posterior 
+amiga fit -i /Users/firasmidani/experiment/ -o "pooled_analysis" --pool-by "Isolate,Substrate" --sample-posterior 
 ```
 
 <br />
@@ -30,7 +30,7 @@ The above command will generate a summary file `summary/pooled_analysis_summary.
 <br />
 
 ```bash
-python amiga.py get_confidence -i /Users/firasmidani/experiment/summary/summary/pooled_analysis_summary.txt --type 'Parameters' --confidence 95
+amiga get_confidence -i /Users/firasmidani/experiment/summary/summary/pooled_analysis_summary.txt --type 'Parameters' --confidence 95
 ```
 
 <br />
@@ -46,7 +46,7 @@ This will generate a new file `summary/pooled_analysis_summary_confidence.txt` w
 <br />
 
 ```bash
-python amiga.py fit -i /Users/firasmidani/experiment/ -o "pooled_analysis" --pool-by "Isolate,Substrate" --sample-posterior --save-gp-data
+amiga fit -i /Users/firasmidani/experiment/ -o "pooled_analysis" --pool-by "Isolate,Substrate" --sample-posterior --save-gp-data
 ```
 
 <br />
@@ -65,7 +65,7 @@ You can estimate the confidence intervals for the growth function and growth rat
 <br />
 
 ```bash
-python amiga.py get_confidence -i /Users/firasmidani/experiment/derived/pooled_analysis_gp_data.txt --type 'Curves' --confidence 95
+amiga get_confidence -i /Users/firasmidani/experiment/derived/pooled_analysis_gp_data.txt --type 'Curves' --confidence 95
 ```
 
 <br />

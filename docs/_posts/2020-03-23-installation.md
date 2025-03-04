@@ -14,20 +14,20 @@ use_math: true
 {:toc}
 <br />
 
-`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. It is compatible with Python version 3.12 or lower
+`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. It is compatible with Python version 3.12 or lower.
 
 <br />
 
-## Instructiosn for Advanced Users
+## Instructions for Advanced Users
 
-`AMiGA` is available on PyPI and bioconda and can be installed by any of the following. I recommend that you create a virutal environment then install `AMiGA``. 
-
-```
-conda create -n amiga-env bioconda:amiga
-```
+`AMiGA` is available on `PyPI` and `bioconda` and can be installed by any of the following. I recommend that you create a virutal environment then install `AMiGA``. 
 
 ```
-mamba install -n amiga-env bioconda:amiga
+conda create -n amiga-env bioconda::amiga
+```
+
+```
+mamba create -n amiga-env bioconda::amiga
 ```
 
 ```
@@ -41,22 +41,18 @@ mamba activate amiga
 amiga -h
 ```
 
-## Instructions for beginners
+## Instructions for Beginners
 
-Note for begginers:** AMiGA is written in the Python programming language, which is a language that allows a programmer to communicate with a computer and dictate how certain tasks are performed. Once you write code in Python, you can execute it (i.e. run it) using the command terminal. A command terminal is simply an interface through which you can submit commands to a computer. These commands are not limited to Python. So, to run AMiGA, you need the code for AMiGA, Python installed in your computer, and several Python-specific packages. What is a package? AMiGA is a packge or in other words a collection of scripts written in Python. AMiGA however also uses packages written by others such as Pandas, Scipy, and Numpy. These are very popular packages for scientific computing. The below instructions explain step-by-step how to set-up AMiGA on your computer.  
-
-<br /> 
-
-#### 1. Install Miniforge3 [Required]
+#### 1. Install Miniforge3
 
 Install `Miniforge`. Follow instructions that are specific to your operating system here: 
 https://github.com/conda-forge/miniforge
 
-Miniforge will allow you to use `conda` or `mamba` which are software that can help you install and run `AMiGA` on your machine. These software are environment management systems. In other words, they will let you create a unique environment on your machine to run `AMiGA` without affecting other environments that you create to run other software beyond `AMiGA`.
+Miniforge will allow you to use `conda` and `mamba` which are software that can help you install and run `AMiGA` on your machine. These software are environment management systems. In other words, they will let you create a unique environment on your machine to run `AMiGA` without affecting other environments that you create to run other software beyond `AMiGA`.
 
 `mamba` is essentially a faster alternative to conda. We will use it below. If you prefer to use `conda`, then, you can simply replace all `mamba` instances below with `conda`.
 
-### 2. Initialize conda
+### 2. Initialize mamba/conda
 
 `mamba init`
 

@@ -11,7 +11,7 @@ use_math: false
 To see the full list of arguments that `AMiGA` will accept, you can pass the `-h` or `--help` to the command of interest which include `summarize`, `fit`, `normalize`, `test`, `heatmap`, `compare`, and `get-time`.
 
 ```bash
-python amiga.py <command> --help
+amiga <command> --help
 ```
 
 Below I elaborate on how to use all arguments that are used by these commands.
