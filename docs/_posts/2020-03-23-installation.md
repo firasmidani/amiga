@@ -41,6 +41,17 @@ mamba activate amiga
 amiga -h
 ```
 
+If you would like to build `AMiGA` locally, then
+
+```
+git clone https://github.com/firasmidani/amiga
+cd amiga
+python -m build .
+python -m pip install dist/amiga*.whl
+
+```
+
+
 ## Instructions for Beginners
 
 #### 1. Install Miniforge3
