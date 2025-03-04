@@ -22,9 +22,11 @@ __email__ = "midani@bcm.edu"
 #
 # print_arguments
 
-import argparse
-import sys
 import os
+import sys
+import argparse
+import importlib.metadata
+
 
 # Add the parent directory to sys.path to allow package imports
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -75,19 +77,20 @@ class AMiGA:
         parser = argparse.ArgumentParser(
             usage=usage_init)
         parser.add_argument('command', help='Subcommand to run. See amiga --help for more details.')
+        parser.add_argument('-v','--version', action="version", version=f"amiga {importlib.metadata.version('amiga')}", help="Show version and exit.")
 
-        if len(sys.argv)==1: # no arguments provided (just command)
+        if len(sys.argv) == 1:
             parser.print_help()
-            exit(1)
-        
-        args = parser.parse_args(sys.argv[1:2])
+            sys.exit(0)
 
-        if not hasattr(self,args.command):
+        args = parser.parse_args(sys.argv[1:])
+
+        if not hasattr(self,args.command ):
             print(f"Error: Unknown command '{args.command}'\n")
             parser.print_help()
             exit(1)
-        
-        getattr(self, args.command)()
+        else: 
+            getattr(self, args.command)()
 
         # Prevent Python from returning the object representation
         sys.exit(0)
@@ -103,6 +106,10 @@ class AMiGA:
         parser.add_argument('--confidence',required=False,type=float,default=95,
             help='Must be between 80 and 100. Default is 95.')
         parser.add_argument('--verbose',action='store_true',default=False)
+
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
 
         args = parser.parse_args(sys.argv[2:])
 
@@ -132,7 +139,10 @@ class AMiGA:
             help='Over-write file otherwise a new copy is made with "_confidence" suffix')
         parser.add_argument('--verbose',action='store_true',default=False)
 
-        # pass arguments to local variables
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
+
         args = parser.parse_args(sys.argv[2:])
 
         if args.verbose:
@@ -159,7 +169,10 @@ class AMiGA:
             choices=['OD_Data','OD_Fit','GP_Input','GP_Output',
             'OD_Growth_Fit','OD_Growth_Data','GP_Derivative'])
 
-        # pass arguments to local variables
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
+
         args = parser.parse_args(sys.argv[2:])
 
         from amiga.libs.thresholds import get_time_main
@@ -194,6 +207,10 @@ class AMiGA:
         parser.add_argument('--merge-summary',action='store_true',default=False)
         parser.add_argument('--fix-noise',action='store_true',default=False)
         parser.add_argument('--sample-posterior',action='store_true',default=False)
+
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
 
         args = parser.parse_args(sys.argv[2:])
 
@@ -282,6 +299,10 @@ class AMiGA:
         parser.add_argument('--x-rotation',required=False,default=90)
         parser.add_argument('--highlight-labels',required=False)
 
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
+
         args = parser.parse_args(sys.argv[2:])
 
         if args.verbose:
@@ -304,6 +325,10 @@ class AMiGA:
         parser.add_argument('--normalize-by',required=False)
         parser.add_argument('--normalize-method',action='store',default='subtraction',
             choices=['division','subtraction'])
+
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
 
         args = parser.parse_args(sys.argv[2:])
 
@@ -341,6 +366,10 @@ class AMiGA:
         parser.add_argument('--save-mapping-tables',action='store_true',default=False)
         parser.add_argument('--subtract-blanks',action='store_true',default=False)
         parser.add_argument('--subtract-control',action='store_true',default=False)
+
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
 
         args = parser.parse_args(sys.argv[2:])
 
@@ -385,7 +414,9 @@ class AMiGA:
         parser.add_argument('--merge-summary',action='store_true',default=False)
         parser.add_argument('--do-not-log-transform',action='store_true',default=True)
 
-        #if len(sys.argv) ==2: parser.print_help(sys.stderr); sys.exit()
+        if len(sys.argv) == 2:
+            parser.print_help()
+            sys.exit(0)
 
         args = parser.parse_args(sys.argv[2:])
 
