@@ -48,17 +48,6 @@ requirements:
     commands:
       - python amiga/tests/test_amiga.py
 
-outputs:
-  - name: amiga
-    files:
-      include:
-        - README.md
-        - LICENSE.md
-        - amiga/**
-      exclude:
-        - docs/**
-        - examples/**
-
 about:
   home: https://github.com/firasmidani/amiga
   summary: "Analysis of Microbial Growth Assays"
