@@ -31,12 +31,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from amiga.libs.commands import Command
 from amiga.libs.comm import tidyMessage, tidyDictPrint
-from amiga.libs.compare import main as compare
-from amiga.libs.confidence import main as get_confidence
 from amiga.libs.config import config
-from amiga.libs.heatmap import main as heatmap
-from amiga.libs.normalize import main as normalize
-from amiga.libs.thresholds import main as get_time
 
 # define long string variables
 
@@ -117,8 +112,10 @@ class AMiGA:
         if (args.confidence < 80) | (args.confidence > 100):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
+        
+        from amiga.libs.compare import main as compare_main
 
-        compare(args)
+        compare_main(args)
 
 
     def get_confidence(self):
@@ -144,8 +141,10 @@ class AMiGA:
         if (args.confidence < 80) | (args.confidence > 100):
             msg = 'FATAL USER ERROR: Confdience must be between 80 and 100.'
             sys.exit(msg)
-
-        get_confidence(args)
+        
+        from amiga.libs.confidence import main as get_confidence_main
+        
+        get_confidence_main(args)
 
 
     def get_time(self):
@@ -163,7 +162,9 @@ class AMiGA:
         # pass arguments to local variables
         args = parser.parse_args(sys.argv[2:])
 
-        get_time(args)
+        from amiga.libs.thresholds import get_time_main
+
+        get_time_main(args)
 
 
     def fit(self):
@@ -285,8 +286,10 @@ class AMiGA:
 
         if args.verbose:
             print_arguments(args)
-
-        heatmap(args)
+            
+        from amiga.libs.heatmap import main as heatmap_main
+        
+        heatmap_main(args)
 
 
     def normalize(self):
@@ -307,7 +310,9 @@ class AMiGA:
         if args.verbose:
             print_arguments(args)
 
-        normalize(args)
+        from amiga.libs.normalize import main as normalize_main
+
+        normalize_main(args)
 
 
     def print_defaults(self):
