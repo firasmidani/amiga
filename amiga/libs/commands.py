@@ -16,18 +16,18 @@ __email__ = "midani@bcm.edu"
 # test
 # fit
 
-from libs.analyze import basicSummaryOnly, runGrowthFitting
-from libs.comm import tidyMessage
-from libs.config import config
-from libs.detail import assembleMappings
-from libs.interface import interpretParameters
-from libs.org import isFileOrFolder, mapDirectories, mapFiles, validateDirectories
-from libs.read import readPlateReaderFolder
-from libs.test import HypothesisTest
-from libs.trim import trimInput, flagWells
+from .analyze import basicSummaryOnly, runGrowthFitting
+from .comm import tidyMessage
+from .config import config
+from .detail import assembleMappings
+from .interface import interpretParameters
+from .org import isFileOrFolder, mapDirectories, mapFiles, validateDirectories
+from .read import readPlateReaderFolder
+from .test import HypothesisTest
+from .trim import trimInput, flagWells
 
 
-class Command(object):
+class Command:
 
     def __init__(self,args,config=config):
 

@@ -15,11 +15,8 @@ __email__ = "midani@bcm.edu"
 # find
 # read
 
-import os
-import sys
-import argparse
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
 
 def main(args):
@@ -51,10 +48,12 @@ def find(args,tables):
 
 		matches = tmp[tmp[col]>=thresh].Time.values
 
-		if len(matches) == 0: ls_time.append(np.inf)
-		else: ls_time.append(matches[0])
+		if len(matches) == 0:
+			ls_time.append(np.inf)
+		else:
+			ls_time.append(matches[0])
 
-	description = 't(od>={})'.format(thresh)
+	description = f't(od>={thresh})'
 	t_od = pd.DataFrame([sample_ids,ls_time],index=['Sample_ID',description]).T
 
 	summ = pd.merge(summ,t_od,on='Sample_ID')

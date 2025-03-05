@@ -15,13 +15,13 @@ __email__ = "midani@bcm.edu"
 # addFixedKernel
 
 import math
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
-from GPy.models import GPRegression
-from GPy.kern import RBF,Fixed
+from GPy.models import GPRegression # type: ignore
+from GPy.kern import RBF,Fixed # type: ignore
 
-from libs.config import config
+from .config import config
 
 
 def initHyperParams(ndim,x,y):
@@ -35,14 +35,17 @@ def initHyperParams(ndim,x,y):
 
     method = config['initialization_method']
 
-    if method == 'default': return 1,1
+    if method == 'default':
+        return 1,1
     
     if method.startswith('moments-based'):
         
         lengthscale = np.max(x)-np.min(x)
 
-        if method.endswith('fast') and ndim == 1: variance = np.var(y)
-        elif method.endswith('proper') and ndim > 1: variance = np.var(y[:,0])
+        if method.endswith('fast') and ndim == 1:
+            variance = np.var(y)
+        elif method.endswith('proper') and ndim > 1:
+            variance = np.var(y[:,0])
 
     if method.endswith('proper'):
 
@@ -69,7 +72,7 @@ def buildKernel(ndim,x,y,ARD=False):
 
     variance, lengthscale = initHyperParams(ndim, x, y)
 
-    if (ndim > 1) and (ARD == False):
+    if (ndim > 1) and (not ARD):
         kern = buildCompositeKernel(ndim,variance,lengthscale)
 
     elif (ndim > 1):
@@ -95,11 +98,15 @@ def buildCompositeKernel(ndim,variance=1,lengthscale=1):
     ksum = None
 
     for ii in range(1,ndim):
-        if ksum is None: ksum = RBF(1,active_dims=[ii],ARD=False)
-        else: ksum += RBF(1,active_dims=[ii],ARD=False)
+        if ksum is None:
+            ksum = RBF(1,active_dims=[ii],ARD=False)
+        else:
+            ksum += RBF(1,active_dims=[ii],ARD=False)
 
-    if ksum is None:  return kern
-    else: return kern*ksum
+    if ksum is None:
+        return kern
+    else:
+        return kern*ksum
 
 
 def addFixedKernel(kern,y_dim,error):

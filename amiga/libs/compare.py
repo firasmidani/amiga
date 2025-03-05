@@ -18,16 +18,12 @@ __email__ = "midani@bcm.edu"
 # compare
 
 
-
-import os
 import sys
-import argparse
-import pandas as pd
+import pandas as pd # type: ignore
 
-from libs.interface import checkParameterCommand
-from libs.org import assembleFullName, isFileOrFolder
-from libs.params import initParamList, articulateParameters, prettyifyParameterReport
-from libs.utils import subsetDf
+from .interface import checkParameterCommand
+from .params import initParamList, articulateParameters
+from .utils import subsetDf
 
 
 def main(args):
@@ -45,7 +41,7 @@ def main(args):
 def save(args,df):
 
 	df = articulateParameters(df,axis=0)
-	df.to_csv('{}.txt'.format(args.output),sep='\t',header=False,index=True)
+	df.to_csv(f'{args.output}.txt',sep='\t',header=False,index=True)
 
 
 def read(args):
@@ -141,7 +137,7 @@ def compare(args,df,varbs):
 		cis = []
 		for m,s in zip(means,stds):
 			low, upp = m-scaler*s, m+scaler*s
-			cis.append('[{0:.3f},{1:.3f}]'.format(low,upp))
+			cis.append(f'[{low:.3f},{upp:.3f}]')
 
 		return cis
 
@@ -165,11 +161,12 @@ def compare(args,df,varbs):
 
 	z_value = (100 - (100 - args.confidence)/2) / 100 
 
-	if 'Sample_ID' in df.keys(): df = df.set_index(['Sample_ID'])
+	if 'Sample_ID' in df.keys():
+		df = df.set_index(['Sample_ID'])
 
 	params = set(df.keys()).difference(set(varbs))
 	params = list(params.intersection(initParamList(1)+['diauxie']))
-	params = list(set([ii.split('(')[1][:-1] if '(' in ii else ii for ii in params]))
+	params = list({ii.split('(')[1][:-1] if '(' in ii else ii for ii in params})
 
 	df_top = df.loc[:,varbs].reset_index(drop=True).T
 
@@ -187,17 +184,17 @@ def compare(args,df,varbs):
 			else:
 				df_cis.loc[p,:] = ['NA','NA',False]
 		else:
-			mus = df.loc[:,'mean({})'.format(p)].values
-			stds = df.loc[:,'std({})'.format(p)].values
+			mus = df.loc[:,f'mean({p})'].values
+			stds = df.loc[:,f'std({p})'].values
 			cis = getConfInts(mus,stds,z_value)
 			olap = detSigDiff(eval(cis[0]),eval(cis[1]))
 
-			df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]
+			df_mus.loc[p,:] = [f'{ii:.3f}' for ii in mus]
 			df_cis.loc[p,:] = cis + [olap]
 
 	df_mus.loc['Parameter',:] = ['Mean','Mean']
-	df_cis.loc['Parameter',:] = ['{}% CI'.format(args.confidence),
-	                             '{}% CI'.format(args.confidence),
+	df_cis.loc['Parameter',:] = [f'{args.confidence}% CI',
+	                             f'{args.confidence}% CI',
 	                             'Sig. Diff.']
 
 	df_all = df_mus.join(df_cis,lsuffix='L',rsuffix='R')

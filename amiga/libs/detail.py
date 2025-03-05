@@ -37,10 +37,10 @@ import pandas as pd
 from string import ascii_uppercase
 from tabulate import tabulate
 
-from libs import biolog
-from libs.comm import smartPrint
-from libs.org import assembleFullName, assemblePath
-from libs.utils import subsetDf
+from . import biolog
+from .comm import smartPrint
+from .org import assembleFullName, assemblePath
+from .utils import subsetDf
 
 
 def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
@@ -89,13 +89,13 @@ def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
             df_mapping = checkPlateIdColumn(df_mapping,filebase) # makes sure Plate_ID is a column
             df_mapping.index = [ii[0] + ii[1:].lstrip('0') for ii in df_mapping.index] # strip leading zeros in well names
 
-            smartPrint('{:.<30} Reading {}.'.format(filebase,mapping_file_path),verbose=verbose)
+            smartPrint(f'{filebase:.<30} Reading {mapping_file_path}.',verbose=verbose)
         
         # see if user described the file in meta.txt 
         elif filebase in meta_df_plates:
 
             meta_info = meta_df[meta_df.Plate_ID==filebase]
-            msg = '{:.<30} Found meta-data in meta.txt '.format(filebase)
+            msg = f'{filebase:.<30} Found meta-data in meta.txt '
 
             biolog = isBiologFromMeta(meta_info)  # does meta_df indicate this is a BIOLOG plate
 
@@ -112,13 +112,13 @@ def assembleMappings(data,mapping_path,meta_path=None,save=False,verbose=False):
         elif isBiologFromName(filebase):
             checkBiologSize(data[filebase],filebase)
             df_mapping = initBiologPlateKey(filebase)
-            msg = '{:.<30} Did not find mapping file or meta-data '.format(filebase)
+            msg = f'{filebase:.<30} Did not find mapping file or meta-data '
             msg += 'BUT seems to be a BIOLOG PM plate.'
             smartPrint(msg,verbose=verbose)
 
         else:
             df_mapping = initMappingDf(filebase,well_ids) 
-            msg = '{:.<30} Did not find mapping file or meta-data '.format(filebase)
+            msg = f'{filebase:.<30} Did not find mapping file or meta-data '
             msg += '& does not seem to be a BIOLOG PM plate.'
             smartPrint(msg,verbose=verbose)
 
@@ -140,7 +140,7 @@ def checkBiologSize(df,filename):
     '''
     if df.shape[1] != 97: # (96 wells + 1 time) = 97 columns
 
-        msg = 'The file "{}" is not formatted as a 96-well plate. '.format(filename)
+        msg = f'The file "{filename}" is not formatted as a 96-well plate. '
         msg += 'Either the file name or its information in meta.txt '
         msg += 'suggsts that it is a BIOLOG PM plate. Please either correct the name '
         msg += 'of the file, the contents of the file, or correct its meta-data. '
@@ -171,14 +171,14 @@ def checkMetaText(filepath,verbose=False):
 
     if not exists:
         df_meta = pd.DataFrame
-        df_meta_plates = [];
+        df_meta_plates = []
     else:
         df_meta = pd.read_csv(filepath,sep='\t',header=0,index_col=None,dtype={'Plate_ID':str,'Isolate':str})
 
     # which plates were characterized in meta.txt?
     try:
         df_meta_plates = df_meta.Plate_ID.values
-    except:
+    except Exception:
         df_meta_plates = []
 
     # neatly prints meta.txt to terminal
@@ -373,7 +373,7 @@ def parsePlateName(plate_id,simple=False):
     rep = [int(plate_id_split[-1].split('-')[-1]) if '-' in plate_id else 1][0]
 
     if simple:
-        return isolate,pmns
+        return isolate,pmn
     else:
         return isolate,pmn,rep
 
@@ -445,7 +445,7 @@ def expandMappingParams(df,verbose):
     if not all(x in [0.,1.] or np.isnan(x) for x in df.Control.unique()):
         
         msg = '\nUSER ERROR: Values in Control column for mapping '
-        msg += 'of {} must be either 0 or 1.\n'.format(Plate_ID)
+        msg += f'of {Plate_ID} must be either 0 or 1.\n'
         smartPrint(msg,verbose)
 
         df.loc[:,'Control'] = [0]*df.shape[0]
@@ -510,13 +510,13 @@ def parseWellLayout(order_axis=1):
     if order_axis == 1:
         for col in cols:
             for row in rows:
-                list_wells.append('{}{}'.format(row,col))
+                list_wells.append(f'{row}{col}')
                 list_rows.append(row)
                 list_cols.append(col)
     else:
         for row in rows:
             for col in cols:
-                list_wells.append('{}{}'.format(row,col))
+                list_wells.append(f'{row}{col}')
                 list_rows.append(row)
                 list_cols.append(col)
 
@@ -542,7 +542,8 @@ def updateMappingControls(master_mapping,mapping_dict,to_do=False):
     '''
 
     # check first if you need to do this
-    if not to_do: return master_mapping
+    if not to_do:
+        return master_mapping
 
     # find all unique groups
     plate_groups = master_mapping.loc[:,['Plate_ID','Group']].drop_duplicates()
@@ -587,9 +588,6 @@ def shouldYouSubtractControl(mapping,variables):
     '''
 
     unique_values = mapping.loc[:,variables].drop_duplicates().reset_index()
-
-    # subtract control curves if none of the values correspond to a control
-    subtract_control = False
 
     for _,row in unique_values.iterrows():
         criteria = row.to_dict()

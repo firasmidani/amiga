@@ -18,14 +18,15 @@ __email__ = "midani@bcm.edu"
 # minimizeParameterReport
 # minimizeDiauxieReport
 # prettifyParameterReport
+# removeFromDiauxieReport
+# removeFromParameterReport
 
 import sys
-import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 
-from scipy.stats import norm
+from scipy.stats import norm # type: ignore
 
-from libs.utils import subsetDf, getValue
+from .utils import getValue
 
 
 def initDiauxieList(params=None):
@@ -34,7 +35,7 @@ def initDiauxieList(params=None):
     '''
 
     p = initParamList(0,params=params)
-    p = ['dx_{}'.format(ii) for ii in p]
+    p = [f'dx_{ii}' for ii in p]
     p += ['dx_t0','dx_tf']
     p.remove('dx_diauxie')
 
@@ -59,21 +60,26 @@ def initParamList(complexity=0,params=None):
     else:
         lp0 = params
 
-    if isinstance(lp0,str): lp0 = [lp0]
+    if isinstance(lp0,str):
+        lp0 = [lp0]
 
     # create variation of each parameter: i.e, mean(), std(), and norm()
 
     # first get rid of diauxie
     lp0_copy = lp0.copy()
-    if 'diauxie' in lp0_copy: lp0_copy.remove('diauxie')
+    if 'diauxie' in lp0_copy:
+        lp0_copy.remove('diauxie')
 
-    lp1a = ['mean({})'.format(ii) for ii in lp0_copy]
-    lp1b = ['std({})'.format(ii) for ii in lp0_copy]
-    lp2 = ['norm({})'.format(ii) for ii in lp0_copy]
+    lp1a = [f'mean({ii})' for ii in lp0_copy]
+    lp1b = [f'std({ii})' for ii in lp0_copy]
+    lp2 = [f'norm({ii})' for ii in lp0_copy]
 
-    if complexity == 0: return lp0
-    elif complexity == 1: return lp1a + lp1b
-    elif complexity == 2: return lp2
+    if complexity == 0:
+        return lp0
+    elif complexity == 1:
+        return lp1a + lp1b
+    elif complexity == 2:
+        return lp2
 
 
 def initParamDf(sample_ids=None,complexity=0):
@@ -91,7 +97,8 @@ def initParamDf(sample_ids=None,complexity=0):
     params = initParamList(complexity=complexity)
 
     for ii in ['mean(diauxie)','std(diauxie)']:
-        if ii in params: params.remove(ii)
+        if ii in params:
+            params.remove(ii)
 
     return pd.DataFrame(index=sample_ids,columns=params)
 
@@ -134,7 +141,7 @@ def minimizeParameterReport(df):
     keys = set(lp).intersection(set(df.keys()))
     remove = keys.difference(set(request))
 
-    df = df.drop(remove,axis=1)
+    df = df.drop(labels=remove,axis=1)
 
     return df
 
@@ -155,7 +162,7 @@ def minimizeDiauxieReport(df):
     keys = set(lp).intersection(set(df.keys()))
     remove = keys.difference(set(request))
 
-    return df.drop(remove,axis=1)
+    return df.drop(labels=remove,axis=1)
 
 
 def removeFromParameterReport(df,to_remove=None):
@@ -178,7 +185,7 @@ def removeFromParameterReport(df,to_remove=None):
     # which of those parameters in dataframe must be removed
     to_remove = keys.intersection(set(to_remove))
 
-    return df.drop(to_remove,axis=1)
+    return df.drop(labels=to_remove,axis=1)
 
 
 def removeFromDiauxieReport(df,to_remove=None):
@@ -190,7 +197,7 @@ def removeFromDiauxieReport(df,to_remove=None):
         to_remove = [to_remove]
     
     # all variations of parameters to remove
-    to_remove = ['dx_{}'.format(ii) for ii in initParamList(0,to_remove)]
+    to_remove = [f'dx_{ii}' for ii in initParamList(0,to_remove)]
     
     # all parameters that are possibly produced by AMiGA
     lp = initDiauxieList()
@@ -201,7 +208,7 @@ def removeFromDiauxieReport(df,to_remove=None):
     # which of those parameters in dataframe must be removed
     to_remove = keys.intersection(set(to_remove))
 
-    return df.drop(to_remove,axis=1)
+    return df.drop(labels=to_remove,axis=1)
 
 
 def prettyifyParameterReport(df,target,confidence=0.975):
@@ -246,7 +253,7 @@ def prettyifyParameterReport(df,target,confidence=0.975):
         cis = []
         for m,s in zip(means,stds):
             low, upp = m-scaler*s, m+scaler*s
-            cis.append('[{0:.3f},{1:.3f}]'.format(low,upp))
+            cis.append(f'[{low:.3f},{upp:.3f}]')
 
         return cis
 
@@ -272,7 +279,7 @@ def prettyifyParameterReport(df,target,confidence=0.975):
 
     df = df.set_index(['Sample_ID'])
 
-    params = list(set([ii.split('(')[1][:-1] if '(' in ii else ii for ii in df.T.index[1:]]))
+    params = list({ii.split('(')[1][:-1] if '(' in ii else ii for ii in df.T.index[1:]})
 
     df_mus = pd.DataFrame(columns=df.iloc[:,0],index=params).sort_index()
     df_cis = pd.DataFrame(columns=list(df.iloc[:,0])+[''],index=params).sort_index()
@@ -287,17 +294,17 @@ def prettyifyParameterReport(df,target,confidence=0.975):
             else:
                 df_cis.loc[p,:] = ['NA','NA',False]
         else:
-            mus = df.loc[:,'mean({})'.format(p)].values
-            stds = df.loc[:,'std({})'.format(p)].values
+            mus = df.loc[:,f'mean({p})'].values
+            stds = df.loc[:,f'std({p})'].values
             cis = getConfInts(mus,stds,z_value)
             olap = detSigDiff(eval(cis[0]),eval(cis[1]))
 
-            df_mus.loc[p,:] = ['{0:.3f}'.format(ii) for ii in mus]
+            df_mus.loc[p,:] = [f'{ii:.3f}' for ii in mus]
             df_cis.loc[p,:] = cis + [olap]
 
     df_mus.loc['Parameter',:] = ['Mean','Mean']
-    df_cis.loc['Parameter',:] = ['{}% CI'.format(100*confidence),
-                                 '{}% CI'.format(100*confidence),
+    df_cis.loc['Parameter',:] = [f'{100*confidence}% CI',
+                                 f'{100*confidence}% CI',
                                  'Sig. Diff.']
 
     df_mus = df_mus.T.reset_index().T

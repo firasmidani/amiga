@@ -16,14 +16,14 @@ __email__ = "midani@bcm.edu"
 
 
 import os
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
-from libs.comm import smartPrint, tidyMessage
-from libs.org import isFileOrFolder 
-from libs.utils import flattenList
+from .comm import smartPrint, tidyMessage
+from .org import isFileOrFolder 
+from .utils import flattenList
 
-from scipy.stats import norm
+from scipy.stats import norm # type: ignore
 
 
 def main(args):
@@ -43,17 +43,22 @@ def main(args):
 	directory,filename = isFileOrFolder(directory,up=1)
 
 	# packge filename(s) into a list
-	if filename: ls_files = ['{}{}{}'.format(directory,os.sep,filename)]
-	else: ls_files = filename
+	if filename:
+		ls_files = [f'{directory}{os.sep}{filename}']
+	else:
+		ls_files = filename
 
 	for lf in ls_files:
 
 		df = pd.read_csv(lf,sep='\t',header=0,index_col=0)
 
 		# define file name for the updated dataframe
-		if overwrite:  new_name = lf
-		elif lf.endswith('.txt'): new_name = '{}_confidence.txt'.format(lf[:-4])
-		else: new_name = '{}_confidence.txt'.format(lf)
+		if overwrite: 
+			new_name = lf
+		elif lf.endswith('.txt'):
+			new_name = f'{lf[:-4]}_confidence.txt'
+		else:
+			new_name = f'{lf}_confidence.txt'
 
 		# compute confidecne intervals and save results
 		if args.type == 'Parameters':
@@ -81,6 +86,14 @@ def get_parameter_confidence(df,z_value):
 		low = mean-norm.ppf(z_value)*std
 		upp = mean+norm.ppf(z_value)*std
 		return [low,upp]
+	
+	def getp(param):
+		headers = [f"{summary}({param})" for summary in ['mean','std']]
+		return row[headers].values
+	
+	def stats_p(param):
+		headers = [f"{summary}({param})" for summary in ['mean','std','low','upp']]
+		return headers
 
 	# get all params in table with both mean and std
 	keys = df.keys()
@@ -89,16 +102,14 @@ def get_parameter_confidence(df,z_value):
 	params = sorted(list(set(set1).intersection(set2)))
 
     # define new dataframe for storing lower and upper confidnce intervals
-	ci_keys =flattenList([['low({})'.format(ii),'upp({})'.format(ii)] for ii in params])
+	ci_keys =flattenList([[f'low({ii})',f'upp({ii})'] for ii in params])
 	ci_df = pd.DataFrame(index=df.index,columns=ci_keys)
 
     # for each sample/row, compute and store confidence intervals
 	for idx,row in df.iterrows():
-		getp = lambda p: row[['mean({})'.format(p),'std({})'.format(p)]].values
 		ci_df.loc[idx,ci_keys] = flattenList([conf_interval(getp(ii),z_value) for ii in params])
 
 	# order columns by grouping stats of each parameter
-	stats_p = lambda p: [ii.format(p) for ii in ['mean({})','std({})','low({})','upp({})']]
 	order_params = (flattenList([stats_p(pp) for pp in params]))
 	non_params = list(set(keys).difference(set(order_params)))
 
@@ -120,8 +131,10 @@ def get_curve_confidence(df,z_value,add_noise=False):
 	'''
 
 	def conf_interval(mu,sigma,noise,z_value,add_noise=add_noise):
-		if add_noise: sigma = sigma + noise
-		else: sigma = sigma
+		if add_noise:
+			sigma = sigma + noise
+		else:
+			sigma = sigma
 		band = norm.ppf(z_value)*np.sqrt(sigma)
 		low = list((mu-band).values)
 		upp = list((mu+band).values)

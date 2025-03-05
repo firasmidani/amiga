@@ -17,12 +17,12 @@ __email__ = "midani@bcm.edu"
 # addMVNPlotLines
 # plotDeltaOD
 
-import numpy as np
-import matplotlib.pyplot as plt
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
 
-from scipy.stats import norm
+from scipy.stats import norm # type: ignore
 
-from libs.utils import subsetDf, getValue, getTimeUnits
+from .utils import subsetDf, getValue, getTimeUnits
 
 
 def largeTickLabels(ax,fontsize=20):
@@ -70,12 +70,14 @@ def setAxesLabels(ax,subtract_control,plot_params,logged=True,fontsize=20):
     #    base = getValue('hypo_plot_y_label')
     #    base = r'$\frac{{{}}}{{{}}}$'.format(base+'(t)',base+'(0)')
     #else:
-    if logged: base = 'ln {}'.format(getValue('hypo_plot_y_label'))
-    else: base = getValue('hypo_plot_y_label')
+    if logged:
+        base = 'ln {}'.format(getValue('hypo_plot_y_label'))
+    else:
+        base = getValue('hypo_plot_y_label')
 
     # plot aesthetics
     if subtract_control:
-        ylabel = 'Normalized {}'.format(base)
+        ylabel = f'Normalized {base}'
     else:
         ylabel = base
 
@@ -172,8 +174,10 @@ def addMVNPlotLine(ax,x,criteria,label,z_value,color,plot_params,noise=False):
     scaler = norm.ppf(z_value) # define confidence interval scaler for MVN predictions
     x = subsetDf(x,criteria) # grab value-specific model predictions
 
-    if noise: Sigma = x.Sigma + x.Noise
-    else: Sigma = x.Sigma
+    if noise:
+        Sigma = x.Sigma + x.Noise
+    else:
+        Sigma = x.Sigma
 
     # compute credible interval
     xtime = x.Time
@@ -194,7 +198,7 @@ def addMVNPlotLine(ax,x,criteria,label,z_value,color,plot_params,noise=False):
     #if plot_params['plot_linear_od']:
     #    ax.axhline(y=1,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
     #else:
-    ax.axhline(y=0,xmin=0,xmax=xtime.max(),lw=3.0,color=(0,0,0,1))
+    ax.axhline(y=0,xmin=0,xmax=xtime.max(numeric_only=True),lw=3.0,color=(0,0,0,1))
 
     return ax
 
@@ -219,7 +223,8 @@ def addRealPlotLine(ax,plate,criteria,color,plot_params):
 
         samples = list(subsetDf(plate.key,criteria).index)
 
-        if len(samples)==0: return ax 
+        if len(samples)==0:
+            return ax 
 
         time = plate.time.copy()
         data = plate.data.copy()
@@ -253,7 +258,7 @@ def plotDeltaOD(ax,df,ylabel,xlabel,fontsize=20):
 
     ax.plot(df.Time,df.Avg,lw=3.0)
     ax.fill_between(df.Time,df.Low,df.Upp,alpha=0.1)
-    ax.axhline(y=0,xmin=0,xmax=df.Time.max(),lw=3.0,color=(0,0,0,1))
+    ax.axhline(y=0,xmin=0,xmax=df.Time.max(numeric_only=True),lw=3.0,color=(0,0,0,1))
     ax = largeTickLabels(ax,fontsize=fontsize)
 
     if xlabel:

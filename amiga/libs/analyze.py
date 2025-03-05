@@ -20,21 +20,20 @@ __email__ = "midani@bcm.edu"
 # savePlateData
 # mergeSummaryData
 
-import pandas as pd
-import numpy as np
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
 import tempfile
-import operator
 import sys
 import os
 
-from libs.model import GrowthModel 
-from libs.growth import GrowthPlate
-from libs.org import assembleFullName, assemblePath
-from libs.utils import concatFileDfs, resetNameIndex, subsetDf, flattenList
-from libs.utils import getValue, getTimeUnits, selectFileName, uniqueRandomString
-from libs.comm import *
-from libs.params import *
-from libs.interface import checkParameterCommand
+from .model import GrowthModel 
+from .growth import GrowthPlate
+from .org import assembleFullName, assemblePath
+from .utils import concatFileDfs, resetNameIndex, subsetDf, flattenList
+from .utils import getValue, getTimeUnits, selectFileName
+from .comm import smartPrint, tidyMessage, tidyDictPrint
+from .params import initDiauxieList, initParamDf, initParamList, mergeDiauxieDfs
+from .params import minimizeDiauxieReport, minimizeParameterReport
 
 
 def basicSummaryOnly(data,mapping,directory,args,verbose=False):
@@ -88,10 +87,13 @@ def basicSummaryOnly(data,mapping,directory,args,verbose=False):
         plate.subtractControl(to_do=args.subtract_control,drop=False,blank=False)
 
         # plot and save as PDF, also save key as TXT
-        if not args.dont_plot: plate.plot(key_fig_path)
+        if not args.dont_plot:
+            plate.plot(key_fig_path)
 
-        if args.merge_summary: list_keys.append(plate.key) 
-        else: plate.key.to_csv(key_file_path,sep='\t',header=True,index=False)
+        if args.merge_summary:
+            list_keys.append(plate.key) 
+        else:
+            plate.key.to_csv(key_file_path,sep='\t',header=True,index=False)
 
         smartPrint(pid,verbose=verbose)
 
@@ -134,22 +136,21 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
         return None
 
     # only store data if user requested its writing or requested plotting
-    if args.save_gp_data or args.plot or args.plot_derivative: store = True
-    else: store = False
+    if args.save_gp_data or args.plot or args.plot_derivative:
+        store = True
+    else:
+        store = False
 
     #if args.output: args.merge_summary = True
 
     # if user requested merging of summary/data, store each plate's data/summary in temp directory first
     tmpdir = tempfile.mkdtemp()
     saved_umask = os.umask(0o77)  ## files can only be read/written by creator for security
-    print('Temporary directory is {}\n'.format(tmpdir))
+    print(f'Temporary directory is {tmpdir}\n')
 
     # pre-process data
     plate = prepDataForFitting(data,mapping,subtract_baseline=True,drop_flagged_wells=False,
         subtract_control=args.subtract_control,subtract_blanks=args.subtract_blanks,log_transform=args.log_transform)
-
-    dx_ratio_varb = getValue('diauxie_ratio_varb')
-    dx_ratio_min = getValue('diauxie_ratio_min')
  
     ls_temp_files = []
     ls_summ_files = []
@@ -158,7 +159,7 @@ def runGrowthFitting(data,mapping,directory,args,verbose=False):
     # for each plate, get samples and save individual text file for plate-specific summaries
     for pid in plate.key.Plate_ID.unique():
 
-        smartPrint('Fitting {}'.format(pid),verbose)
+        smartPrint(f'Fitting {pid}',verbose)
 
         # grab plate-specific summary
         sub_plate = plate.extractGrowthData(args_dict={'Plate_ID':pid})
@@ -247,7 +248,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     missing_keys = [ii for ii in combine_keys if ii not in plate.key.columns]
 
     if missing_keys:
-        msg = 'FATAL USER ERROR: The following keys {} are '.format(missing_keys)
+        msg = f'FATAL USER ERROR: The following keys {missing_keys} are '
         msg += 'missing from mapping files.'
         sys.exit(msg)
 
@@ -258,15 +259,11 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     plate_time = plate.time.copy()
     plate_cond = plate_key.loc[:,combine_keys+['Group','Control']].drop_duplicates(combine_keys).reset_index(drop=True)
 
-    smartPrint('AMiGA detected {} unique conditions.\n'.format(plate_cond.shape[0]),verbose)
+    smartPrint(f'AMiGA detected {plate_cond.shape[0]} unique conditions.\n',verbose)
 
     data_ls, diauxie_dict = [], {}
 
     # get user-defined values from config.py
-    dx_ratio_varb = getValue('diauxie_ratio_varb')
-    dx_ratio_min = getValue('diauxie_ratio_min')
-    posterior_n = getValue('n_posterior_samples')
-
     posterior = args.sample_posterior
     fix_noise = args.fix_noise
     nthin = args.time_step_size
@@ -283,7 +280,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         cond_dict = condition.drop(['Group','Control'])
         cond_dict = cond_dict.to_dict() # e.g. {'Substate':['D-Trehalose'],'PM':[1]} 
         cond_idx = subsetDf(plate_key,cond_dict).index.values  # list of index values for N samples
-        smartPrint('Fitting\n{}'.format(tidyDictPrint(cond_dict)),verbose)
+        smartPrint(f'Fitting\n{tidyDictPrint(cond_dict)}',verbose)
 
         # get data and format for GP instance
         cond_data = plate_data.loc[:,list(cond_idx)] # T x N
@@ -294,7 +291,7 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
 
         cond_data = cond_data.melt(id_vars='Time',var_name='Sample_ID',value_name='OD')
         cond_data = cond_data.drop(['Sample_ID'],axis=1) # T*R x 2 (where R is number of replicates)
-        cond_data = cond_data.dropna()
+        cond_data = cond_data.dropna(axis=0)
         
         gm = GrowthModel(df=cond_data,ARD=True,heteroscedastic=fix_noise,nthin=nthin,logged=plate.mods.logged)#,
 
@@ -306,7 +303,8 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
         params_latent.loc[idx,:] = curve.params
 
         # get parameter estimates using samples fom the posterior distribution
-        if posterior: params_sample.loc[idx,:] = curve.sample().posterior
+        if posterior:
+            params_sample.loc[idx,:] = curve.sample().posterior
 
         # passively save data, manipulation occurs below (input OD, GP fit, & GP derivative)
         if args.save_gp_data:
@@ -314,8 +312,10 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
             mu0,var0 = np.ravel(gm.y0),np.ravel(np.diag(gm.cov0))
             mu1,var1 = np.ravel(gm.y1),np.ravel(np.diag(gm.cov1))
 
-            if fix_noise: sigma_noise = np.ravel(gm.error_new)+gm.noise
-            else: sigma_noise = np.ravel([gm.noise]*time.shape[0])
+            if fix_noise:
+                sigma_noise = np.ravel(gm.error_new)+gm.noise
+            else:
+                sigma_noise = np.ravel([gm.noise]*time.shape[0])
 
             mu_var = pd.DataFrame([mu0,var0,mu1,var1,sigma_noise],index=['mu','Sigma','mu1','Sigma1','Noise']).T
             gp_data = pd.DataFrame([list(condition.values)]*len(mu0),columns=condition.keys())
@@ -325,8 +325,10 @@ def runCombinedGrowthFitting(data,mapping,directory,args,verbose=False):
     # summarize diauxie results
     diauxie_df = mergeDiauxieDfs(diauxie_dict)
 
-    if posterior: gp_params = params_sample.join(params_latent['diauxie'])
-    else: gp_params = params_latent
+    if posterior:
+        gp_params = params_sample.join(params_latent['diauxie'])
+    else:
+        gp_params = params_latent
 
     # record results in object's key
     plate_cond = plate_cond.join(gp_params).join(mse_df)
@@ -404,7 +406,8 @@ def handleMissingData(args,df):
         msg += '\n'
         smartPrint(msg,args.verbose)
 
-    if ~args.keep_missing_time_points: df = df[~df.isna().any(1)]
+    if ~args.keep_missing_time_points:
+        df = df[~df.isna().any(axis=1)]
 
     return df
 
@@ -560,7 +563,8 @@ def mergeSummaryData(args,directory,ls_temp_files,ls_summ_files,ls_diux_files,fi
         diux_path = assembleFullName(directory['summary'],'',filename,'diauxie','.txt')
 
         summ_df.to_csv(summ_path,sep='\t',header=True,index=True)
-        if diux_df.shape[0]>0: diux_df.to_csv(diux_path,sep='\t',header=True,index=True)
+        if diux_df.shape[0]>0:
+            diux_df.to_csv(diux_path,sep='\t',header=True,index=True)
 
         # clean-up
         for f in ls_temp_files + ls_summ_files + ls_diux_files:

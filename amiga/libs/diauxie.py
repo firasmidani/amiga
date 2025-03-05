@@ -14,10 +14,10 @@ __email__ = "midani@bcm.edu"
 # pad
 # mergePhases
 
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
-from libs.utils import getValue
+from .utils import getValue
 
 
 def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
@@ -45,15 +45,20 @@ def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
     '''
 
     if varb == 'K':
-    	second_varb = 'r'
+        second_varb = 'r'
     else:
-    	second_varb = 'K'
+        second_varb = 'K'
 
     if x.ndim>1:
         x = x[:,0].ravel() # assumes time is first dimension
 
+    # unravel these numpy.ndarray arguments (avoids issues in line 97) 
+    # <-- this may cause problems if x is multi-dimensional [NEED TO VERIFY] -->
+    y0, y1, y2 = (ii.ravel() for ii in [y0, y1, y2])
+
     # indices for inflections
-    ips = list(np.where(np.diff(np.sign(y2.ravel())))[0])
+    #ips = list(np.where(np.diff(np.sign(y2.ravel())))[0])
+    ips = list(np.where(np.diff(np.sign(y2)))[0])
 
     cond_1 = len(ips)==0
     cond_2 = (len(ips)==1 and ips[0]==0)
@@ -61,12 +66,12 @@ def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
     cond_4 = np.max(y0) < getValue('diauxie_k_min')
     
     if cond_1 or cond_2 or cond_3 or cond_4:
-    	cols = ['t_left','t_right','K','r','r_left','r_right']
-    	ret = pd.DataFrame([x[0],x[-1],np.max((x)),np.max(y1),y1[0][0],y1[-1][0]],index=cols)
-    	return ret.T
+        cols = ['t_left','t_right','K','r','r_left','r_right']
+        ret = pd.DataFrame([x[0],x[-1],np.max(x),np.max(y1),y1[0],y1[-1]],index=cols)
+        return ret.T
     
     # types of inflections
-    its = [np.sign(y2[ii+1])[0] if ii<(len(y2)-2) else -1*np.sign(y2[ii-1])[0] for ii in ips]
+    its = [np.sign(y2[ii+1]) if ii<(len(y2)-2) else -1*np.sign(y2[ii-1]) for ii in ips]
 
     # pad edge cases 
     ips,its = pad(ips,its,edge=1,length=len(y2))
@@ -88,10 +93,9 @@ def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
     
     # compute several metrics for growth stage (should I use absolute?)
     bounds = [(int(ii[0]+1),int(ii[1]+1)) for ii in ret]
-    ret[:,2] = [np.max((y0[l:r]-y0[l])) for l,r in bounds] # Total change in OD
-    ret[:,3] = [np.max(y1[l:r]) for l,r in bounds]         # max growth rate, 
-    ret[:,4:6] = [[y1[l-1],y1[r-1]] for l,r in bounds]     # growth rate at both bounds 
-    
+    ret[:,2] = [np.max(y0[left:right]-y0[left]) for left,right in bounds] # Total change in OD
+    ret[:,3] = [np.max(y1[left:right]) for left,right in bounds]         # max growth rate, 
+    ret[:,[4,5]] = [[y1[left-1],y1[right-1]] for left,right in bounds]     # growth rate at both bounds 
     # define attraction of each growth stage: a growth stage is attrached 
     #   to the adjacent gowth stage with the least difference in terms of 
     #   growth rate at the shared bounds (relative to max growth rate 
@@ -106,25 +110,25 @@ def detectDiauxie(x,y0,y1,y2,cov0,cov1,thresh,varb='K'):
     # how to deal with negative r or K
     #   if at least one value is nonzero positive
     if any(ii>0 for ii in ret[varb].values):
-	    # starting with the smallest growth stage (smallest total change in OD):
-	    #    if it's K is smaller than a certain proportion of the max K
-	    #    merge with attractor, continue until all growth phases meet criteria
-	    while ret[varb].min() < thresh*ret[varb].max() :
-	        
-	        ret = ret.sort_values(['t_left'])
-	        ret.iloc[0,-1] = 1   # first phase is always attracted forward in time
-	        ret.iloc[-1,-1] = -1 # last phase is always attracted backward in time
-
-	        ret = ret.sort_values([varb,second_varb])
-	        idx = ret.index.values[0]
-	        att = ret.loc[idx,'attraction']
-	        att = idx+att
-	        ret = mergePhases(ret,idx,att,varb=varb)
-
-	        # should you re-compute attraction?
+        # starting with the smallest growth stage (smallest total change in OD):
+        #    if it's K is smaller than a certain proportion of the max K
+        #    merge with attractor, continue until all growth phases meet criteria
+        while ret[varb].min() < thresh*ret[varb].max() :
+            
+            ret = ret.sort_values(['t_left'])
+            ret.iloc[0,-1] = 1   # first phase is always attracted forward in time
+            ret.iloc[-1,-1] = -1 # last phase is always attracted backward in time
+            
+            ret = ret.sort_values([varb,second_varb])
+            idx = ret.index.values[0]
+            att = ret.loc[idx,'attraction']
+            att = idx+att
+            ret = mergePhases(ret,idx,att,varb=varb)
+            
+            # should you re-compute attraction?
     else:  
-    	while ret.shape[0] > 1:  # coalescale all into a single curve
-    		ret = mergePhases(ret,0,1)
+        while ret.shape[0] > 1:  # coalescale all into a single curve
+            ret = mergePhases(ret,0,1)
 
     # re-sort by time and convert array indices to time values
     ret = ret.sort_values(['t_left'])
@@ -194,10 +198,10 @@ def mergePhases(df,row1_idx,row2_idx,varb='K'):
     tmp = df.loc[[row1_idx,row2_idx],:].sort_index()
     tmp = tmp.sort_values(['t_left'])
     
-    values = ([tmp['t_left'].min(),
-               tmp['t_right'].max(),
-               tmp['K'].sum(),
-               tmp['r'].max(),
+    values = ([tmp['t_left'].min(numeric_only=True),
+               tmp['t_right'].max(numeric_only=True),
+               tmp['K'].sum(numeric_only=True),
+               tmp['r'].max(numeric_only=True),
                tmp['r_left'].values[0],
                tmp['r_right'].values[1],
                tmp.loc[row2_idx,'attraction']])

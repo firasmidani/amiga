@@ -60,8 +60,6 @@ def validateDirectories(directory,verbose=False):
 
     full_msg = ''
 
-    max_width = 25 # maximum generic name length is 22, add 3 for padding
-
     # check whether these directories exist and/or take action based on parameters 
     for i,params_i in params.items():
         _,msg = checkDirectoryExists(directory[i],*params_i)
@@ -106,14 +104,14 @@ def checkDirectoryExists(directory,generic_name='directory',
         msg = '{:.<{width}}{}\n'.format(generic_name,directory,width=max_width)
     elif sys_exit:
         arg = False
-        sys.exit('FATAL USER ERROR: {} {} does not exist.\n'.format(generic_name,directory))
+        sys.exit(f'FATAL USER ERROR: {generic_name} {directory} does not exist.\n')
     elif initialize:
         os.makedirs(directory)
         arg = True
-        msg = 'WARNING: {} did not exist but was created.\n'.format(directory)
+        msg = f'WARNING: {directory} did not exist but was created.\n'
     else:
         arg = False
-        msg = 'WARNING: {} does not exist.\n'.format(directory)
+        msg = f'WARNING: {directory} does not exist.\n'
 
     return arg,msg
 
@@ -135,10 +133,10 @@ def checkDirectoryNotEmpty(directory,generic_name='Directory'):
 
     if numFiles == 0:
         arg = False
-        sys.exit('FATAL USER ERROR: {} {} is empty.\n'.format(generic_name,directory))
+        sys.exit(f'FATAL USER ERROR: {generic_name} {directory} is empty.\n')
     else:
         arg = True
-        msg = '{} {} has {} files:'.format(generic_name,directory,numFiles)
+        msg = f'{generic_name} {directory} has {numFiles} files:'
         msg += '\n\n'
         msg += '\n'.join(printDirectoryContents(directory)) # print one item per line
         msg += '\n' # pad bottom withe new line
@@ -165,7 +163,7 @@ def printDirectoryContents(directory,sort=True,tab=True):
         items = sorted(items)
 
     if tab:
-        items = ['    {}'.format(i) for i in items]
+        items = [f'    {i}' for i in items]
 
     return items
 
@@ -231,8 +229,10 @@ def isFileOrFolder(filepath,up=2):
     isFile = os.path.isfile(filepath)
 
     if isFile:
-        if up == 2: parent = os.path.dirname(os.path.dirname(filepath))
-        elif up == 1: parent = os.path.dirname(filepath)
+        if up == 2:
+            parent = os.path.dirname(os.path.dirname(filepath))
+        elif up == 1:
+            parent = os.path.dirname(filepath)
         filename = os.path.basename(filepath)
         if parent == '' or parent is None:
             parent = '.'
@@ -257,7 +257,7 @@ def assemblePath(directory,filebase,extension=''):
 
     # check if directory ends with slash, used to avoid double slashes ('//')
     sep = ['' if directory[-1]==os.sep else os.sep][0]
-    file_path = '{}{}{}{}'.format(directory,sep,filebase,extension)
+    file_path = f'{directory}{sep}{filebase}{extension}'
 
     return file_path
 
@@ -277,7 +277,7 @@ def assembleFullName(folder,prefix,filename,suffix,extension):
         file_path (str): full path to generated file name
     '''
 
-    file_name = '{}_{}_{}'.format(prefix,filename,suffix)
+    file_name = f'{prefix}_{filename}_{suffix}'
     file_name = file_name.strip('_') # in case prefix is empty
 
     file_path = assemblePath(folder,file_name,extension)

@@ -10,30 +10,35 @@ __email__ = "midani@bcm.edu"
 import os
 import sys
 import operator
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+import seaborn as sns # type: ignore
 
-from scipy.stats import norm, percentileofscore
-from matplotlib import rcParams
-from matplotlib.ticker import MultipleLocator
-from tabulate import tabulate
-from functools import reduce
+from scipy.stats import norm, percentileofscore # type: ignore
+from matplotlib import rcParams # type: ignore
+from matplotlib.ticker import MultipleLocator # type: ignore
+from tabulate import tabulate # type: ignore
 
-from libs.detail import updateMappingControls, shouldYouSubtractControl
-from libs.model import GrowthModel
-from libs.growth import GrowthPlate
-from libs.org import assembleFullName, assemblePath
-from libs.trim import annotateMappings,trimMergeMapping,trimMergeMapping, trimMergeData
-from libs.utils import subsetDf, reverseDict
-from libs.utils import getValue, getTimeUnits, getHypoPlotParams, selectFileName
-from libs.comm import *
-from libs.params import * 
-from libs.plot import * 
+from .detail import updateMappingControls, shouldYouSubtractControl
+from .model import GrowthModel
+from .growth import GrowthPlate
+from .org import assembleFullName, assemblePath
+from .trim import annotateMappings,trimMergeMapping, trimMergeData
+from .utils import subsetDf, reverseDict
+from .utils import getValue, getTimeUnits, getHypoPlotParams, selectFileName
+from .comm import prettyNumberDisplay, smartPrint, tidyDictPrint, tidyMessage
+from .params import initDiauxieList, initParamList, initParamDf, mergeDiauxieDfs
+from .params import minimizeParameterReport, minimizeDiauxieReport
+from .params import removeFromParameterReport, removeFromDiauxieReport
+from .params import articulateParameters, prettyifyParameterReport
+from .plot import addRealPlotLine, addMVNPlotLine, setAxesLabels
+from .plot import dynamicWindowAdjustment, plotDeltaOD, savePlotWithLegends
+
+pd.set_option('future.no_silent_downcasting', True)
 
 
-class HypothesisTest(object):
+class HypothesisTest:
 
     def __init__(self,mapping_dict=None,data_dict=None,params_dict=None,args_dict=None,directory_dict=None,sys_exit=True):
         '''
@@ -58,7 +63,8 @@ class HypothesisTest(object):
         self.verbose = self.args.verbose
 
         # only proceed if hypothesis is valid
-        if self.checkHypothesis(): return None
+        if self.checkHypothesis():
+            return None
 
         # undertake hypothesis test
         self.initPaths()
@@ -79,7 +85,8 @@ class HypothesisTest(object):
         self.exportReport()
 
         # bid user farewell
-        if sys_exit: sys.exit(tidyMessage('AMiGA completed your request!'))
+        if sys_exit:
+            sys.exit(tidyMessage('AMiGA completed your request!'))
 
 
     def initPaths(self):
@@ -90,7 +97,8 @@ class HypothesisTest(object):
         # if user did not pass file name for output, use time stamp
         file_name = selectFileName(self.args.output)
         dir_path = assemblePath(self.directory['models'],file_name,'')
-        if not os.path.exists(dir_path): os.mkdir(dir_path)      
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)      
 
         # running model on transformed results and recording results
         file_path_key = assembleFullName(dir_path,'',file_name,'key','.txt')
@@ -147,8 +155,8 @@ class HypothesisTest(object):
             smartPrint(msg,True)
 
         # get all unique variables in hypothesis into a list
-        variables = set([i for value in hypothesis.values() for i in value])
-        variables = variables.difference(set(['Time']))  # remove Time
+        variables = {i for value in hypothesis.values() for i in value}
+        variables = variables.difference({'Time'})  # remove Time
         self.non_time_varbs = variables
         variables = ['Time'] + list(variables)  # add back Time to beginning of list, not necessary but helpful
         
@@ -197,7 +205,7 @@ class HypothesisTest(object):
                 else:
 
                     df = mapping.loc[:,pairs].drop_duplicates()
-                    df.loc[:,variable] = df.apply(lambda x: '{} x {}'.format(x[pairs[0]],x[pairs[1]]),axis=1) 
+                    df.loc[:,variable] = df.apply(lambda x: f'{x[pairs[0]]} x {x[pairs[1]]}',axis=1) 
 
                     mapping = pd.merge(mapping.reset_index(),df,on=pairs,how='left')
                     mapping = mapping.set_index('Sample_ID')
@@ -210,9 +218,10 @@ class HypothesisTest(object):
         mm = self.master_mapping
         sc = self.subtract_control 
 
-        if sc: sc = shouldYouSubtractControl(mm,self.target)
+        if sc:
+            sc = shouldYouSubtractControl(mm,self.target)
         
-        mm = updateMappingControls(mm,mapping_dict,to_do=sc).dropna(1)
+        mm = updateMappingControls(mm,mapping_dict,to_do=sc).dropna(axis=1)
         
         self.master_mapping = mm
         self.subtract_control = sc
@@ -230,7 +239,7 @@ class HypothesisTest(object):
             print_map = self.master_mapping.copy().drop(['Subset'],axis=1)
             tab = tabulate(print_map,headers='keys',tablefmt='psql')
             msg = 'The following samples will be used in hypothesis testing:'
-            msg = '\n{}\n{}\n'.format(msg,tab)
+            msg = f'\n{msg}\n{tab}\n'
             smartPrint(msg,self.verbose)
             smartPrint(tidyDictPrint({'Hypothesis is':self.hypothesis}),self.verbose)
 
@@ -293,25 +302,26 @@ class HypothesisTest(object):
         missing = data.iloc[missing,].Time.values
 
         tmp = data.sort_values(['Time']).loc[:,['Time','OD']]
-        drop_idx = tmp[tmp.isna().any(1)].index
+        drop_idx = tmp[tmp.isna().any(axis=1)].index
         data = data.drop(labels=drop_idx,axis=0)
-        data = data.drop(['Subset'],axis=1)
+        data = data.drop(labels=['Subset'],axis=1)
 
-        if save_path: data.to_csv(save_path,sep='\t',header=True,index=True)
+        if save_path:
+            data.to_csv(save_path,sep='\t',header=True,index=True)
 
         # reduce dimensionality
         data = data.reindex(['OD']+variables,axis=1)
         data = data.sort_values('Time').reset_index(drop=True) # I don't think that sorting matters, but why not
         self.data = data
 
-        value_counts = data.loc[:,non_times].apply(lambda x: len(np.unique(x)),axis=0)
+        value_counts = data.loc[:,list(non_times)].apply(lambda x: len(np.unique(x)),axis=0)
         if any(value_counts >2):
             value_counts = pd.DataFrame(value_counts).reset_index()
             value_counts.columns = ['Variable','# Unique Values']
             tab = tabulate(value_counts,headers='keys',tablefmt='psql')
 
             msg = '\n USER WARNING: Hypothesis testing should only be performed on binary conditions.'
-            msg = '{} See below.\n\n{}\n'.format(msg,tab)
+            msg = f'{msg} See below.\n\n{tab}\n'
             sys.exit(msg)
 
 
@@ -322,11 +332,12 @@ class HypothesisTest(object):
         # factorize variable values and store mapping
         self.factor_dict = {}
         for varb in self.variables:
-            if varb == 'Time': continue
+            if varb == 'Time':
+                continue
             values = data[varb].unique()
             values_code = range(len(values))
             values_maps = {v:c for v,c in zip(values,values_code)}
-            data.loc[:,varb] = data.loc[:,varb].replace(values_maps)
+            data.loc[:,varb] = data.loc[:,varb].replace(values_maps).infer_objects(copy=False)
             self.factor_dict[varb] = values_maps
 
 
@@ -362,7 +373,7 @@ class HypothesisTest(object):
 
         gm0,LL0 = gm0.run(predict=False)
         gm1,LL1 = gm1.run(predict=False)
-        log_BF = LL1-LL0;
+        log_BF = LL1-LL0
 
         self.log_BF = log_BF
         self.model = gm1
@@ -373,10 +384,11 @@ class HypothesisTest(object):
         null_distribution = []
         to_permute = list(set(hypothesis['H1']).difference(set(hypothesis['H0'])))[0]
         for rep in range(nperm):
-            smartPrint('Permutation #{}'.format(rep),verbose)
+            smartPrint(f'Permutation #{rep}',verbose)
             null_distribution.append(gm1.permute(to_permute)-LL0)
         smartPrint('',verbose)
-        if null_distribution:  self.log_BF_null_dist = null_distribution
+        if null_distribution:
+            self.log_BF_null_dist = null_distribution
 
 
     def generatePredictions(self):
@@ -403,8 +415,7 @@ class HypothesisTest(object):
         fix_noise = self.args.fix_noise
 
         # first, generates a dataframe where each row is a unique permutations of non-time  variables
-        x = data.loc[:,model_input].drop(['Time'],axis=1)
-        ncols = x.shape[1]
+        x = data.loc[:,model_input].drop(labels=['Time'],axis=1)
         x = x.drop_duplicates().reset_index(drop=True)
         x_min = x.copy()
         x['merge_key'] = [1]*x.shape[0]
@@ -415,10 +426,12 @@ class HypothesisTest(object):
 
         # combine time and variable permutation dataframes, such that each unique time point 
         #    is mapped to all unique permutations of variabels
-        x = pd.merge(x_time,x,on='merge_key').drop(['merge_key'],axis=1)
+        x = pd.merge(x_time,x,on='merge_key').drop(labels=['merge_key'],axis=1)
 
-        if fix_noise: sigma_noise =np.ravel(model.error_new)+model.noise
-        else: sigma_noise = np.ravel([model.noise]*x.shape[0])
+        if fix_noise:
+            sigma_noise =np.ravel(model.error_new)+model.noise
+        else:
+            sigma_noise = np.ravel([model.noise]*x.shape[0])
 
         x_new = [tuple(ii) if len(ii)>1 else [ii] for ii in model.x_new]
         x = x.set_index(list(x.keys())).loc[x_new].reset_index() # reorder x to match noise
@@ -455,23 +468,19 @@ class HypothesisTest(object):
 
         '''
 
-        data = self.data
         model = self.model
-        hypothesis = self.hypothesis
         factor_dict = self.factor_dict
         variable = self.target[0]
         confidence = self.args.confidence  # confidence interval, e.g. 0.95
 
         posterior = self.args.sample_posterior
         save_latent = self.args.save_gp_data
-        fix_noise = self.args.fix_noise
         do_not_log_transform = self.args.do_not_log_transform
 
         dir_path = self.paths_dict['dir']
         file_name = self.paths_dict['filename']
 
         # define hypothesis paraameters
-        model_input = hypothesis['H1']  #grab minimal input data for prediction
         x_full = self.x_full
         x_min = self.x_min
 
@@ -482,7 +491,7 @@ class HypothesisTest(object):
         for idx,row in x_min.iterrows():
 
             # get x and y data
-            df = subsetDf(x_full.drop(['mu','Sigma','Noise'],1),row.to_dict())
+            df = subsetDf(x_full.drop(labels=['mu','Sigma','Noise'],axis=1),row.to_dict())
 
             # get curve based on model predictions
             gm = GrowthModel(model=model.model,x_new=df.values,ARD=True,logged=model.logged)
@@ -492,13 +501,16 @@ class HypothesisTest(object):
             diauxie_dict[idx] = curve.params.pop('df_dx')
             params_latent.loc[idx,:] = curve.params
 
-            if posterior: params_sample.loc[idx,:] = curve.sample().posterior
+            if posterior:
+                params_sample.loc[idx,:] = curve.sample().posterior
 
         # summarize diauxie results
         diauxie_df = mergeDiauxieDfs(diauxie_dict)
 
-        if posterior: gp_params = params_sample.join(params_latent['diauxie'])
-        else: gp_params = params_latent
+        if posterior:
+            gp_params = params_sample.join(params_latent['diauxie'])
+        else:
+            gp_params = params_latent
 
         gp_params = x_min.join(gp_params)
         gp_params.index.name = 'Sample_ID'
@@ -509,23 +521,26 @@ class HypothesisTest(object):
         x_out = x_full.copy()
         for key,mapping in factor_dict.items():
             if key in x_out.keys():
-                x_out.loc[:,key] = x_out.loc[:,key].replace(reverseDict(mapping))
+                mapping = {str(k):str(v) for k,v in mapping.items()}
+                x_out.loc[:,key] = x_out.loc[:,key].replace(reverseDict(mapping)).astype(int)
             if key in gp_params.keys():
-                gp_params.loc[:,key] = gp_params.loc[:,key].replace(reverseDict(mapping))
+                mapping = {str(k):str(v) for k,v in mapping.items()}
+                gp_params.loc[:,key] = gp_params.loc[:,key].replace(reverseDict(mapping)).astype(int)
 
         #params = initParamList(0)
         diauxie = initDiauxieList()
         params = initParamList(0) + initParamList(1)
         params = list(set(params).intersection(set(gp_params.keys())))
 
-        df_params = gp_params.drop(diauxie,axis=1).drop_duplicates()
+        df_params = gp_params.drop(labels=diauxie,axis=1).drop_duplicates()
         df_params = minimizeParameterReport(df_params)
-        df_diauxie = gp_params[gp_params.diauxie==1].drop(params,axis=1)
+        df_diauxie = gp_params[gp_params.diauxie==1].drop(labels=params,axis=1)
         df_diauxie = minimizeDiauxieReport(df_diauxie)
 
         # because pooling, drop linear AUC, K, and Death 
         to_remove = ['death_lin','k_lin','auc_lin']
-        if do_not_log_transform: to_remove += ['td']
+        if do_not_log_transform:
+            to_remove += ['td']
 
         df_params = removeFromParameterReport(df_params,to_remove)
         df_diauxie = removeFromDiauxieReport(df_diauxie,to_remove)
@@ -577,9 +592,7 @@ class HypothesisTest(object):
         confidence = self.args.confidence  # confidence interval, e.g. 0.95
         z_value = 1-(1 - confidence)/2
         noise = self.args.include_gaussian_noise
-        posterior_n = getValue('n_posterior_samples')
         save_latent = self.args.save_gp_data
-        factor_dict = self.factor_dict
 
         def buildTestMatrix(x_time):
             '''
@@ -608,8 +621,10 @@ class HypothesisTest(object):
 
         # define mean and covariance of data
         mu = x_diff['mu'].values
-        if noise: Sigma = np.diag(x_diff['Sigma'] + x_diff['Noise'])
-        else: Sigma = np.diag(x_diff['Sigma'])
+        if noise:
+            Sigma = np.diag(x_diff['Sigma'] + x_diff['Noise'])
+        else:
+            Sigma = np.diag(x_diff['Sigma'])
 
         # define mean and covariance of functional diffeence
         A = buildTestMatrix(x_time)
@@ -624,7 +639,6 @@ class HypothesisTest(object):
         # compute the sum of functional differences for all sampled curves
         dos = [np.sqrt(np.sum([ii**2 for ii in s])) for s in samples]
         dos_mu, dos_std = np.mean(dos), np.std(dos)
-        dos_actual = np.sqrt(np.sum([ii**2 for ii in m]))
 
         # compute the confidence interval for the sum of functional differences
         scaler = norm.ppf(z_value) # define confidence interval scaler for MVN predictions
@@ -675,7 +689,6 @@ class HypothesisTest(object):
         x_full = self.x_full
         x_min = self.x_min
         factor_dict = self.factor_dict
-        hypothesis = self.hypothesis
         variable = self.target[0]
         plate = self.plate
 
@@ -689,19 +702,18 @@ class HypothesisTest(object):
         legend_loc = plot_params['legend']
         fontsize = plot_params['fontsize']
 
-        posterior_n = getValue('n_posterior_samples')
         colors = getValue('hypo_colors')  # list of colors
         confidence = self.args.confidence  # confidence interval, e.g. 0.95
         z_value = 1-(1 - confidence)/2
 
         noise = self.args.include_gaussian_noise
 
-        if self.args.dont_plot: return None
+        if self.args.dont_plot:
+            return None
 
         # grab mapping of integer codes in design matrix to actual variable labels
         varb_codes_map = reverseDict(factor_dict[variable])  # {codes:vlaues}
-        cond_variables = list(set(hypothesis['H1']).difference(set(['Time',variable])))  # conditioning variables
-
+ 
         # set figure aesthetics
         sns.set_style('whitegrid')
         rcParams['font.family'] = 'sans-serif'
@@ -731,7 +743,6 @@ class HypothesisTest(object):
         # if variable has only 2 values and if requested, plot delta OD
         if (len(list_values) != 2) or (self.args.dont_plot_delta_od):
             fig.delaxes(ax[1])
-            dos = None
         else: 
             ax[1] = plotDeltaOD(ax[1],self.functional_diff,ylabel=True,xlabel=True,fontsize=fontsize)
             ax[1].xaxis.set_major_locator(MultipleLocator(tick_spacing))
@@ -777,11 +788,11 @@ class HypothesisTest(object):
 
         if dist_log_BF is None:
 
-            msg = 'Model Tested: {}\n\n'.format(hypothesis) 
-            msg += 'log Bayes Factor: {}\n\n'.format(log_BF_Display)
-            msg += 'Functional Difference [95% CI]: {} [{},{}]\n'.format(dos_mean,dos_low,dos_upp)
+            msg = f'Model Tested: {hypothesis}\n\n' 
+            msg += f'log Bayes Factor: {log_BF_Display}\n\n'
+            msg += f'Functional Difference [95% CI]: {dos_mean} [{dos_low},{dos_upp}]\n'
 
-            self.msg = '\n{}'.format(msg)
+            self.msg = f'\n{msg}'
             self.M1_Pct_Cutoff = None
             self.M0_Pct_Cutoff = None
             self.log_BF_Pct = None
@@ -803,12 +814,12 @@ class HypothesisTest(object):
         # Percentile of actual log BF relative to null distribution
         log_BF_Pct = 100 - percentileofscore(dist_log_BF,log_BF) 
         
-        msg = 'The following hypothesis was tested on the data:\n{}\n\n'.format(hypothesis) 
-        msg += 'log Bayes Factor = {} '.format(log_BF_Display)
-        msg += '({0:.1f}-percentile in null distribution based on {1} permutations)\n\n'.format(log_BF_Pct,nperm)
-        msg += 'For P(H1|D) > P(H0|D) and FDR <= {}%, log BF must be > {}\n'.format(fdr,M1_Display)
-        msg += 'For P(H0|D) > P(H1|D) and FDR <= {}%, log BF must be < {}\n'.format(fdr,M0_Display)
-        msg += '\nThe functional difference [95% CI] is {} [{},{}]\n'.format(dos_mean,dos_low,dos_upp)
+        msg = f'The following hypothesis was tested on the data:\n{hypothesis}\n\n' 
+        msg += f'log Bayes Factor = {log_BF_Display} '
+        msg += f'({log_BF_Pct:.1f}-percentile in null distribution based on {nperm} permutations)\n\n'
+        msg += f'For P(H1|D) > P(H0|D) and FDR <= {fdr}%, log BF must be > {M1_Display}\n'
+        msg += f'For P(H0|D) > P(H1|D) and FDR <= {fdr}%, log BF must be < {M0_Display}\n'
+        msg += f'\nThe functional difference [95% CI] is {dos_mean} [{dos_low},{dos_upp}]\n'
 
         self.M1_Pct_Cutoff = M1_Pct_Cutoff
         self.M0_Pct_Cutoff = M0_Pct_Cutoff
@@ -836,7 +847,7 @@ class HypothesisTest(object):
         msg += '\n'
         msg += self.msg
         msg += '\nData Manipulation: Input was reduced to '
-        msg += '{} equidistant time points. {}'.format(nthin,sc_msg)
+        msg += f'{nthin} equidistant time points. {sc_msg}'
         self.msg = msg
 
         # compact report of results

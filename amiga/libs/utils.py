@@ -28,14 +28,15 @@ __email__ = "midani@bcm.edu"
 # reverseDict
 
 import os
-import numpy as np
-import pandas as pd
+import sys
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 import string
 import random
 
 from datetime import datetime
 
-from libs.config import config
+from .config import config
 
 
 def flattenList(ls): 
@@ -64,7 +65,8 @@ def uniqueRandomString(n=6,avoid=list()):
     '''
 
     rs = randomString(n=n)
-    while rs in avoid: rs = randomString(n=n)
+    while rs in avoid:
+        rs = randomString(n=n)
     return rs
 
 def subsetDf(df,criteria):
@@ -78,14 +80,15 @@ def subsetDf(df,criteria):
     Returns (pandas.DataFrame)
     '''
 
-    if criteria is None: return df
+    if criteria is None:
+        return df
 
     # if a criteria (dictionary) has a value that is not list format, put it into a list
     for key,value in criteria.items():
         if not isinstance(value,list):
             criteria[key] = [value]
 
-    return df[df.isin(criteria).sum(1)==len(criteria)]
+    return df[df.isin(criteria).sum(axis=1,numeric_only=True)==len(criteria)]
 
 
 def concatFileDfs(ls_files):
@@ -101,11 +104,13 @@ def concatFileDfs(ls_files):
 
     ls_files = [lf for lf in ls_files if os.path.exists(lf)]
 
-    if not ls_files: return pd.DataFrame() # if no files exist, return empty dataframe
+    if not ls_files:
+        return pd.DataFrame() # if no files exist, return empty dataframe
 
     df = []
     
-    for lf in ls_files: df.append(pd.read_csv(lf,sep='\t',header=0,index_col=0))
+    for lf in ls_files:
+        df.append(pd.read_csv(lf,sep='\t',header=0,index_col=0))
 
     return pd.concat(df,sort=False)
 
@@ -157,7 +162,8 @@ def handle_non_pos(arr):
         msg+= 'It must be one or higher. You can adjust this parameter in the libs/config.py file.\n\n'
 
     # if the curve is simply a repeat of the same vlaue, you must use the LOD method
-    if len(set(arr.values)) == 1: approach = 'LOD'
+    if len(set(arr.values)) == 1:
+        approach = 'LOD'
 
     # find the lowest value
     floor = min(arr)
@@ -185,7 +191,8 @@ def handle_non_pos(arr):
     
     elif approach == 'Delta':
 
-        if floor > 0: return arr
+        if floor > 0:
+            return arr
 
         delta = 0
         count = 2
@@ -201,10 +208,14 @@ def handle_non_pos(arr):
             deltas = [ii for ii in deltas if ii>0]
 
             # pick delta based on desired operation
-            if delta_choice == 'median': delta = np.median(deltas)
-            elif delta_choice == 'mean': delta = np.mean(deltas)
-            elif delta_choice == 'min': delta = np.min(deltas)
-            elif delta_choice == 'max': delta = np.max(deltas)
+            if delta_choice == 'median':
+                delta = np.median(deltas)
+            elif delta_choice == 'mean':
+                delta = np.mean(deltas)
+            elif delta_choice == 'min':
+                delta = np.min(deltas)
+            elif delta_choice == 'max':
+                delta = np.max(deltas)
 
             # increase ndeltas by a multiplier
             ndeltas = ndeltas * count
@@ -268,8 +279,10 @@ def selectFileName(output):
         output (str): might be empty
     '''
 
-    if output: return  output
-    else: return timeStamp()  # time stamp, for naming unique files related to this operation
+    if output:
+        return  output
+    else:
+        return timeStamp()  # time stamp, for naming unique files related to this operation
 
 
 def getPlotColors(fold_change):
@@ -308,8 +321,10 @@ def getTextColors(text):
         (4-tuple) that indicates R,G,B values and lastly alpha (transparency) for text object
     '''
 
-    if text=='OD_Max': return config['fcn_od_max_color']
-    elif text=='Well_ID': return config['fcn_well_id_color']
+    if text=='OD_Max':
+        return config['fcn_od_max_color']
+    elif text=='Well_ID':
+        return config['fcn_well_id_color']
 
 
 def getValue(text):
@@ -332,8 +347,10 @@ def getTimeUnits(text):
     Returns (str) must be 'seconds', 'minutes', or 'hours'
     '''
 
-    if text=='input': return config['time_input_unit']
-    elif text=='output': return config['time_output_unit']
+    if text=='input':
+        return config['time_input_unit']
+    elif text=='output':
+        return config['time_output_unit']
 
 def getHypoPlotParams():
 

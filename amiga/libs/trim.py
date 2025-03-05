@@ -18,14 +18,13 @@ __email__ = "midani@bcm.edu"
 # subsetWells
 
 import copy
-import pandas as pd
+import pandas as pd # type: ignore
 import sys
 
 from functools import reduce
 
-from libs.utils import subsetDf, resetNameIndex, timeStamp
-from libs.comm import smartPrint, tidyDictPrint
-from libs.org import assembleFullName, assemblePath
+from .utils import subsetDf, resetNameIndex
+from .comm import smartPrint, tidyDictPrint
 
 
 def trimInput(data_dict,mapping_dict,params_dict=None,nskip=0,verbose=False):
@@ -202,7 +201,8 @@ def flagWells(df,flags,verbose=False,drop=False):
 
             df[plate].loc[wells,'Flag'] = [1]*len(wells)
 
-            if drop: df[plate] = df[plate][df[plate].Flag==0] 
+            if drop:
+                df[plate] = df[plate][df[plate].Flag==0] 
 
     smartPrint('The following flags were detected:\n',verbose)
     smartPrint(tidyDictPrint(flags),verbose)
@@ -233,7 +233,7 @@ def subsetWells(df_mapping_dict,criteria,hypothesis,verbose=False):
         # subsetting on number-based criteria does not match hits due to type mismatch (str vs int/float)
         mapping_df_str = mapping_df.astype(str)
 
-        remove_boolean = ~(mapping_df_str.isin(criteria).sum(1)==len(criteria)).values  # list of booleans
+        remove_boolean = ~(mapping_df_str.isin(criteria).sum(axis=1,numeric_only=True)==len(criteria)).values  # list of booleans
         remove_idx = mapping_df_str.index[remove_boolean]
         mapping_df.loc[remove_idx,'Subset'] = [0]*len(remove_idx)
 

@@ -21,30 +21,28 @@ __email__ = "midani@bcm.edu"
 # saveDf
 
 import os
+import sys
 import random
-import argparse
 import operator
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import seaborn as sns
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+import matplotlib.patches as mpatches # type: ignore
+import seaborn as sns # type: ignore
 
-from functools import reduce
-from matplotlib import rcParams
-from matplotlib.colors import to_rgb
+from matplotlib import rcParams # type: ignore
+from matplotlib.colors import to_rgb # type: ignore
+
+from .comm import smartPrint, tidyMessage
+from .interface import checkParameterCommand
+from .org import assembleFullName
+from .org import isFileOrFolder
+from .read import findPlateReaderFiles
+from .utils import flattenList, subsetDf
+
 
 rcParams.update({'font.size':20})
 sns.set_style('whitegrid')
-
-from libs.comm import smartPrint, tidyDictPrint, tidyMessage
-from libs.interface import checkParameterCommand,integerizeDictValues
-from libs.org import assemblePath, assembleFullName
-from libs.org import isFileOrFolder, checkDirectoryNotEmpty, printDirectoryContents
-from libs.params import initParamList
-from libs.plot import largeTickLabels
-from libs.read import findPlateReaderFiles
-from libs.utils import flattenList, selectFileName, subsetDf
 
 
 def main(args):
@@ -63,8 +61,10 @@ def main(args):
 	
 	directory,filename = isFileOrFolder(directory,up=1)
 
-	if filename: ls_files = ['{}{}{}'.format(directory,os.sep,filename)]
-	else: ls_files = findPlateReaderFiles(directory,'.txt')
+	if filename:
+		ls_files = [f'{directory}{os.sep}{filename}']
+	else:
+		ls_files = findPlateReaderFiles(directory,'.txt')
 
 	full_df = read(ls_files)
 	sub_df = subsetDf(full_df,criteria)
@@ -162,9 +162,9 @@ def group(df,args):
 	df = df.groupby([args.x_variable,args.y_variable])
 
 	if opr == 'mean':
-		df = df.mean()
+		df = df.mean(numeric_only=True)
 	elif opr == 'median':
-		df = df.median()
+		df = df.median(numeric_only=True)
 
 	df = df.reset_index()
 
@@ -177,23 +177,23 @@ def generate_missing_color(colors):
 	'''	
 
 	def get_random_color(pastel_factor = 0.5):
-	    return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
-
+		return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
+		
 	def color_distance(c1,c2):
-	    return sum([abs(x[0]-x[1]) for x in zip(c1,c2)])
-
+		return sum([abs(x[0]-x[1]) for x in zip(c1,c2)])
+	
 	def generate_new_color(existing_colors,pastel_factor = 0.5):
-	    max_distance = None
-	    best_color = None
-	    for i in range(0,100):
-	        color = get_random_color(pastel_factor = pastel_factor)
-	        if not existing_colors:
-	            return color
-	        best_distance = min([color_distance(color,c) for c in existing_colors])
-	        if not max_distance or best_distance > max_distance:
-	            max_distance = best_distance
-	            best_color = color
-	    return best_color
+		max_distance = None
+		best_color = None
+		for i in range(0,100):
+			color = get_random_color(pastel_factor = pastel_factor)
+			if not existing_colors:
+				return color
+			best_distance = min([color_distance(color,c) for c in existing_colors])
+			if not max_distance or best_distance > max_distance:
+				max_distance = best_distance
+				best_color = color
+		return best_color
 
 	colors = [to_rgb(ii) for ii in colors]
 	best_color = tuple(generate_new_color(colors))
@@ -211,10 +211,10 @@ def pivot(df,args,metric=None):
 
 		df = pd.pivot(data=df,columns=args.x_variable,index=args.y_variable,values=metric)
 
-		rows_todrop = np.where(df.isna().any(1))[0]
+		rows_todrop = np.where(df.isna().any(axis=1))[0]
 		rows_todrop = df.index.values[rows_todrop]
 
-		cols_todrop = np.where(df.isna().any())[0]
+		cols_todrop = np.where(df.isna().any(axis=0))[0]
 		cols_todrop = df.keys().values[cols_todrop]
 
 		if len(rows_todrop) > 0 or len(cols_todrop): 
@@ -243,7 +243,8 @@ def get_color_legend(df,full_df,args,directory,axis='y'):
 
     # e.g. color by ribotype
     colorby = eval('args.color_'+axis+'_by')
-    if colorby is None: return None
+    if colorby is None:
+        return None
 
     # variable on axis
     variable = eval('args.'+axis+'_variable')
@@ -253,34 +254,36 @@ def get_color_legend(df,full_df,args,directory,axis='y'):
 
     # dictionary arguments passed by user
     colorscheme = checkParameterCommand(eval('args.color_scheme_'+axis))
-
+    
     # can't pass both file and command-line argument
     if colorfile is not None and colorscheme is not None:
-    	msg = 'WARNING: User must pass eithe color file or color scheme '
-    	msg += ' for the {}-axis, not both.' .format(axis)
-    	sys.exit(msg.format(axis))
+        msg = 'WARNING: User must pass eithe color file or color scheme '
+        msg += ' for the {}-axis, not both.' .format(axis)
+        sys.exit(msg.format(axis))
 
     if colorfile is not None:
-    	colors_df = pd.read_csv(colorfile,sep='\t',header=0,index_col=0)
+        colors_df = pd.read_csv(colorfile,sep='\t',header=0,index_col=0)
     if colorscheme is not None:
-    	colors_df = pd.DataFrame(colorscheme,index=['Color']).T
+        colors_df = pd.DataFrame(colorscheme,index=['Color']).T
 
     # create list of colors based on meta-data
     if args.missing_color is None:
-    	missing_color = generate_missing_color(list(colors_df.Color.values))
+        missing_color = generate_missing_color(list(colors_df.Color.values))
     else:
-    	missing_color = args.missing_color
+        missing_color = args.missing_color
 
     if colorby == variable:
-    	foo = full_df.loc[:,[variable]]
+        foo = full_df.loc[:,[variable]]
     else:
-    	foo = full_df.loc[:,[colorby,variable]]
+        foo = full_df.loc[:,[colorby,variable]]
 
     foo = foo.drop_duplicates().set_index(variable).astype(str)
     foo = foo.join(colors_df,on=colorby)
     foo.Color = [missing_color if str(ii)=='nan' else ii for ii in list(foo.Color.values)]
-    if axis == 'x': colors = foo.loc[df.columns,'Color'].values
-    if axis == 'y': colors = foo.loc[df.index.values,'Color'].values
+    if axis == 'x':
+        colors = foo.loc[df.columns,'Color'].values
+    if axis == 'y':
+        colors = foo.loc[df.index.values,'Color'].values
 
     # create legend patches
     colors_df.loc['~other~','Color'] = missing_color
@@ -318,7 +321,7 @@ def sort_heatmap(df,full_df,args,kwargs):
 		sub_full_df = sub_full_df.set_index(args.y_variable)
 		sub_full_df = df.join(sub_full_df,how='left')
 		sub_full_df = sub_full_df.sort_values(args.sort_y_by)
-		df =  sub_full_df.drop([args.sort_y_by],axis=1)		
+		df =  sub_full_df.drop(labels=[args.sort_y_by],axis=1)		
 
 	if (df.shape[0] == 0) and (args.sort_x_by is None):
 		kwargs['col_cluster'] = False
@@ -334,7 +337,7 @@ def sort_heatmap(df,full_df,args,kwargs):
 		sub_full_df = sub_full_df.set_index(args.x_variable)
 		sub_full_df = df.T.join(sub_full_df,how='left')
 		sub_full_df = sub_full_df.sort_values(args.sort_x_by)
-		df =  sub_full_df.drop([args.sort_x_by],axis=1).T
+		df =  sub_full_df.drop(labels=[args.sort_x_by],axis=1).T
 
 	return df,kwargs
 
@@ -355,18 +358,19 @@ def dyanmically_size_font(ax_heatmap,ax_cax,args,df):
 		# initialze, what is the max bbox height
 		fontsize = 0	
 		dim = [0 if which=='x' else 1][0]
-		if nlabels is None: nlabels = eval('len(ax.get_{}ticks())'.format(which))
-		eval('[ii.set(fontsize={}) for ii in ax.get_{}ticklabels()]'.format(fontsize,which))
+		if nlabels is None:
+			nlabels = eval(f'len(ax.get_{which}ticks())')
+		eval(f'[ii.set(fontsize={fontsize}) for ii in ax.get_{which}ticklabels()]')
 		max_bb_height = 1. / float(nlabels)
 
 		# what is the current bbox height
-		sample = eval('ax.get_{}ticklabels()[0]'.format(which))
+		sample = eval(f'ax.get_{which}ticklabels()[0]')
 		bb_height = get_bbox_width_height(sample,ax,fig)[dim]
 
 		# incrementally increase bbox height until you reach target
 		while bb_height < fontscale* max_bb_height:
 			fontsize +=1
-			eval('[ii.set(fontsize={}) for ii in ax.get_{}ticklabels()]'.format(fontsize,which))
+			eval(f'[ii.set(fontsize={fontsize}) for ii in ax.get_{which}ticklabels()]')
 			bb_height = get_bbox_width_height(sample,ax,fig)[dim]
 
 		return fontsize
@@ -387,8 +391,10 @@ def dyanmically_size_font(ax_heatmap,ax_cax,args,df):
 	[ii.set(fontsize=t_fontsize) for ii in ax_cax.get_yticklabels()]
 
 	# adjust tick labels
-	if (int(args.x_rotation) % 90)==0:  ha = 'center'
-	else: ha = 'right'
+	if (int(args.x_rotation) % 90)==0:
+		ha = 'center'
+	else:
+		ha = 'right'
 
 	[ii.set(rotation=args.x_rotation,ha=ha) for ii in ax_heatmap.get_xticklabels()]
 
@@ -477,19 +483,24 @@ def clusterMap(df,full_df,args,directory):
 	yticklabels = c.ax_heatmap.get_yticklabels()
 	xticklabels = c.ax_heatmap.get_xticklabels()
 
-	if df.shape[0] != len(yticklabels): print(msg.format('y','height'))
-	if df.shape[1] != len(xticklabels): print(msg.format('x','width'))
+	if df.shape[0] != len(yticklabels):
+		print(msg.format('y','height'))
+	if df.shape[1] != len(xticklabels):
+		print(msg.format('x','width'))
 
 	# highlight feature
 	highlight_labels = checkParameterCommand(args.highlight_labels)
 
 	if highlight_labels is not None:
 		for key,values in highlight_labels.items():
-			if key == 'x': tlabels = xticklabels
-			elif key == 'y': tlabels = yticklabels
+			if key == 'x':
+				tlabels = xticklabels
+			elif key == 'y':
+				tlabels = yticklabels
 			for label in values:
 				matches = np.where([ii.get_text()==label for ii in tlabels])[0]
-				for match in matches: tlabels[match].set(color='red',fontweight='bold')
+				for match in matches:
+					tlabels[match].set(color='red',fontweight='bold')
   
 
 	fpath = assembleFullName(directory,'',args.output,'','.pdf')

@@ -15,7 +15,7 @@ __email__ = "midani@bcm.edu"
 # tidyDictPrint
 # tidyMessage
 
-import numpy as np
+import numpy as np # type: ignore
 
 
 def smartPrint(msg,verbose):
@@ -36,7 +36,8 @@ def smartPrint(msg,verbose):
         verbose (boolean)
     '''
 
-    if verbose: print(msg)
+    if verbose:
+        print(msg)
 
 def prettyNumberDisplay(num):
     '''
@@ -46,8 +47,10 @@ def prettyNumberDisplay(num):
         num (float or int)
     '''
 
-    if np.floor(np.abs(np.log10(np.abs(num)))) > 4: return '{:.3}'.format(num)
-    else: return '{:.3f}'.format(num)
+    if np.floor(np.abs(np.log10(np.abs(num)))) > 4:
+        return f'{num:.3}'
+    else:
+        return f'{num:.3f}'
 
 
 def tidyDictPrint(input_dict):
@@ -57,7 +60,8 @@ def tidyDictPrint(input_dict):
         dynamically selected based on longest argument.
     '''
 
-    if len(input_dict)==0: return 'None' 
+    if len(input_dict)==0:
+        return 'None' 
 
     # dynamically set width of padding based on maximum argument length
     args = input_dict.keys()
@@ -65,7 +69,8 @@ def tidyDictPrint(input_dict):
     width = int(np.ceil(max_len/10)*10) # round up length to nearest ten
 
     # if width dos not add more than three padding spaces to argument, add 5 characters
-    if (width - max_len) < 4: width += 5
+    if (width - max_len) < 4:
+        width += 5
 
     # compose multi-line message
     msg = ''
@@ -90,7 +95,7 @@ def tidyMessage(msg):
 
     msg_len = len(msg)+2
     banner = '#{}#'.format('-'*msg_len)
-    msg_print = '{}\n# {} #\n{}\n'.format(banner,msg,banner)
+    msg_print = f'{banner}\n# {msg} #\n{banner}\n'
 
     return msg_print
 

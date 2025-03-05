@@ -21,18 +21,19 @@ __email__ = "midani@bcm.edu"
 #   run
 
 import warnings
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
-from GPy.models import GPRegression
+from GPy.models import GPRegression # type: ignore
 
-from scipy.ndimage import filters
+from scipy.ndimage import filters # type: ignore
 
-from libs.kernel import buildKernel,addFixedKernel
-from libs.curve import GrowthCurve
-from libs.utils import uniqueRandomString, subsetDf, getValue
+from .kernel import buildKernel,addFixedKernel
+from .curve import GrowthCurve
+from .utils import uniqueRandomString, subsetDf, getValue
 
-if getValue('Ignore_RuntimeWarning'): warnings.filterwarnings("ignore", category=RuntimeWarning) 
+if getValue('Ignore_RuntimeWarning'):
+    warnings.filterwarnings("ignore", category=RuntimeWarning) 
 
 
 def describeVariance(df,time='X0',od='Y'):
@@ -43,7 +44,8 @@ def describeVariance(df,time='X0',od='Y'):
 
     window = getValue('variance_smoothing_window')
     nX = len(df[time].drop_duplicates())
-    if window < 1:  window = int(np.ceil(nX*window))
+    if window < 1:
+        window = int(np.ceil(nX*window))
     
     df = df.sort_values(time)
     df.reset_index(drop=True,inplace=True)
@@ -59,7 +61,7 @@ def describeVariance(df,time='X0',od='Y'):
     return df
 
 
-class GrowthModel(object):
+class GrowthModel:
 
 
     def __init__(self,df=None,model=None,x_new=None,baseline=1.0,ARD=False,heteroscedastic=False,nthin=1,logged=True):
@@ -94,7 +96,7 @@ class GrowthModel(object):
         # create a dummy non-unique variable/column
         foo = uniqueRandomString(avoid=df.keys())
         df[foo] = [1]*df.shape[0]
-        varbs = df.drop(['Time','OD'],axis=1).drop_duplicates()
+        varbs = df.drop(labels=['Time','OD'],axis=1).drop_duplicates()
 
         # for each unique non-time variable, estimate variance
         new_df = []
@@ -104,7 +106,7 @@ class GrowthModel(object):
             new_df.append(sub_df)
 
         new_df = pd.concat(new_df,axis=0)
-        new_df = new_df.drop([foo],axis=1)
+        new_df = new_df.drop(labels=[foo],axis=1)
 
         # construct a thinner dataframe to speed up regression
         time = new_df.Time.sort_values().unique()
@@ -112,15 +114,15 @@ class GrowthModel(object):
         thin_df = new_df[new_df.Time.isin(time)]
         
         # predictions of error and new are based on full dataframe
-        tmp = new_df.drop(['OD'],axis=1).drop_duplicates()
+        tmp = new_df.drop(labels=['OD'],axis=1).drop_duplicates()
         error_new = tmp.loc[:,['error']].values
-        x_new = tmp.drop(['error'],axis=1).values
+        x_new = tmp.drop(labels=['error'],axis=1).values
 
         # regression are based on input/output/error from thinned dataframe
-        x = thin_df.drop(['OD','error'],axis=1).values
+        x = thin_df.drop(labels=['OD','error'],axis=1).values
         y = thin_df.loc[:,['OD']].values
         error = thin_df.loc[:,['error']].values
-        x_keys = thin_df.drop(['OD','error'],axis=1).keys()
+        x_keys = thin_df.drop(labels=['OD','error'],axis=1).keys()
 
         # save attributes
         self.x_keys = x_keys
@@ -208,7 +210,7 @@ class GrowthModel(object):
 
         ndim = x.shape[1]
 
-        if (ndim > 1) and (self.ARD == False):
+        if (ndim > 1) and (not self.ARD):
             mu,cov = (m.predictive_gradients(x)[0],None)
         else:
             mu,cov = m.predict_jacobian(x,full_cov=True)
@@ -235,17 +237,19 @@ class GrowthModel(object):
 
         self.fit()
 
-        if predict == False:
+        if not predict:
             return self, self.model.log_likelihood()
 
         self.predict_y0()
         self.predict_y1()
         self.predict_y2()
 
-        if self.df is not None: actual_input = self.df.OD.values[:,np.newaxis]
-        else: actual_input = None
+        if self.df is not None:
+            actual_input = self.df.OD.values[:,np.newaxis]
+        else:
+            actual_input = None
 
-        if simple == False:
+        if not simple:
             time = self.x_new[:,0][:,np.newaxis]
             curve = GrowthCurve(x=time,y=actual_input,y0=self.y0,y1=self.y1,y2=self.y2,
                                 cov0=self.cov0,cov1=self.cov1,

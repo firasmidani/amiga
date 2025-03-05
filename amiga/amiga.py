@@ -81,7 +81,7 @@ class AMiGA:
 
         args = parser.parse_args(sys.argv[1:2])
 
-        if not hasattr(self,args.command ):
+        if not hasattr(self,args.command):
             print(f"Error: Unknown command '{args.command}'\n")
             parser.print_help()
             exit(1)

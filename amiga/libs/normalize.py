@@ -17,16 +17,15 @@ __email__ = "midani@bcm.edu"
 
 import os
 import sys
-import argparse
 import operator
-import pandas as pd
+import pandas as pd # type: ignore
 
-from libs.comm import smartPrint, tidyMessage
-from libs.interface import checkParameterCommand
-from libs.org import isFileOrFolder 
-from libs.read import findPlateReaderFiles
-from libs.params import initParamList
-from libs.utils import subsetDf
+from .comm import smartPrint, tidyMessage
+from .interface import checkParameterCommand
+from .org import isFileOrFolder 
+from .read import findPlateReaderFiles
+from .params import initParamList
+from .utils import subsetDf
 
 
 def main(args):
@@ -42,16 +41,21 @@ def main(args):
 	
 	directory,filename = isFileOrFolder(directory,up=1)
 
-	if filename: ls_files = ['{}{}{}'.format(directory,os.sep,filename)]
-	else: ls_files = findPlateReaderFiles(directory,'.txt')
+	if filename:
+		ls_files = [f'{directory}{os.sep}{filename}']
+	else:
+		ls_files = findPlateReaderFiles(directory,'.txt')
 
 	for lf in ls_files:
 
 		df = read(ls_files)
 
-		if ovewrrite:  new_name = lf
-		elif lf.endswith('.txt'): new_name = '{}_normalized.txt'.format(lf[:-4])
-		else: new_name = '{}.normalized.txt'.format(lf)
+		if ovewrrite: 
+			new_name = lf
+		elif lf.endswith('.txt'):
+			new_name = f'{lf[:-4]}_normalized.txt'
+		else:
+			new_name = f'{lf}.normalized.txt'
 		
 		df = normalizeParameters(args,df)
 		df.to_csv(new_name,sep='\t',header=True,index=True)
@@ -103,8 +107,10 @@ def normalizeParameters(args,df):
 	df = df.reset_index()
 
 	# How you should normalize?
-	if args.normalize_method == 'division':  opr = operator.truediv
-	elif args.normalize_method == 'subtraction':  opr = operator.sub
+	if args.normalize_method == 'division':
+		opr = operator.truediv
+	elif args.normalize_method == 'subtraction':
+		opr = operator.sub
 
 	# How to group samples and which ones are control samples?
 
@@ -142,14 +148,15 @@ def normalizeParameters(args,df):
 	# which parameters to normalize and/or to keep
 	params_1 = initParamList(0)
 	params_1.remove('diauxie')
-	params_2 = ['mean({})'.format(ii) for ii in params_1]
+	params_2 = [f'mean({ii})' for ii in params_1]
 	params_3 = initParamList(2)
 
 	if any([ii in df_orig_keys for ii in params_2]):  
 		params = params_2
 	elif any([ii in df_orig_keys for ii in params_3]):
 		params = params_3 
-	else:  params = params_1
+	else:
+		params = params_1
 
 	#params_norm = initParamList(2)
 
@@ -169,18 +176,19 @@ def normalizeParameters(args,df):
 		df_control.set_index(params_varbs,inplace=True)
 
 		dgv = df_group.values
-		dcv = df_control.mean().values
+		dcv = df_control.mean(numeric_only=True).values
 
 		df_group.loc[:,:] = opr(dgv,dcv)
 		norm_df.append(df_group)	
 
 	norm_df = pd.concat(norm_df,axis=0)
-	norm_df.columns = ['norm({})'.format(ii) for ii in norm_df.columns]	
+	norm_df.columns = [f'norm({ii})' for ii in norm_df.columns]	
 	norm_df = norm_df.reset_index(drop=False)
 
 	df = pd.merge(df_orig,norm_df,on=params_varbs)
 
-	if 'Sample_ID' in df.columns: df = df.set_index('Sample_ID')
+	if 'Sample_ID' in df.columns:
+		df = df.set_index('Sample_ID')
 
 	return df
 

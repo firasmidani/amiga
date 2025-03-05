@@ -27,13 +27,14 @@ __email__ = "midani@bcm.edu"
 #   sample
 #   plot
 
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import matplotlib.pyplot as plt # type: ignore
 
-from scipy.stats import norm
+from scipy.stats import norm # type: ignore
 
-from libs.diauxie import detectDiauxie
-from libs.utils import getValue
+from .diauxie import detectDiauxie
+from .utils import getValue
 
 
 def linearize(arr,baseline,floor=True,logged=True):
@@ -49,14 +50,18 @@ def linearize(arr,baseline,floor=True,logged=True):
         self.predicted_OD (numpy.ndarray): same shape as input
     '''
 
-    if arr is None: return None
+    if arr is None:
+        return None
 
     # add ln OD(0) and exponentiate
-    if logged:  arr = np.exp(arr+np.log(baseline))
-    elif not logged: arr = arr + baseline
+    if logged:
+        arr = np.exp(arr+np.log(baseline))
+    elif not logged:
+        arr = arr + baseline
 
     # subtract OD(0)
-    if floor: arr = arr - arr[0] 
+    if floor:
+        arr = arr - arr[0] 
 
     return arr
 
@@ -85,7 +90,7 @@ def maxValueArg(x,y):
     return maxValue, maxArg
 
 
-class GrowthCurve(object):
+class GrowthCurve:
 
     def __init__(self,x=None,y=None,y0=None,y1=None,y2=None,cov0=None,cov1=None,baseline=1.0,name=None,logged=True):
         '''
@@ -106,13 +111,13 @@ class GrowthCurve(object):
 
         # verify data types
         for arg,value in [('x',x),('y0',y0),('y1',y1)]:
-            assert type(value) == np.ndarray, "{} must be a numpy ndaray".format(arg)
+            assert isinstance(value,np.ndarray), f"{arg} must be a numpy ndaray"
 
         assert x.shape[1] == 1, "x must be one-dimensional"
         assert y0.shape == y1.shape, "y0 and y1 must have the same shape"
 
         if y2 is not None:
-            assert type(y2) == np.ndarray, "y2 must be a numpy ndarray"
+            assert isinstance(y2,np.ndarray), "y2 must be a numpy ndarray"
             assert y0.shape == y1.shape == y2.shape, "y2 must have the same shape as y0 and y1"
 
         # define attributes
@@ -199,7 +204,7 @@ class GrowthCurve(object):
             df_dx = []
             for idx,row in dx.iterrows():
                 t0,t1 = row['t_left'],row['t_right'] # indices
-                t0,t1 = [np.where(self.x==ii)[0][0] for ii in [t0,t1]] # time at indices
+                t0,t1 = (np.where(self.x==ii)[0][0] for ii in [t0,t1]) # time at indices
                 if (t0 == 0) and (t1==(len(self.x)-1)):
                     dx_params = params
                     dx_params['t0'] = row['t_left']
@@ -217,7 +222,7 @@ class GrowthCurve(object):
                     df_dx.append(pd.DataFrame(dx_params,index=[idx]))
 
             df_dx = pd.concat(df_dx,axis=0)
-            df_dx.columns = ['dx_{}'.format(ii) for ii in df_dx.columns]
+            df_dx.columns = [f'dx_{ii}' for ii in df_dx.columns]
 
             params.update({'diauxie':[1 if dx.shape[0] > 1 else 0][0],'df_dx':df_dx})
 
@@ -259,8 +264,10 @@ class GrowthCurve(object):
         self.gr, self.t_gr = maxValueArg(self.x,self.y1)
 
         # compu
-        if self.gr == 0: self.td = np.inf
-        else: self.td = (np.log(2.0))/self.gr
+        if self.gr == 0:
+            self.td = np.inf
+        else:
+            self.td = (np.log(2.0))/self.gr
 
 
     def MinGrowthRate(self,after_max=True):
@@ -271,7 +278,8 @@ class GrowthCurve(object):
         x_K = int(np.where(self.x[:,0]==self.t_K )[0]) # index (not time) at maximum growth
 
         mu = self.y1
-        if after_max: mu = mu[x_K:,0]
+        if after_max:
+            mu = mu[x_K:,0]
 
         x_dr = np.where(mu==mu.min())[0][0]
         t_dr = float(self.x[x_dr+x_K][0])
@@ -282,16 +290,16 @@ class GrowthCurve(object):
 
 
     def StationaryDelta(self):
-    	'''
-    	Computes difference between carrying capcaity and final OD.
-    	'''
-
-    	if self.K_lin <= 0:
-    		self.death_log = 0
-    		self.death_lin = 0
-    	else: 
-    		self.death_log = np.abs(self.y0[-1][0] - self.K_log)
-    		self.death_lin = np.abs(self.linear_output[-1][0] - self.K_lin)
+        '''
+        Computes difference between carrying capcaity and final OD.
+        '''
+        
+        if self.K_lin <= 0:
+            self.death_log = 0
+            self.death_lin = 0
+        else: 
+            self.death_log = np.abs(self.y0[-1][0] - self.K_log)
+            self.death_lin = np.abs(self.linear_output[-1][0] - self.K_lin)
 
 
     def LagTime(self):
@@ -321,8 +329,10 @@ class GrowthCurve(object):
         m1 = y1[x_gr] # slope at maximal growth rate
         m0 = y0[x_gr] # log OD at maximal growth rate
 
-        if m1 == 0: lagC = np.inf # no growth, then infinite lag
-        else: lagC = (t_gr - (m0/m1))[0]
+        if m1 == 0:
+            lagC = np.inf # no growth, then infinite lag
+        else:
+            lagC = (t_gr - (m0/m1))[0]
 
         # PROBABILISTIC MODE
 
@@ -331,10 +341,13 @@ class GrowthCurve(object):
         prob = np.array([norm.cdf(0,m,np.sqrt(v)) for m,v in zip(y1[:,0],np.diag(cov1))])
 
         ind = 0
-        while (ind < prob.shape[0]) and (prob[ind] > confidence): ind += 1
+        while (ind < prob.shape[0]) and (prob[ind] > confidence):
+            ind += 1
 
-        if ind == prob.shape[0]: lagP = np.inf
-        else: lagP = float(self.x[ind][0])
+        if ind == prob.shape[0]:
+            lagP = np.inf
+        else:
+            lagP = float(self.x[ind][0])
 
         self.lagC = lagC
         self.lagP = lagP
@@ -416,11 +429,11 @@ class GrowthCurve(object):
             list_params.append(curve_ii.params)
 
         df_params = pd.DataFrame(list_params)
-        df_params_avg = df_params.mean()
-        df_params_std = df_params.std()
+        df_params_avg = df_params.mean(numeric_only=True)
+        df_params_std = df_params.std(numeric_only=True)
 
-        df_params_avg.index = ['mean({})'.format(ii) for ii in df_params_avg.index]
-        df_params_std.index = ['std({})'.format(ii) for ii in df_params_std.index]
+        df_params_avg.index = [f'mean({ii})' for ii in df_params_avg.index]
+        df_params_std.index = [f'std({ii})' for ii in df_params_std.index]
 
         self.posterior = pd.concat([df_params_avg,df_params_std]).to_dict()
 
@@ -429,8 +442,10 @@ class GrowthCurve(object):
 
     def plot(self,ax_arg=None):
 
-        if not ax_arg: fig,ax = plt.subplots(2,1,figsize=[6,8],sharex=True)
-        else: ax = ax_arg
+        if not ax_arg:
+            fig,ax = plt.subplots(2,1,figsize=[6,8],sharex=True)
+        else:
+            ax = ax_arg
 
         t = self.x.ravel()
         y =  self.y.ravel()
@@ -450,10 +465,12 @@ class GrowthCurve(object):
         ylabel = getValue('hypo_plot_y_label')
         ax[1].set_xlabel('Time',fontsize=20)
         ax[0].set_ylabel(ylabel ,fontsize=20)
-        ax[1].set_ylabel('d/dt {}'.format(ylabel),fontsize=20)
+        ax[1].set_ylabel(f'd/dt {ylabel}',fontsize=20)
 
         ax[0].set_xlim([xmin,xmax])
 
-        if not ax_arg: return fig,ax
-        else: return ax
+        if not ax_arg:
+            return fig,ax
+        else:
+            return ax
 

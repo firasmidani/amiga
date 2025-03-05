@@ -16,13 +16,10 @@ __email__ = "midani@bcm.edu"
 # checkParameterText
 # integerizeDictValues
 
-import argparse
 import os
 import re
-import sys
 
-from libs.comm import smartPrint, tidyDictPrint, tidyMessage
-from libs.utils import selectFileName
+from .comm import smartPrint, tidyDictPrint
 
 
 def interpretParameters(files,args,verbose=False):
@@ -50,7 +47,7 @@ def interpretParameters(files,args,verbose=False):
         ('interval',',',True),
         ('subset',',',False),
         ('flag', ',',False),
-        ('hypothesis','\+|,',False)
+        ('hypothesis',r'\+|,',False)
     ]
     
     # initialize all parameters based on their settings
@@ -87,15 +84,19 @@ def initializeParameter(filepath,arg,sep=',',integerize=False):
     '''
 
     # if user did not provide argument, check for text file
-    if arg is None: param_dict = checkParameterText(filepath,sep=sep)
+    if arg is None:
+        param_dict = checkParameterText(filepath,sep=sep)
 
     # else if user provided argument, parse argument for parameters
-    elif len(arg)>0 and arg.isdigit(): param_dict = float(arg)
+    elif len(arg)>0 and arg.isdigit():
+        param_dict = float(arg)
 
-    elif len(arg)>0: param_dict = checkParameterCommand(arg,sep=sep)
+    elif len(arg)>0:
+        param_dict = checkParameterCommand(arg,sep=sep)
 
     # otherwise, initialize empty dictionary
-    else: param_dict = {};
+    else:
+        param_dict = {}
 
     # if argument parameters should be converted to integers (e.g. time interval)
     if integerize and isinstance(param_dict,dict): 
@@ -103,6 +104,17 @@ def initializeParameter(filepath,arg,sep=',',integerize=False):
     else: 
         return param_dict
 
+def get_sep(sep):
+        '''
+        Ensures safe handling of non-regex separators by re.split()
+
+        Args:
+            sep (str): should be either ',' or '\+|,'
+        
+        Returns:
+            (str)
+        '''
+        return sep if '|' in sep else re.escape(sep)
 
 def checkParameterCommand(command,sep=','):
     '''
@@ -120,16 +132,17 @@ def checkParameterCommand(command,sep=','):
         lines_dict (dict): keys are variables and values are a list of variable instances
     '''
 
-    if command is None: return None
+    if command is None:
+        return None
 
     # strip flanking semicolons and whitespaces then split by semicolons 
-    lines = command.strip('; ').split(';');
+    lines = command.strip('; ').split(';')
 
     # get names of variables (left of semicolons)
     lines_keys = [ii.split(':')[0].strip() for ii in lines]
 
     # get list of valuse or instances for all variables
-    lines_values = [[jj.strip() for jj in re.split(sep,ii.split(':')[1])] for ii in lines]
+    lines_values = [[jj.strip() for jj in re.split(get_sep(sep), ii.split(':')[1])] for ii in lines]
 
     # re-package variables and their list of values or instances into a dictionary
     lines_dict = {ii:jj for ii,jj in zip(lines_keys,lines_values)}
@@ -156,10 +169,10 @@ def checkParameterText(filepath,sep=','):
     lines_dict = {}
 
     if exists:
-        fid = open(filepath,'r')
+        fid = open(filepath)
         for line in fid:
             key,value = line.split(':')
-            values = value.strip('\n').split(sep)
+            values = re.split(get_sep(sep), value.strip('\n'))
             values = [ii.strip() for ii in values]
             values = [float(ii) if ii.isdigit() else ii for ii in values]
             lines_dict[key.strip()] = values
@@ -181,12 +194,15 @@ def integerizeDictValues(dictionary):
     Example: input {'CD630_PM1-1':str(500)} will return {'CD630_PM1-1':int(500)}
     '''
 
-    if dictionary is None: return None
+    if dictionary is None:
+        return None
 
     for key,value in dictionary.items():
 
-        if isinstance(value,list): dictionary[key] = float(value[0])
-        else: dictionary[key] = float(value)
+        if isinstance(value,list):
+            dictionary[key] = float(value[0])
+        else:
+            dictionary[key] = float(value)
 
     return dictionary
 

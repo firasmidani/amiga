@@ -21,15 +21,15 @@ __email__ = "midani@bcm.edu"
 
 import os
 import sys
-import numpy as np
-import pandas as pd
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 
 from string import ascii_uppercase
 
-from libs.config import config
-from libs.detail import parseWellLayout
-from libs.comm import smartPrint
-from libs.org import assemblePath
+from .config import config
+from .detail import parseWellLayout
+from .comm import smartPrint
+from .org import assemblePath
 
 
 def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=False,verbose=False):
@@ -68,7 +68,7 @@ def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=Fals
 
     # user may have passed a specific file or a directory to the input argument
     if filename:
-        filepaths = ['{}{}{}'.format(folderpath,os.sep,filename)]
+        filepaths = [f'{folderpath}{os.sep}{filename}']
     else:
         filepaths = findPlateReaderFiles(folderpath)
     # either way, filepaths must be an iterable list or array
@@ -78,7 +78,7 @@ def readPlateReaderFolder(filename=None,directory=None,interval=dict(),save=Fals
     for filepath in sorted(filepaths):
 
         # communicate with user
-        smartPrint('Reading {}'.format(filepath),verbose)
+        smartPrint(f'Reading {filepath}',verbose)
 
         # get extension-free file name and path for derived copy
         _, filebase, newfilepath = breakDownFilePath(filepath,copydirectory=copydirectory)
@@ -152,7 +152,6 @@ def breakDownFilePath(filepath,copydirectory):
 
     filename = os.path.basename(filepath)
     filebase = '.'.join(filename.split('.')[:-1])
-    dirname = os.path.dirname(filepath)
 
     newfilepath = assemblePath(copydirectory,filebase,'.tsv')
 
@@ -195,18 +194,18 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     df.T.index.name = 'Time'
 
     # remove columns (time points) with only NA values (sometimes happens in plate reader files)
-    df = df.iloc[:,np.where(~df.isna().all(0))[0]]
+    df = df.iloc[:,np.where(~df.isna().all(axis=0))[0]]
 
     # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
-    df = df.iloc[np.where(~df.T.isna().all(0))[0],:]
+    df = df.iloc[not np.where(df.T.isna().all(axis=0))[0],:]
 
     # strip leading zeros in row or well IDs
     df.index = [ii[0] + ii[1:].lstrip('0') for ii in df.index]
 
     try:
         df = df.astype(float)
-    except:
-        msg = '\nFATAL DATA ERROR: {} data file is not properly formatted. '.format(filename)
+    except Exception:
+        msg = f'\nFATAL DATA ERROR: {filename} data file is not properly formatted. '
         msg += 'AMiGA expected measurement values that are numerical integers or floats '
         msg += 'but instead detected strings (text characters). '
         msg += 'Please see documentation for instructions on how to properly format data files. \n'
@@ -238,13 +237,13 @@ def checkFileEncoding(filepath):
     # not sure if ASICC is necesary since ASCII is a subset of UTF-8
     for encoding in ['UTF-8','UTF-16','UTF-32','ASCII']:
         try:
-            open(filepath,'r',encoding=encoding).readline()
+            open(filepath,encoding=encoding).readline()
             return encoding
         except UnicodeDecodeError:
             pass
 
     # exit 
-    msg = 'FATAL DATA ERROR: AMiGA cannot read{}. '.format(filepath)
+    msg = f'FATAL DATA ERROR: AMiGA cannot read{filepath}. '
     msg += 'AMiGA can only read data text files encoded with either '
     msg += 'UTF-8, UTF-16, UTF-32, or ASCII.\n'
     sys.exit(msg) 
@@ -266,7 +265,7 @@ def findRowsAndIndex(filepath,encoding):
         index_column (0 or None): location of row namess, if found as first character (0) or not found (None) 
     '''
 
-    fid = open(filepath,'r',encoding=encoding)
+    fid = open(filepath,encoding=encoding)
 
     firstrow = 0
     for line in fid.readlines():
@@ -286,7 +285,7 @@ def findRowsAndIndex(filepath,encoding):
     #     that would have required reading eahc line of the file. If the file is very large, this can 
     #     increase time. Instead, I simply reverse the iterated lines and stop reading once Well ID is detected.
 
-    fid = open(filepath,'r',encoding=encoding)
+    fid = open(filepath,encoding=encoding)
 
     lastrow = 0
     for line in reversed(fid.readlines()):
