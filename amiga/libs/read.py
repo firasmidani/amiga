@@ -194,10 +194,10 @@ def readPlateReaderData(filepath,interval,copydirectory,save=False):
     df.T.index.name = 'Time'
 
     # remove columns (time points) with only NA values (sometimes happens in plate reader files)
-    df = df.iloc[:,np.where(~df.isna().all(axis=0))[0]]
+    df = df.iloc[:,np.where(df.notna().all(axis=0))[0]]
 
     # remove rows (smples) with only NA values (happens if there is meta-data in file after measurements)
-    df = df.iloc[not np.where(df.T.isna().all(axis=0))[0],:]
+    df = df.iloc[np.where(df.T.notna().all(axis=0))[0],:]
 
     # strip leading zeros in row or well IDs
     df.index = [ii[0] + ii[1:].lstrip('0') for ii in df.index]
