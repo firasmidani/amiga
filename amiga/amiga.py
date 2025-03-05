@@ -79,11 +79,7 @@ class AMiGA:
         parser.add_argument('command', help='Subcommand to run. See amiga --help for more details.')
         parser.add_argument('-v','--version', action="version", version=f"amiga {importlib.metadata.version('amiga')}", help="Show version and exit.")
 
-        if len(sys.argv) == 1:
-            parser.print_help()
-            sys.exit(0)
-
-        args = parser.parse_args(sys.argv[1:])
+        args = parser.parse_args(sys.argv[1:2])
 
         if not hasattr(self,args.command ):
             print(f"Error: Unknown command '{args.command}'\n")
@@ -374,8 +370,7 @@ class AMiGA:
         args = parser.parse_args(sys.argv[2:])
 
         args.subset = None  ## subsetting is not implemented
-
-        args.hypothesis = None
+        args.hypothesis = None ## hypothis are not implemented
 
         if args.verbose:
             print_arguments(args)

@@ -20,7 +20,7 @@ use_math: true
 
 ## Instructions for Advanced Users
 
-`AMiGA` is available on `PyPI` and `bioconda` and can be installed by any of the following. I recommend that you create a virutal environment then install `AMiGA``. 
+`AMiGA` is available on `PyPI` and `bioconda` and can be installed by any of the following. It cna be installed and run with Python 3.12 (other versions will have conflicts). I recommend that you create a virutal environment then install `AMiGA``. 
 
 ```
 conda create -n amiga-env bioconda::amiga
