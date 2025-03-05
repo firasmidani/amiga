@@ -1,6 +1,9 @@
 name: Publish AMiGA to TestPyPI
 
-on: push
+on:
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
