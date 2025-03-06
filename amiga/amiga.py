@@ -39,7 +39,7 @@ from amiga.libs.config import config
 
 usage_init = '''amiga <command> [<args>]
 
-The most commnly used amiga commands are:
+The most commonly used amiga commands are:
     summarize       Perform basic summary and plot curves
     fit             Fit growth curves
     normalize       Normalize growth parameters of fitted curves

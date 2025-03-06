@@ -12,96 +12,112 @@ use_math: true
 
 * TOC
 {:toc}
-<br />
+<br>
 
-`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. It is compatible with Python version 3.12 or lower.
+`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. It is compatible with Python versions 3.10, 3.11, and 3.12.
 
-<br />
+<br>
 
 ## Instructions for Advanced Users
 
-`AMiGA` is available on `PyPI` and `bioconda` and can be installed by any of the following. It cna be installed and run with Python 3.12 (other versions will have conflicts). I recommend that you create a virutal environment then install `AMiGA``. 
-
-```
-conda create -n amiga-env bioconda::amiga
-```
-
-```
-mamba create -n amiga-env bioconda::amiga
-```
+`AMiGA` is available on [`PyPI`](https://pypi.org/project/amiga/) and [`Bioconda`](https://anaconda.org/bioconda/amiga) and can be installed by any of the following. It is compatible with Python versions 3.10, 3.11, and 3.12. I recommend that you create a virtual environment for `AMiGA`. 
 
 ```
 pip install amiga
 ```
 
-You can test your installation by pulling up the help mneu.
-
 ```
-mamba activate amiga
-amiga -h
+conda install bioconda::amiga
 ```
 
-If you would like to build `AMiGA` locally, then
+```
+mamba install bioconda::amiga
+```
+<br>
+
+If you would like to build `AMiGA` locally, then do the following.
 
 ```
 git clone https://github.com/firasmidani/amiga
 cd amiga
-python -m build .
-python -m pip install dist/amiga*.whl
+python3 -m install build
+python3 -m build .
+python3 -m pip install dist/amiga*whl
 ```
+<br>
+
+You can test your installation by pulling up the help menu.
+
+```
+amiga -v              # display AMiGA version numbers
+amiga -h              # help menu
+amiga summarize -h    # help menu for summarize command
+```
+<br>
 
 ## Instructions for Beginners
 
-#### 1. Install Miniforge3
+### 1. Install Miniforge3
 
-Install `Miniforge`. Follow instructions that are specific to your operating system here: 
-https://github.com/conda-forge/miniforge
+Install `Miniforge` from [here](https://github.com/conda-forge/miniforge) and follow the steps that are specific to your operating system.
 
-Miniforge will allow you to use `conda` and `mamba` which are software that can help you install and run `AMiGA` on your machine. These software are environment management systems. In other words, they will let you create a unique environment on your machine to run `AMiGA` without affecting other environments that you create to run other software beyond `AMiGA`.
+Miniforge will allow you to use `conda` and `mamba` which are software that can help you install and run `AMiGA` on your machine. These software are environment management systems. In other words, they will let you create a unique environment on your machine to run `AMiGA` without affecting other environments that you create to run other software.
 
 `mamba` is essentially a faster alternative to conda. We will use it below. If you prefer to use `conda`, then, you can simply replace all `mamba` instances below with `conda`.
 
 ### 2. Initialize mamba/conda
 
-`mamba init`
+```
+mamba init
+```
 
 This will simply tell your computer where to find `mamba` on your machine. 
 
 ### 3. Install AMiGA
 
-`mamba create -n amiga-env bioconda::amiga`
+```
+mamba create -n amiga-env bioconda::amiga
+```
 
-This will create an environment claled `amiga-env` and install `AMiGA` inside this environemnt. This step will take a couple of minutes.
+This will create an environment called `amiga-env` and install `AMiGA` inside this environment. This step will take a couple of minutes.
 
 ### 4. Test AMiGA
 
-`mamba activate amiga-env`
+```
+mamba activate amiga-env
+```
 
-This wiill activate the `amiga-env` environment. Now, your terminal should know where and how to run `AMiGA`. So, let's pull up the help menu. 
+This will activate the `amiga-env` environment. Now, your terminal should know where and how to run `AMiGA`. So, try to pull up the help menu. 
 
-`amiga -h`
+```
+amiga -v              # display AMiGA version numbers
+amiga -h              # help menu
+amiga summarize -h    # help menu for summarize command
+```
 
 You should get the following
 
 ```bash
 usage: amiga <command> [<args>]
 
-The most commnly used amiga.py commands are:
+The most commonly used amiga commands are:
     summarize       Perform basic summary and plot curves
     fit             Fit growth curves
     normalize       Normalize growth parameters of fitted curves
     compare         Compare summary statistics for two growth curves
     test            Test a specific hypothesis
     heatmap         Plot a heatmap
+    get_confidence  Compute confidence intervals for parameters or curves
     get_time        Get time at which growth reaches a certain value
     print_defaults  Shows the default values stored in libs/config.py
 
-See `amiga.py <command> --help` for information on a specific command.
+See `amiga <command> --help` for information on a specific command.
 For full documentation, see https://firasmidani.github.io/amiga
 
 positional arguments:
-  command     Subcommand to run. See amiga.py --help for more details.
+  command        Subcommand to run. See amiga --help for more details.
 
-optional arguments:
-  -h, --help  show this help message and exit
+options:
+  -h, --help     show this help message and exit
+  -v, --version  Show version and exit.
 ```
