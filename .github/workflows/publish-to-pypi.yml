@@ -1,4 +1,4 @@
-name: Publish AMiGA to TestPyPI
+name: Publish AMiGA to PyPI
 
 on:
   push:
@@ -32,17 +32,17 @@ jobs:
         name: python-package-distributions
         path: dist/
   
-  publish-to-testpypi:
+  publish-to-pypi:
     name: >-
-      Publish the AMiGA distribution to TestPyPI
+      Publish the AMiGA distribution to PyPI
     if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
     needs:
     - build
     runs-on: ubuntu-latest
 
     environment:
-      name: testpypi
-      url: https://test.pypi.org/p/amiga
+      name: pypi
+      url: https://pypi.org/p/amiga
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -53,17 +53,17 @@ jobs:
           with:
             name: python-package-distributions
             path: dist/
-        - name: Publish distribution to TestPyPI
+        - name: Publish distribution to PyPI
           uses: pypa/gh-action-pypi-publish@release/v1
           with:
-            repository-url: https://test.pypi.org/legacy/
+            repository-url: https://pypi.org/legacy/
             
   github-release:
     name: >-
       Sign the AMiGA distribution with Sigstore
       and upload them to GitHub Release
     needs:
-    - publish-to-testpypi
+    - publish-to-pypi
     runs-on: ubuntu-latest
 
     permissions:
