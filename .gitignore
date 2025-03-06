@@ -15,6 +15,7 @@
 *.swp
 
 # gitignore IDE-created filse
+.vscode/*
 */.vscode/*
 
 # gitignore local jekyll server

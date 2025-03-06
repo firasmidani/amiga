@@ -14,11 +14,8 @@ use_math: true
 {:toc}
 <br>
 
-`AMiGA` is designed for use by scientists with different backgrounds in bioinformatics. It is compatible with Python versions 3.10, 3.11, and 3.12.
 
-<br>
-
-## Instructions for Advanced Users
+# Instructions for Advanced Users
 
 `AMiGA` is available on [`PyPI`](https://pypi.org/project/amiga/) and [`Bioconda`](https://anaconda.org/bioconda/amiga) and can be installed by any of the following. It is compatible with Python versions 3.10, 3.11, and 3.12. I recommend that you create a virtual environment for `AMiGA`. 
 
@@ -55,9 +52,9 @@ amiga summarize -h    # help menu for summarize command
 ```
 <br>
 
-## Instructions for Beginners
+# Instructions for Beginners
 
-### 1. Install Miniforge3
+## 1. Install Miniforge3
 
 Install `Miniforge` from [here](https://github.com/conda-forge/miniforge) and follow the steps that are specific to your operating system.
 
@@ -65,7 +62,7 @@ Miniforge will allow you to use `conda` and `mamba` which are software that can 
 
 `mamba` is essentially a faster alternative to conda. We will use it below. If you prefer to use `conda`, then, you can simply replace all `mamba` instances below with `conda`.
 
-### 2. Initialize mamba/conda
+## 2. Initialize mamba/conda
 
 ```
 mamba init
@@ -73,7 +70,7 @@ mamba init
 
 This will simply tell your computer where to find `mamba` on your machine. 
 
-### 3. Install AMiGA
+## 3. Install AMiGA
 
 ```
 mamba create -n amiga-env bioconda::amiga
@@ -81,7 +78,7 @@ mamba create -n amiga-env bioconda::amiga
 
 This will create an environment called `amiga-env` and install `AMiGA` inside this environment. This step will take a couple of minutes.
 
-### 4. Test AMiGA
+## 4. Test AMiGA
 
 ```
 mamba activate amiga-env
