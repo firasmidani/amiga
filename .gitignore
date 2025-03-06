@@ -14,6 +14,9 @@
 # gitignore Vim-created swp files
 *.swp
 
+# gitignore IDE-created filse
+*/.vscode/*
+
 # gitignore local jekyll server
 .jekyll-cache
 Gemfile
