@@ -1,4 +1,4 @@
-# AMiGA
+<img src="docs/images/amiga-by-clare.PNG" alt="drawing" style="width:400px;"/></img>
 
 ![amiga logo](../images/amiga-by-clare.PNG){:width="100px"}
 
