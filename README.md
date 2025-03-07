@@ -1,7 +1,5 @@
 <img src="docs/images/amiga-by-clare.PNG" alt="drawing" style="width:400px;"/></img>
 
-![amiga logo](../images/amiga-by-clare.PNG){:width="100px"}
-
 **A**nalysis of **Mi**crobial **G**rowth **A**ssays is a user-friendly program for analysis of high-throughput microbial growth assays using Gaussian Process regression. Users can interact with `AMiGA` via a command-line interface.
 
 ## Documentation:
