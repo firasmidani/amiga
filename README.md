@@ -1,5 +1,5 @@
 
-![amiga logo](https://github.com/firasmidani/amiga/blob/master/docs/images/amiga-by-clare.PNG)
+<img src="https://github.com/firasmidani/amiga/blob/master/docs/images/amiga-by-clare.PNG" alt="amiga logo" width="250">
 
 ##
 
