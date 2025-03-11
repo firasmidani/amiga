@@ -15,21 +15,26 @@ use_math: true
 ## Install Python
   
 1. Download Python 3.12.9 from https://www.python.org/downloads/
+
 2. Open the downloaded file. 
+
 3. During installation, make sure to check a box that says "Add Python to PATH". 
 <br>
 
 ## Verify installation
 
 Open your `Command Prompt` or `Terminal`, and type the following which will display your python version. 
+
 ```bash
 python --version
 ```
+
 <br>
 
 ## Create a virtual environment
 
 1. Open `Command Prompt` or `Terminal`
+
 2. Navigate to folder where you want to create the virtual environment. For example, 
 
 ```bash
