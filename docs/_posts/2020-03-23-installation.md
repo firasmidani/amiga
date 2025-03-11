@@ -18,7 +18,7 @@ use_math: true
 
  `AMiGA` is available on [`PyPI`](https://pypi.org/project/amiga/) and [`Bioconda`](https://anaconda.org/bioconda/amiga) and is compatible with Python versions 3.10, 3.11, and 3.12. 
 
-![amiga install table](../images/amiga-install-table.png){:width="250px"}
+![amiga install table](../images/amiga-install-table.png){:width="500px"}
 
 <u>Note to Windows users</u>: If you would like to install `AMiGA` with `conda/mamba`, you will need to use the Windows Subsystem for Linux, becuase `AMiGA` is only available through the `bioconda` channels for linux and mac systems. 
 
