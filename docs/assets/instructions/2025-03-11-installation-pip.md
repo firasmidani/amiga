@@ -12,7 +12,7 @@ use_math: true
 {:toc}
 <br />
 
-## Install Python
+### Install Python
   
 Download Python 3.12.9 from https://www.python.org/downloads/
 
@@ -21,17 +21,16 @@ Open the downloaded file.
 During installation, make sure to check a box that says "Add Python to PATH". 
 <br>
 
-## Verify installation
+### Verify installation
 
 Open your `Command Prompt` or `Terminal`, and type the following which will display your python version. 
 
 ```bash
 python --version
 ```
-
 <br>
 
-## Create a virtual environment
+### Create a virtual environment
 
 Open `Command Prompt` or `Terminal`. Then, navigate to folder where you want to create the virtual environment. For example, 
 
@@ -60,7 +59,7 @@ source amiga-env/bin/activate
 ```
 <br>
 
-## Install AMiGA
+### Install AMiGA
 Type the following in your `Command Prompt` or `Terminal`
 
 ```bash
@@ -101,7 +100,7 @@ options:
 ```
 <br>
 
-## Running AMiGA in the future
+### Running AMiGA in the future
 Open `Command Prompt` or `Terminal`. Then, navigate to where you installed the virtual environment
 
 ```bash

@@ -20,7 +20,7 @@ use_math: true
 
 ![amiga install table](../images/amiga-install-table.png){:width="500px"}
 
-<u>Note to Windows users</u>: If you would like to install `AMiGA` with `conda/mamba`, you will need to use the Windows Subsystem for Linux, becuase `AMiGA` is only available through the `bioconda` channels for linux and mac systems. 
+<u>Note to Windows users</u>: If you would like to install `AMiGA` with `conda/mamba`, you will need to use the Windows Subsystem for Linux, becuase `AMiGA` is only available through the `bioconda` channel for linux and mac systems. 
 
 <u>Note to all users</u>: To avoid dependency conflicts, I recommend that you create a virtual environment for `AMiGA`. 
 * For `pip` users, see  [Install packages in a virtual environment using pip and ven](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/).
