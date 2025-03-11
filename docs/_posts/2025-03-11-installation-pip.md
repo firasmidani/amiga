@@ -31,6 +31,7 @@ python --version
 
 1. Open `Command Prompt` or `Terminal`
 2. Navigate to folder where you want to create the virtual environment. For example, 
+
 ```bash
 # windows users
 cd C:\Users\midani\apps\
@@ -38,11 +39,15 @@ cd C:\Users\midani\apps\
 # mac/linux users
 cd /Users/midani/apps
 ```
+
 3. Create environemnt
+
 ```bash
 python -m venv amiga-env
 ```
+
 4. Activate the environment
+
 ```bash
 # windows users
 amiga-env\Scripts\activate
@@ -54,13 +59,17 @@ source amiga-env/bin/activate
 
 ## Install AMiGA
 1.  Type the following in your `Command Prompt` or `Terminal`
+
 ```bash
 pip install amiga
 ```
+
 2. Verify that installation worked
+
 ```bash
 amiga -h
 ```
+
 If everything is correc,t you will see the main `amiga` help menu. 
 
 ```bash
@@ -91,11 +100,15 @@ options:
 
 ## Running AMiGA in the future
 1. Open `Command Prompt` or `Terminal`
+
 2. Navigate to where you installed the virtual environment
+
 ```bash
 cd C:\Users\midani\apps\
 ```
+
 3. Activate the environment
+
 ```bash
 # windows users
 amiga-env\Scripts\activate
@@ -103,11 +116,15 @@ amiga-env\Scripts\activate
 # mac/inux suers
 source amiga-env/bin/activate
 ```
+
 4. Now, you can run AMiGA
+
 ```bash
 amiga --help
 ```
+
 5. \[Optional\] Deactivate when done working with AMiGA.
+
 ```bash
 deactivate
 ```
