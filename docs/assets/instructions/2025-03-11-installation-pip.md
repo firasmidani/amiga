@@ -14,11 +14,11 @@ use_math: true
 
 ## Install Python
   
-1. Download Python 3.12.9 from https://www.python.org/downloads/
+Download Python 3.12.9 from https://www.python.org/downloads/
 
-2. Open the downloaded file. 
+Open the downloaded file. 
 
-3. During installation, make sure to check a box that says "Add Python to PATH". 
+During installation, make sure to check a box that says "Add Python to PATH". 
 <br>
 
 ## Verify installation
@@ -33,9 +33,7 @@ python --version
 
 ## Create a virtual environment
 
-1. Open `Command Prompt` or `Terminal`
-
-2. Navigate to folder where you want to create the virtual environment. For example, 
+Open `Command Prompt` or `Terminal`. Then, navigate to folder where you want to create the virtual environment. For example, 
 
 ```bash
 # windows users
@@ -45,13 +43,13 @@ cd C:\Users\midani\apps\
 cd /Users/midani/apps
 ```
 
-3. Create environemnt
+Create environemnt
 
 ```bash
 python -m venv amiga-env
 ```
 
-4. Activate the environment
+Activate the environment
 
 ```bash
 # windows users
@@ -63,13 +61,13 @@ source amiga-env/bin/activate
 <br>
 
 ## Install AMiGA
-1.  Type the following in your `Command Prompt` or `Terminal`
+Type the following in your `Command Prompt` or `Terminal`
 
 ```bash
 pip install amiga
 ```
 
-2. Verify that installation worked
+Verify that installation worked
 
 ```bash
 amiga -h
@@ -104,15 +102,13 @@ options:
 <br>
 
 ## Running AMiGA in the future
-1. Open `Command Prompt` or `Terminal`
-
-2. Navigate to where you installed the virtual environment
+Open `Command Prompt` or `Terminal`. Then, navigate to where you installed the virtual environment
 
 ```bash
 cd C:\Users\midani\apps\
 ```
 
-3. Activate the environment
+Activate the environment
 
 ```bash
 # windows users
@@ -122,13 +118,13 @@ amiga-env\Scripts\activate
 source amiga-env/bin/activate
 ```
 
-4. Now, you can run AMiGA
+Now, you can run AMiGA
 
 ```bash
 amiga --help
 ```
 
-5. \[Optional\] Deactivate when done working with AMiGA.
+\[Optional\] Deactivate when done working with AMiGA.
 
 ```bash
 deactivate
