@@ -1,5 +1,5 @@
 
-<img src="docs/images/amiga-by-clare.PNG" alt="drawing" style="width:400px;"/></img>
+[amiga logo](https://github.com/firasmidani/amiga/blob/master/docs/images/amiga-by-clare.PNG)
 
 ##
 
