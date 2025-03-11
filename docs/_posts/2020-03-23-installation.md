@@ -72,9 +72,9 @@ These are instructions for beginners who have never used python packages or need
 
 ### Installing AMiGA with pip 
 
-I recommend that you install `AMiGA` with `pip` if you use Windows and do not want to install Windows Subsystems for Linux. See detailed instructions [here](/amiga/doc/installation-miniforge.html). 
+I recommend that you install `AMiGA` with `pip` if you use Windows and do not want to install Windows Subsystems for Linux. See detailed instructions [here](/amiga/doc/installation-pip.html). 
 
 ### Installing AMiGA with conda/mamba
 
-Otherwise, I recommend that you install `AMiGA` with `conda` or `mamba`. See detailed instructions [here](/amiga/doc/installation-pip.html). 
+Otherwise, I recommend that you install `AMiGA` with `conda` or `mamba`. See detailed instructions [here](/amiga/doc/installation-miniforge.html). 
 
