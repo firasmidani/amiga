@@ -35,6 +35,8 @@ from .params import articulateParameters, prettyifyParameterReport
 from .plot import addRealPlotLine, addMVNPlotLine, setAxesLabels
 from .plot import dynamicWindowAdjustment, plotDeltaOD, savePlotWithLegends
 
+pd.set_option('future.no_silent_downcasting', True)
+
 
 class HypothesisTest:
 

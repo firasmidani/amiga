@@ -43,6 +43,8 @@ from .comm import smartPrint
 from .detail import parseWellLayout
 from .utils import subsetDf, handle_non_pos, getPlotColors, getTextColors, getValue, getTimeUnits
 
+pd.set_option('future.no_silent_downcasting', True)
+
 
 class GrowthPlate:
 
