@@ -81,6 +81,6 @@ options:
   -v, --version  Show version and exit.
 ```
 
-## Run AMiGA in the future
+### Run AMiGA in the future
 
 Open your `Terminal`, type `mamba activate amiga-env`, and you are ready to analyze your data. 
