@@ -24,7 +24,7 @@ Miniforge will allow you to use `conda` and `mamba` which are software that can 
 
 Open your `Terminal` and type
 
-```bash
+```
 mamba init
 ```
 
@@ -34,7 +34,7 @@ This will simply tell your computer where to find `mamba` on your machine. Close
 
 Re-open the terminal and type
 
-```bash
+```
 mamba create -n amiga-env bioconda::amiga
 ```
 
@@ -42,13 +42,13 @@ This will create an environment called `amiga-env` and install `AMiGA` inside th
 
 ### Test AMiGA
 
-```bash
+```
 mamba activate amiga-env
 ```
 
 This will activate the `amiga-env` environment. Now, your terminal should know where and how to run `AMiGA`. So, try to pull up the help menu. 
 
-```bash
+```
 amiga -v              # display AMiGA version numbers
 amiga -h              # help menu
 amiga summarize -h    # help menu for summarize command
@@ -56,7 +56,7 @@ amiga summarize -h    # help menu for summarize command
 
 You should get the following
 
-```bash
+```
 usage: amiga <command> [<args>]
 
 The most commonly used amiga commands are:
