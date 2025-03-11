@@ -1,5 +1,5 @@
 
-[amiga logo](https://github.com/firasmidani/amiga/blob/master/docs/images/amiga-by-clare.PNG)
+![amiga logo](https://github.com/firasmidani/amiga/blob/master/docs/images/amiga-by-clare.PNG)
 
 ##
 
