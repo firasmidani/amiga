@@ -12,13 +12,12 @@ use_math: true
 {:toc}
 <br />
 
-These instructions are tailored for Windows users. 
-
 ## Install Python
   
 1. Download Python 3.12.9 from https://www.python.org/downloads/
 2. Open the downloaded file. 
 3. During installation, make sure to check a box that says "Add Python to PATH". 
+<br>
 
 ## Verify installation
 
@@ -26,12 +25,13 @@ Open your `Command Prompt` or `Terminal`, and type the following which will disp
 ```
 python --version
 ```
+<br>
 
 ## Create a virtual environment
 
-1. Open `Command Prompt`
+1. Open `Command Prompt` or `Terminal`
 2. Navigate to folder where you want to create the virtual environment. For example, 
-```
+```bash
 # windows users
 cd C:\Users\midani\apps\
 
@@ -50,9 +50,10 @@ amiga-env\Scripts\activate
 # mac/inux suers
 source amiga-env/bin/activate
 ```
+<br>
 
 ## Install AMiGA
-1.  Type the following
+1.  Type the following in your `Command Prompt` or `Terminal`
 ```
 pip install amiga
 ```
@@ -86,9 +87,10 @@ options:
   -h, --help     show this help message and exit
   -v, --version  Show version and exit.
 ```
+<br>
 
 ## Running AMiGA in the future
-1. Open `Command Prompt`
+1. Open `Command Prompt` or `Terminal`
 2. Navigate to where you installed the virtual environment
 ```
 cd C:\Users\midani\apps\
