@@ -20,6 +20,7 @@ Open the downloaded file.
 
 During installation, make sure to check a box that says "Add Python to PATH". 
 <br>
+<br>
 
 ### Verify installation
 
