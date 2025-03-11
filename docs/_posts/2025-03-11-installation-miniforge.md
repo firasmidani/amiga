@@ -12,7 +12,7 @@ use_math: true
 {:toc}
 <br />
 
-### 1. Install Miniforge3
+### Install Miniforge3
 
 Install `Miniforge` from [here](https://github.com/conda-forge/miniforge) and follow the steps that are specific to your operating system.
 
@@ -20,35 +20,35 @@ Miniforge will allow you to use `conda` and `mamba` which are software that can 
 
 `mamba` is essentially a faster alternative to conda. We will use it below. If you prefer to use `conda`, then, you can simply replace all `mamba` instances below with `conda`.
 
-### 2. Initialize mamba/conda
+### Initialize mamba/conda
 
 Open your `Terminal` and type
 
-```
+```bash
 mamba init
 ```
 
 This will simply tell your computer where to find `mamba` on your machine. Close the terminal.
 
-### 3. Install AMiGA
+### Install AMiGA
 
 Re-open the terminal and type
 
-```
+```bash
 mamba create -n amiga-env bioconda::amiga
 ```
 
 This will create an environment called `amiga-env` and install `AMiGA` inside this environment. This step will take a couple of minutes.
 
-### 4. Test AMiGA
+### Test AMiGA
 
-```
+```bash
 mamba activate amiga-env
 ```
 
 This will activate the `amiga-env` environment. Now, your terminal should know where and how to run `AMiGA`. So, try to pull up the help menu. 
 
-```
+```bash
 amiga -v              # display AMiGA version numbers
 amiga -h              # help menu
 amiga summarize -h    # help menu for summarize command
